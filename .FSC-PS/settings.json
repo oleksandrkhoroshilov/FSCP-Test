@@ -1,0 +1,7 @@
+{
+    "type":"FSCM",
+    "packageName": "ContosoExtension",
+    "buildVersion": "10.0.40",
+    "ciBranches": "main,release",
+    "deploymentScheduler":false
+}
