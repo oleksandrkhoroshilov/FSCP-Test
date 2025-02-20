@@ -1,4 +1,4 @@
-name: (DEPLOY)
+﻿name: (DEPLOY)
 
 on:
   workflow_dispatch:
@@ -9,7 +9,9 @@ on:
         default: ''
         type: choice
         options:
-        - "*"
+         - "*"
+         - "Contoso-QA"
+
 
 permissions:
   contents: read
@@ -20,7 +22,7 @@ defaults:
 
 jobs:
    Initialization:
-    runs-on: [ windows-latest ]
+    runs-on: [windows-latest]
     outputs:
       type: ${{ steps.ReadSettings.outputs.type }}
       source_branch: ${{ steps.ReadSettings.outputs.source_branch }}
