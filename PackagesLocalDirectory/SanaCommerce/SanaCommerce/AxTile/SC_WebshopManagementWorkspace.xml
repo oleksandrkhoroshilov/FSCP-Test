@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTile xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SC_WebshopManagementWorkspace</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<ImageLocation>AOTResource</ImageLocation>
+	<MenuItemName>SC_WebshopManagementWorkspace</MenuItemName>
+	<NormalImage>SC_SanaImg</NormalImage>
+	<Size>Wide</Size>
+	<TileDisplay>BackgroundImage</TileDisplay>
+</AxTile>

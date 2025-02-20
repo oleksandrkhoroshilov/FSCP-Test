@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DocAzureHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Docentric.AX.Storage.Azure;
+using Docentric.AX.Storage.Azure.Exceptions;
+using Docentric.AX.Storage.Azure.BlobStorage;
+
+/// <summary>
+/// Helper class for dealing with Azure.
+/// </summary>
+public class DocAzureHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getStorageAccountConnectionString</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the connection string for the given Azure storage account ID.
+    /// If Azure storage account ID is not provided, the internal Azure storage is used.
+    /// In this case the null connection string is returned.
+    /// </summary>
+    /// <param name = "_azureStorageId">Azure storage account id</param>
+    /// <param name = "_showErrorMsg">Should error be shown</param>
+    /// <param name = "_throwError">Should error be thrown if occurs</param>
+    /// <returns>
+    /// Returns:
+    ///     - connection string, if Azure storage account ID is provided
+    ///     - null, if Azure storage account ID is NOT provided (internal Azure storage is used)
+    ///     - empty string in case of error
+    /// </returns>
+    public static System.String getStorageAccountConnectionString(
+        str _azureStorageId = '',
+        boolean _showErrorMsg = true,
+        boolean _throwError = true)
+    {
+        System.String connectionString = null;
+
+        if (_azureStorageId)
+        {
+            connectionString = DocAzureStorageAccount::getConnectionStringByAccountId(_azureStorageId);
+            if (!connectionString)
+            {
+                if (_showErrorMsg)
+                {
+                    DocGlobalHelper::handleError(strFmt("@DocentricAX3:AzureStorageAccountConnectionStringError", _azureStorageId), true, funcName(), _throwError);
+                }
+            }
+        }
+
+        return connectionString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStorageAccountInfo</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets storage account information for error messages.
+    /// </summary>
+    /// <param name = "_azureStorageId">Azure storage account id</param>
+    /// <returns>Storage account info</returns>
+    public static str getStorageAccountInfo(str _azureStorageId = '')
+    {
+        return _azureStorageId == '' ? '' : (' ' + strFmt("@DocentricAX3:AzureStorageAccountGetStorageAccountInfo", _azureStorageId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStorageAccountInfoExt</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets storage account information for error messages with the instructions to check connection string.
+    /// </summary>
+    /// <param name = "_azureStorageId">Azure storage account id</param>
+    /// <returns>Storage account info</returns>
+    public static str getStorageAccountInfoExt(str _azureStorageId = '')
+    {
+        str azureStorageAccountInfoExtMsg = DocAzureHelper::getStorageAccountInfo(_azureStorageId);
+        if (_azureStorageId && azureStorageAccountInfoExtMsg)
+        {
+            azureStorageAccountInfoExtMsg = azureStorageAccountInfoExtMsg + '. ' + strFmt("@DocentricAX3:CheckAzureStorageConnectionStringAdvice", _azureStorageId);
+        }
+        return azureStorageAccountInfoExtMsg;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertToStorageAccessType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Converts connection string type to Azure storage access type
+    /// </summary>
+    /// <param name = "_connectionStringType">Connection string type.</param>
+    /// <returns>Azure storage access type.</returns>
+    public static DocAzureStorageAccessType convertToStorageAccessType(DocStorageAccountConnectionStringType _connectionStringType)
+    {
+        DocAzureStorageAccessType accessType = DocAzureAccessType::Unknown;
+
+        switch (_connectionStringType)
+        {
+            case DocStorageAccountConnectionStringType::FullAccess:
+            case DocStorageAccountConnectionStringType::Development:
+                accessType = DocAzureAccessType::FullAccess;
+                break;
+
+            case DocStorageAccountConnectionStringType::RoleBasedAccess:
+                accessType = DocAzureAccessType::RoleBasedAccess;
+                break;
+
+            default:
+                accessType = DocAzureAccessType::Unknown;
+                break;
+        }
+
+        return accessType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStorageAccountAccessType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns Azure storage access type. 
+    /// </summary>
+    /// <param name = "_connectionString">Connection string as string with settings/value pair</param>
+    /// <param name = "_azureStorageId">Azure storage account id</param>
+    /// <param name = "_showErrorMsg">Should error be shown</param>
+    /// <param name = "_throwError">Should error be thrown if occurs</param>
+    /// <returns>Azure storage access type.</returns>
+    public static DocAzureStorageAccessType getStorageAccountAccessType(
+        str _connectionString,
+        str _azureStorageId = '',
+        boolean _showErrorMsg = false,
+        boolean _throwError = false)
+    {
+        DocAzureStorageAccessType accessType = DocAzureAccessType::Unknown;
+        str errorMsg = strFmt("@DocentricAX3:AzureStorageAccountTestConnectionError", _azureStorageId);
+
+        try
+        {
+            accessType = DocAzureHelper::getStorageAccountAccessTypeInternal(_connectionString);
+        }
+        catch (Exception::CLRError)
+        {
+            if (_showErrorMsg)
+            {
+                DocGlobalHelper::handleClrError(funcName(), errorMsg, _throwError);
+            }
+        }
+
+        return accessType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStorageAccountAccessTypeInternal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the Azure storage access type from the validated connection string.
+    /// </summary>
+    /// <param name = "_connectionString">Connection string.</param>
+    /// <returns>Storage account access type which is supported by connection string.</returns>
+    /// <exception cref="Docentric.AX.Storage.Azure.Exceptions.AzureStorageInvalidConnectionStringException">Occurs when input connection string is invalid.</exception>
+    /// <exception cref="Docentric.AX.Storage.Azure.Exceptions.FormatException">Occurs when input connection string is int he wrong format.</exception>
+    /// <exception cref="Docentric.AX.Storage.Azure.Exceptions.ArgumentNullException">Occurs when input connection string is null.</exception>
+    private static DocAzureStorageAccessType getStorageAccountAccessTypeInternal(str _connectionString)
+    {
+        DocAzureStorageAccessType accessType = DocAzureAccessType::Unknown;
+
+        DocStorageAccountConnectionStringType connectionStringType = StorageAccountConnectionStringHelper::ValidateConnectionString(_connectionString);
+        accessType = DocAzureHelper::convertToStorageAccessType(connectionStringType);
+
+        return accessType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateStorageAccountConnectionString</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Generates connection string from separated connection string setting
+    /// </summary>
+    /// <param name = "_connectionStringSettings">Connection string settings.</param>
+    /// <param name = "_showErrorMsg">Should error be shown</param>
+    /// <param name = "_throwError">Should error be thrown if occurs</param>
+    /// <returns>Generated connection string for role based access.</returns>
+    public static str generateStorageAccountConnectionString(
+        DocStorageAccountConnectionStringSettings _connectionStringSettings,
+        boolean _showErrorMsg = false,
+        boolean _throwError = false)
+    {
+        str errorMsg = "@DocentricAX5:DocAzureStorageConnectionStringGenerateError";
+        str connectionString = '';
+
+        try
+        {
+            StorageAccountConnectionStringHelper::GetConnectionStringAndType(_connectionStringSettings, byref connectionString);
+        }
+        catch (Exception::CLRError)
+        {
+            if (_showErrorMsg)
+            {
+                DocGlobalHelper::handleClrError(funcName(), errorMsg, _throwError);
+            }
+        }
+
+        return connectionString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testAzureStorageAccountConnection</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Test connection and validate connection string for current storage account
+    /// </summary>
+    /// <param name = "_docAzureStorageAccount">The DocaAzureStorageAccount table buffer.</param>
+    /// <param name = "_doUpdate">Should update the fields in the DocaAzureStorageAccount table buffer.</param>
+    public static void testAzureStorageAccountConnection(DocAzureStorageAccount _docAzureStorageAccount, boolean _doUpdate = true)
+    {
+        str statusMsg = '';
+        System.Exception ex;
+
+        try
+        {
+            // Reset the Azure storage account access type
+            _docAzureStorageAccount.AccessType = DocAzureAccessType::Unknown;
+
+            str connectionString = _docAzureStorageAccount.getConnectionString();
+
+            // Set the Azure storage account access type depending on the specified connection string
+            _docAzureStorageAccount.AccessType = DocAzureHelper::getStorageAccountAccessTypeInternal(connectionString);
+
+            // Test the connection using the specified connection string
+            BlobStorageHelper::TestConnection(connectionString);
+
+            // Set the validation status
+            _docAzureStorageAccount.ValidationStatus = DocAzureStorageAccountValidationStatus::Valid;
+        }
+        catch (ex)
+        {
+            statusMsg = DocGlobalHelper::getLastClrExceptionMessage();
+
+            // Set the validation status
+            _docAzureStorageAccount.ValidationStatus = DocAzureStorageAccountValidationStatus::Error;
+        }
+        finally
+        {
+            // Set status message
+            _docAzureStorageAccount.ValidationStatusMessage = statusMsg;
+
+            // Check if the fields in the specified table buffer should be updated
+            if (_doUpdate)
+            {
+                try
+                {
+                    ttsbegin;
+                    // Update azure storage account properties and validation status
+                    _docAzureStorageAccount.selectForUpdate(true);
+                    _docAzureStorageAccount.doUpdate();
+                    ttscommit;
+                }
+                catch
+                {
+                    Global::exceptionTextFallThrough();
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testAzureStorageAccountsConnections</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Test connection and validate connection string for each azure storage account.
+    /// </summary>
+    /// <param name = "_accountId">Container with Account ID</param>
+    public static void testAzureStorageAccountsConnections(container _accountId = conNull())
+    {
+        DocAzureStorageAccount docAzureStorageAccount;
+        DocAzureStorageAccountId accountId = _accountId == conNull() ? '' : conPeek(_accountId, 1);
+
+        // Loop through the storage accounts
+        while select docAzureStorageAccount
+            where !accountId
+               || docAzureStorageAccount.AccountId == accountId
+        {
+            DocAzureHelper::testAzureStorageAccountConnection(docAzureStorageAccount);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateAzureStorageAccountInCurrentCompany</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Verifies if selected storage account is valid in current company.
+    /// </summary>
+    /// <param name = "_accountId">An Azure storage account ID</param>
+    /// <returns>True if the azure storage account value is valid, otherwise false.</returns>
+    public static boolean validateAzureStorageAccountInCurrentCompany(DocAzureStorageAccountId _accountId)
+    {
+        boolean ret = true;
+        // Check if an external Azure storage account is selected.
+        if (_accountId != '')
+        {
+            DocAzureStorageAccount docAzureStorageAccount = DocAzureStorageAccount::findByAccountId(_accountId);
+            str currentCompany = strUpr(curExt());
+
+            if (docAzureStorageAccount.CompanyId != currentCompany && docAzureStorageAccount.CompanyId != 'DAT')
+            {
+                DocGlobalHelper::handleWarning(strFmt("@DocentricAX5:AzureStorageAccountIsNotPermitted", _accountId, currentCompany));
+                ret = false;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

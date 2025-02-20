@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>EcoResCategory.Sana</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>Copy1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormCheckBoxControl">
+				<Name>EcoResCategory_SC_VisibleInWebshop</Name>
+				<ElementPosition>1994091957</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>CheckBox</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_VisibleInWebshop</DataField>
+				<DataSource>EcoResCategory</DataSource>
+			</FormControl>
+			<Parent>HierarchyDetails</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlmr4roh4n1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormDateControl">
+				<Name>EcoResCategory_SC_VisibleFrom</Name>
+				<Type>Date</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_VisibleFrom</DataField>
+				<DataSource>EcoResCategory</DataSource>
+			</FormControl>
+			<Parent>HierarchyDetails</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlegd4gscm1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormDateControl">
+				<Name>EcoResCategory_SC_VisibleTo</Name>
+				<Type>Date</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_VisibleTo</DataField>
+				<DataSource>EcoResCategory</DataSource>
+			</FormControl>
+			<Parent>HierarchyDetails</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlqztobm411</Name>
+			<FormControl xmlns=""
+				i:type="AxFormRealControl">
+				<Name>EcoResCategory_SC_SalesPrice</Name>
+				<Type>Real</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_SalesPrice</DataField>
+				<DataSource>EcoResCategory</DataSource>
+			</FormControl>
+			<Parent>HierarchyDetails</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_OrdersCleanup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class SC_OrdersCleanup extends RunBaseBatch
+{
+    DialogField         daysLoop, webshop, processDraftField, processDeclinedField, processNewField;
+    boolean             processDraftOrders, processDeclinedOrders, processNewOrders;
+    Integer             daysLoopVal;
+    SC_WebshopId        webshopId;
+
+    #define.CurrentVersion(4)
+    #localmacro.CurrentList
+        webshopId,
+        daysLoopVal,
+        processDraftOrders,
+        processDeclinedOrders,
+        processNewOrders
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>canGoBatchJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Indicates whether the class is shown in the list of <c>Journal</c> types.
+    /// </summary>
+    /// <returns>
+    ///    true if the class is shown in the list of <c>Journal</c> types; otherwise, false.
+    /// </returns>
+    /// <remarks>
+    ///    A class that can be used in a batch journal is a class where the same parameters can be used
+    ///    repeatedly. The dialog box can be shown and the parameters can be changed, but parameters of some
+    ///    classes might build on data that is only valid for a short time. Running a class two times with the
+    ///    same parameters is not always possible. If the <c>RunBaseBatch.canGoBatch</c> method is false, this
+    ///    method will not have any effect.
+    /// </remarks>
+    public boolean canGoBatchJournal()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>caption</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Retrieves the description from the current class by calling the static description method of the
+    /// class.
+    /// </summary>
+    /// <returns>
+    /// The description of the current class.
+    /// </returns>
+    /// <remarks>
+    /// The static <c>RunBase::description</c> method is typically used to obtain the description of a
+    /// class because a class does not have to be initialized to call it.
+    /// </remarks>
+    public ClassDescription caption()
+    {
+        return "@SCL454";    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a class that contains the methods that are described by the <c>RunBaseDialogable</c>
+    /// interface.
+    /// </summary>
+    /// <returns>
+    /// A class that contains the methods that are described by the <c>RunBaseDialogable</c> interface.
+    /// </returns>
+    /// <remarks>
+    /// A dialog box can be either built by using the <c>Dialog</c> class or by using a class that is
+    /// created in the Application Object Tree (AOT).
+    /// </remarks>
+    public Object dialog()
+    {
+        DialogRunbase dialog = super();
+
+        daysLoopVal = 7;
+
+        // Period
+        dialog.addGroup("@SYS40858");
+        daysLoop = dialog.addField(extendedTypeStr(Integer));
+        daysLoop.label("@SCL455");
+        daysLoop.value(daysLoopVal);
+
+        // Document type
+        dialog.addGroup("@SYS124360");
+        processDraftField = dialog.addField(extendedTypeStr(NoYesId));
+        processDraftField.label("@SYS75939");
+        processDraftField.value(processDraftOrders);
+        processDeclinedField = dialog.addField(extendedTypeStr(NoYesId));
+        processDeclinedField.label("@SYS34720");
+        processDeclinedField.value(processDeclinedOrders);
+        processNewField = dialog.addField(extendedTypeStr(NoYesId));
+        processNewField.label("@SYS5480");
+        processNewField.value(processNewOrders);
+
+        // Webshop
+        dialog.addGroup("@SCL19");
+        webshop = dialog.addField(extendedTypeStr(SC_WebshopId));
+        webshop.lookupButton(FormLookupButton::Always);
+        webshop.value((select firstOnly SC_WebShopsTable).WebshopId);
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialogPostRun</Name>
+				<Source><![CDATA[
+    public void dialogPostRun(DialogRunbase dialog)
+    {
+        super(dialog);
+        dialog.dialogForm().formRun().controlMethodOverload(true);
+        dialog.dialogForm().formRun().controlMethodOverloadObject(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Fld2_1_lookup</Name>
+				<Source><![CDATA[
+    public void Fld2_1_lookup()
+    {
+        SC_WebShopsTable::lookupWebshops(webshop.control());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        boolean ret;
+        ;
+
+        ret = super();
+
+        daysLoopVal           = daysLoop.value();
+        webshopId             = webshop.value();
+        processDraftOrders    = processDraftField.value();
+        processDeclinedOrders = processDeclinedField.value();
+        processNewOrders      = processNewField.value();
+
+        return ret; 
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion,#CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Contains the code that does the actual job of the class.
+    /// </summary>
+    public void run()
+    {
+        #OCCRetryCount
+        #define.declinedStatus('Declined')
+        #define.newStatus('New')
+
+        SalesTable          salesTable;
+        SalesQuotationTable salesQuotationTable;       
+        FromDate            fromDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()) - daysLoopVal;
+
+        try
+        {
+            if(processDraftOrders)
+            {
+                while select forUpdate salesTable
+                    where (salesTable.SC_WebshopId == webshopId || !webshopId) &&
+                           salesTable.createdDateTime <= DateTimeUtil::newDateTime(fromDate, timeMax()) &&
+                           salesTable.ReturnStatus != ReturnStatusHeader::Canceled &&
+                           salesTable.ReturnStatus != ReturnStatusHeader::Created &&
+                           salesTable.SC_SanaOrder &&
+                           salesTable.SC_IsPersistedBasket
+                {
+                    info(strFmt("@SCL556",salesTable.SalesId));
+
+                    try
+                    {
+                        this.cleanupSalesTable(salesTable);
+                    }
+                    catch (Exception::Error)
+                    {
+                        info(strFmt("@SCL557", salesTable.SalesId));
+                        continue;
+                    }
+                }
+
+                while select forUpdate salesQuotationTable
+                    where (salesQuotationTable.SC_WebshopId == webshopId || !webshopId) &&
+                           salesQuotationTable.createdDateTime <= DateTimeUtil::newDateTime(fromDate, timeMax()) &&
+                           salesQuotationTable.SC_SanaOrder &&
+                           salesQuotationTable.SC_IsPersistedBasket
+                {
+                    info(strFmt("@SCL556",salesQuotationTable.QuotationId));
+
+                    try
+                    {
+                        this.cleanupSalesQuotationTable(salesQuotationTable);
+                    }
+                    catch (Exception::Error)
+                    {
+                        info(strFmt("@SCL557", salesQuotationTable.QuotationId));
+                        continue;
+                    }
+                }
+            }
+            
+            if(processDeclinedOrders || processNewOrders)
+            {
+                while select forUpdate salesTable
+                    where (salesTable.SC_WebshopId == webshopId || !webshopId) &&
+                          salesTable.createdDateTime <= DateTimeUtil::newDateTime(fromDate, timeMax()) &&
+                          salesTable.ReturnStatus != ReturnStatusHeader::Canceled &&
+                          salesTable.ReturnStatus != ReturnStatusHeader::Created &&
+                          salesTable.SalesStatus  == SalesStatus::Backorder &&
+                          salesTable.SC_SanaOrder &&
+                         !salesTable.SC_IsPersistedBasket &&
+                        ((salesTable.SC_AuthorizationStatus == #declinedStatus && processDeclinedOrders) ||
+                         (salesTable.SC_PaymentStatus == #newStatus && processNewOrders))
+                {
+                    info(strFmt("@SCL556",salesTable.SalesId));
+
+                    try
+                    {
+                        this.cleanupSalesTable(salesTable);
+                    }
+                    catch (Exception::Error)
+                    {
+                        info(strFmt("@SCL557", salesTable.SalesId));
+                        continue;
+                    }
+                }
+
+                while select forUpdate salesQuotationTable
+                    where (salesQuotationTable.SC_WebshopId == webshopId || !webshopId) &&
+                          salesQuotationTable.createdDateTime <= DateTimeUtil::newDateTime(fromDate, timeMax()) &&
+                          salesQuotationTable.QuotationStatus != SalesQuotationStatus::Confirmed &&
+                          salesQuotationTable.SC_SanaOrder &&
+                         !salesQuotationTable.SC_IsPersistedBasket &&
+                        ((salesQuotationTable.SC_AuthorizationStatus == #declinedStatus && processDeclinedOrders) ||
+                         (salesQuotationTable.SC_PaymentStatus == #newStatus && processNewOrders))
+                {
+                    info(strFmt("@SCL556",salesQuotationTable.QuotationId));
+
+                    try
+                    {
+                        this.cleanupSalesQuotationTable(salesQuotationTable);
+                    }
+                    catch (Exception::Error)
+                    {
+                        info(strFmt("@SCL557", salesQuotationTable.QuotationId));
+                        continue;
+                    }
+                }
+            }            
+        }
+        catch (Exception::Deadlock)
+        {
+            if (xSession::currentRetryCount() >= #RetryNum)
+            {
+                throw Exception::Deadlock;
+            }
+            else
+            {
+                retry;
+            }
+        }
+        catch (Exception::UpdateConflict)
+        {
+            if (appl.ttsLevel() == 0)
+            {
+                if (xSession::currentRetryCount() >= #RetryNum)
+                {
+                    throw Exception::UpdateConflictNotRecovered;
+                }
+                else
+                {
+                    retry;
+                }
+            }
+            else
+            {
+                throw Exception::UpdateConflict;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupSalesTable</Name>
+				<Source><![CDATA[
+    private void cleanupSalesTable(SalesTable _salesTable)
+    {
+        SalesLine   salesLine;
+
+        if(_salesTable.validateDelete())
+        {
+            ttsbegin;
+            select count(RecId) from salesLine
+                where salesLine.SalesId == _salesTable.SalesId;
+
+            info(strFmt("@SCL558",salesLine.RecId));
+
+            while select salesLine
+                where salesLine.SalesId == _salesTable.SalesId
+            {
+                if(!salesLine.validateDelete())
+                {
+                    info(strFmt("@SCL559",salesLine.LineNum, salesLine.ItemId));
+                }
+            }
+                        
+            delete_from salesLine
+                where salesLine.SalesId == _salesTable.SalesId;
+
+            select count(RecId) from salesLine
+                where salesLine.SalesId == _salesTable.SalesId;
+
+            if(salesLine.RecId >=1)
+            {
+                info(strFmt("@SCL560",salesLine.RecId));
+            }
+            else
+            {
+                _salesTable.delete();
+                info("@SCL561");
+            }
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupSalesQuotationTable</Name>
+				<Source><![CDATA[
+    private void cleanupSalesQuotationTable(SalesQuotationTable _salesQuotationTable)
+    {
+        SalesQuotationLine  salesQuotationLine;
+
+        if(_salesQuotationTable.validateDelete())
+        {
+            ttsbegin;
+            select count(RecId) from salesQuotationLine
+                where salesQuotationLine.QuotationId == _salesQuotationTable.QuotationId;
+
+            info(strFmt("@SCL558",salesQuotationLine.RecId));
+        
+            while select salesQuotationLine
+                where salesQuotationLine.QuotationId == _salesQuotationTable.QuotationId
+            {
+                if(!salesQuotationLine.validateDelete())
+                {
+                    info(strFmt("@SCL559",salesQuotationLine.LineNum, salesQuotationLine.ItemId));
+                }
+            }
+                        
+            delete_from salesQuotationLine
+                where salesQuotationLine.QuotationId == _salesQuotationTable.QuotationId;
+
+            select count(RecId) from salesQuotationLine
+                where salesQuotationLine.QuotationId == _salesQuotationTable.QuotationId;
+
+            if(salesQuotationLine.RecId >=1)
+            {
+                info(strFmt("@SCL560",salesQuotationLine.RecId));
+            }
+            else
+            {
+                _salesQuotationTable.delete();
+                info("@SCL561");
+            }
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runsImpersonated</Name>
+				<Source><![CDATA[
+    public boolean runsImpersonated()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines whether to add a select button to the dialog box.
+    /// </summary>
+    /// <returns>
+    /// Always returns true.
+    /// </returns>
+    /// <remarks>
+    /// If you click this button, it will show the query form. Therefore, the <c>queryRun</c> method has to
+    /// return a valid <c>queryRun</c> object.If you change the return value to false the button will no
+    /// longer be added.
+    /// </remarks>
+    public boolean showQueryValues()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        Version version = RunBase::getVersion(packedClass);
+        ;
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = packedClass;
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validate</Name>
+				<Source><![CDATA[
+    public boolean validate(Object _calledFrom = null)
+    {
+        boolean         ret;
+        ;
+
+        ret = super(_calledFrom);
+
+        if (ret)
+        {
+            if(!daysLoop.value() || daysLoop.value() && daysLoop.value() < 0)
+            {                
+                return checkFailed("@SYS22529");
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    server static SC_OrdersCleanUp construct()
+    {
+        return new SC_OrdersCleanUp();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args args)
+    {
+        SC_OrdersCleanup ordersCleanup;        
+        ;
+        
+        ordersCleanup = SC_OrdersCleanup::construct();        
+        ordersCleanup.saveLast();
+
+        if (ordersCleanup.prompt())
+        {
+            ordersCleanup.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    protected boolean canRunInNewSession()
+    {            
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_ParametersTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_ParametersTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public server boolean validateWrite()
+    {
+        #SANA
+        boolean ret;
+        ;
+    
+        ret = super();
+    
+        if(ret && this.EnableLog && !this.FileLogPath)
+        {
+            ret = checkFailed("@SCL87");
+        }
+    
+        if(ret && this.EnableLog)
+        {
+            try
+            {
+                new FileIOPermission(this.FileLogPath + #logFile, #write).assert();
+                CodeAccessPermission::revertAssert();
+            }
+            catch
+            {
+                ret = checkFailed(strfmt("@SYS95130",this.FileLogPath));
+            }
+        }
+    
+        if(ret && this.Culture && strlen(this.Culture) < 5)
+        {
+            ret = checkFailed("@SCL283");
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    static SC_ParametersTable find()
+    {
+        SC_ParametersTable  parameter;
+        ;
+
+        select firstonly parameter
+            index Key
+            where parameter.Key == 0;
+
+        if(!parameter)
+        {
+            try
+            {
+                parameter.initValue();
+                parameter.UpdateThreshold = 30;
+                parameter.Culture = 'en-us';
+            
+                if(parameter.validateWrite())
+                {
+                    parameter.insert();
+                }
+            }
+            catch (Exception::DuplicateKeyException)
+            {
+                //A race condition has occured. Since any parameter table should only have one record (singleton pattern) another
+                // insert attempt should not be performed and the record should just be returned from the database.
+                select forupdate firstonly parameter;
+            }
+        }
+        else if(!parameter.UpdateThreshold || !parameter.Culture)
+        {
+            ttsBegin;
+            parameter.selectForUpdate(true);
+            parameter.UpdateThreshold = parameter.UpdateThreshold ? parameter.UpdateThreshold : 30;
+            parameter.Culture = parameter.Culture ? parameter.Culture : 'en-us';
+            parameter.update();
+            ttsCommit;
+        }
+
+        return parameter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLogFilesCount</Name>
+				<Source><![CDATA[
+    static server Counter getLogFilesCount()
+    {
+        SC_ParametersTable  parametersTable = SC_ParametersTable::find();
+        System.String[]     directory;
+        Counter             filesCount;
+
+        new InteropPermission(InteropKind::ClrInterop).assert();
+        directory  = System.IO.Directory::GetFiles(parametersTable.FileLogPath, '*.xml');
+        filesCount = directory.get_Count();
+        CodeAccessPermission::revertAssert();
+
+        return filesCount;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL148</DeveloperDocumentation>
+	<FormRef>SC_Parameters</FormRef>
+	<Label>@SYS12687</Label>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>EnableLog</TitleField1>
+	<TitleField2>FileLogPath</TitleField2>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>Key</ClusteredIndex>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>Key</PrimaryIndex>
+	<ReplacementKey>Key</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>EnableLog</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileLogPath</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>EnableLog</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileLogPath</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS104938</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>EnableLog</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileLogPath</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IncludeProcessDuration</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Performance</Name>
+			<Label>@SYS70209</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>UpdateThreshold</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CacheRecycling</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>RegSettings</Name>
+			<Label>@SCL282</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Culture</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Culture</Name>
+			<ExtendedDataType>SysComponentCulture</ExtendedDataType>
+			<Label>@SCL281</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableLog</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL28</HelpText>
+			<Label>@SYS105745</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileLogPath</Name>
+			<ExtendedDataType>FilePath</ExtendedDataType>
+			<Label>@SCL17</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Key</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>ParametersKey</ExtendedDataType>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>UpdateThreshold</Name>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>@SCL280</HelpText>
+			<Label>@SCL279</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IncludeProcessDuration</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL452</HelpText>
+			<Label>@SCL451</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>CacheRecycling</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<Label>@SCL651</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Key</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Key</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

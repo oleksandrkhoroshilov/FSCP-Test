@@ -1,0 +1,2153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_AXDataServiceClient_Customer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class SC_AXDataServiceClient_Customer extends SC_AXDataServiceClient
+{
+    LogisticsPostalAddress  address;
+    ContactPerson           contactPerson;
+    HcmWorker               hcmWorker;    
+    boolean                 customerValid, isExtraFieldsRequired;
+    container               contactCustomFieldsIds;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addCustomerShippingAddresses</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addCustomerShippingAddresses(XmlNode _parentNode)
+    {
+        DirPartyLocation        partyLocation;
+        DirPartyLocationRole    dirPartyLocationRole;
+        LogisticsLocationRole   logisticsLocationRole;
+        XmlNode                 shippingAddresses, shippingAddress;        
+
+        if(loadShippingAddresses)
+        {
+            shippingAddresses = _parentNode.appendChild(resultXml.createElement(#shippingAddresses));            
+
+            while select Location, IsPrimary from partyLocation
+                order by IsPrimary desc
+                where partyLocation.Party == CustTable.Party
+                    exists join dirPartyLocationRole
+                        where dirPartyLocationRole.PartyLocation == partyLocation.RecId
+                            exists join logisticsLocationRole
+                                where logisticsLocationRole.RecId == dirPartyLocationRole.LocationRole &&
+                                      (logisticsLocationRole.Type == LogisticsLocationRoleType::Delivery || partyLocation.IsPrimary)
+            {
+                address = LogisticsPostalAddress::findByLocation(partyLocation.Location);
+
+                if(address && this.checkValidationRules(address))
+                {
+                    shippingAddress = shippingAddresses.appendChild(resultXml.createElement(#shippingAddress));
+                    this.initAddressFields(shippingAddress, address);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPeriodicStatistic</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addPeriodicStatistic(XmlNode _parentNode, TransDate _fromDate = dateNull(), TransDate _toDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()))
+    {
+        CustInvoiceJour             custInvoiceJour;
+        ProjInvoiceJour             projInvoiceJour;
+        CustTrans                   custTrans;
+        SalesTable                  salesTable;
+        SalesQuotationTable         salesQuotationTable;
+        CustCollectionLetterJour    custCollectionLetterJour;
+        CustTransOpen               custTransOpen;
+        Salesline                   salesline;
+        SalesQuotationLine          salesQuotationLine;
+        CustTransDetails            custTransDetails = new CustTransDetails(custTrans);
+        Amount                      paidInvoiceAmount, returnAmount, lineAmount, lineAmountQuote, invoiceAmount, discAmount, taxAmount, turnoverAmount, reminderAmount, overdueAmount;
+        Counter                     orderFreq, orderFreqQuote, orderFreqReturn;        
+
+        //Ensure RLS is used
+        custInvoiceJour.recordLevelSecurity(true);
+        projInvoiceJour.recordLevelSecurity(true);
+        custTrans.recordLevelSecurity(true);
+        custCollectionLetterJour.recordLevelSecurity(true);
+        custTransOpen.recordLevelSecurity(true);
+        salesline.recordLevelSecurity(true);
+        salesQuotationLine.recordLevelSecurity(true);
+        salesTable.recordLevelSecurity(true);
+        salesQuotationTable.recordLevelSecurity(true);
+
+        //sales sums
+        while select salesline
+            join TableId from SalesTable
+            where salesline.SalesId == SalesTable.SalesId &&
+                  salesTable.CustAccount == custTable.AccountNum &&
+                  salesTable.SalesType == SalesType::Sales &&
+                  salesTable.createdDateTime >= DateTimeUtil::newDateTime(_fromDate, 0) &&
+                  salesTable.createdDateTime <= DateTimeUtil::newDateTime(_toDate, timeMax())
+        {
+            try
+            {
+                lineAmount += salesline.lineAmountMST();
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        while select salesQuotationLine
+            join TableId from salesQuotationTable
+            where salesQuotationLine.QuotationId == salesQuotationTable.QuotationId &&
+                  salesQuotationTable.CustAccount == custTable.AccountNum &&
+                  salesQuotationTable.createdDateTime >= DateTimeUtil::newDateTime(_fromDate, 0) &&
+                  salesQuotationTable.createdDateTime <= DateTimeUtil::newDateTime(_toDate, timeMax())
+        {
+            try
+            {
+                lineAmountQuote += CurrencyExchangeHelper::mstAmount(salesQuotationLine.LineAmount, Ledger::accountingCurrency(), salesQuotationLine.TransDate,
+                                                                    UnknownNoYes::Unknown, salesQuotationLine.salesQuotationTable().exchRate(), salesQuotationLine.salesQuotationTable().exchRateSecondary());
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        //invoice amount, turnover amount
+        select sum(InvoiceAmountMST), sum(SumTaxMST) from custInvoiceJour
+            where custInvoiceJour.InvoiceAccount     == custTable.AccountNum   &&
+                  custInvoiceJour.InvoiceDate        >= _fromDate              &&
+                  custInvoiceJour.InvoiceDate        <= _toDate;
+
+        invoiceAmount = custInvoiceJour.InvoiceAmountMST;
+
+        while select projInvoiceJour
+            where projInvoiceJour.InvoiceAccount     == custTable.AccountNum    &&
+                  projInvoiceJour.InvoiceDate        >= _fromDate               &&
+                  projInvoiceJour.InvoiceDate        <= _toDate
+        {
+            invoiceAmount += projInvoiceJour.amountMST(projInvoiceJour.InvoiceAmount);
+            taxAmount += CurrencyExchangeHelper::mstAmount(projInvoiceJour.SumTax, Ledger::accountingCurrency(), projInvoiceJour.InvoiceDate,
+                                         Currency::noYes2UnknownNoYes(projInvoiceJour.Triangulation),
+                                         projInvoiceJour.ExchRate, projInvoiceJour.ExchrateSecondary);
+        }
+
+        turnoverAmount = invoiceAmount - custInvoiceJour.SumTaxMST - taxAmount;
+
+        //paid invoices
+        select sum(AmountCur) from custTrans
+            index hint AccountDateIdx
+            where custTrans.AccountNum  == custtable.AccountNum     &&
+                    custTrans.TransDate >= _fromDate                &&
+                    custTrans.TransDate <= _toDate                  &&
+                    custTrans.Invoice   == ''                       &&
+                    custTrans.AmountCur < 0;
+
+        paidInvoiceAmount = -custTrans.AmountCur;
+
+        //discounted amount
+        while select AmountCur, AmountMST, RecId from custTrans
+            where custTrans.AccountNum          == custTable.AccountNum      &&
+                  custTrans.TransDate           >= _fromDate                 &&
+                  custTrans.TransDate           <= _toDate                   &&
+                  custTrans.AmountCur           >  0
+        {
+            if (custTrans.AmountCur)
+            {
+                custTransDetails.setCustVendTrans(custTrans);
+                if (custTransDetails.utilizedCashDisc())
+                {
+                    discAmount += custTrans.AmountMST * custTransDetails.utilizedCashDisc() / custTrans.AmountCur;
+                }
+            }
+        }
+
+        //reminder amount
+        while select custCollectionLetterJour
+            where custCollectionLetterJour.AccountNum == custTable.AccountNum &&
+                  custCollectionLetterJour.CollectionLetterDate >= _fromDate &&
+                  custCollectionLetterJour.CollectionLetterDate <= _toDate &&
+                  custCollectionLetterJour.Canceled == dateNull()
+        {
+            reminderAmount +=  custCollectionLetterJour.sumAmount();
+        }
+
+        //overdue amount
+        select sum(AmountMST) from custTransOpen
+            where custTransOpen.DueDate <= _toDate
+            join TableId from custTrans
+                where custTrans.RecId == custTransOpen.RefRecId &&
+                      (custTrans.TransType == LedgerTransType::GeneralJournal ||
+                      custTrans.TransType == LedgerTransType::Sales ||
+                      custTrans.TransType == LedgerTransType::Project ||
+                      custTrans.TransType == LedgerTransType::Cust ||
+                      custTrans.TransType == LedgerTransType::Interest ||
+                      custTrans.TransType == LedgerTransType::CollectionLetter ||
+                      custTrans.TransType == LedgerTransType::Transfer) &&
+                      custTrans.AccountNum == custTable.AccountNum &&
+                      custTrans.AmountCur > 0;
+
+        overdueAmount = custTransOpen.AmountMST;
+
+        //return sum
+        while select salesline
+            join TableId from SalesTable
+            where salesline.SalesId == SalesTable.SalesId &&
+                  salesTable.CustAccount == custTable.AccountNum &&
+                  salesTable.SalesType == SalesType::ReturnItem &&
+                  salesTable.createdDateTime >= DateTimeUtil::newDateTime(_fromDate, 0) &&
+                  salesTable.createdDateTime <= DateTimeUtil::newDateTime(_toDate, timeMax())
+        {
+            returnAmount += salesline.lineAmountMST();
+        }
+
+        //order frequency
+        select count(RecId) from salesTable
+            where salesTable.CustAccount == custTable.AccountNum &&
+                  salesTable.SalesType == SalesType::Sales &&
+                  salesTable.createdDateTime >= DateTimeUtil::newDateTime(_fromDate, 0) &&
+                  salesTable.createdDateTime <= DateTimeUtil::newDateTime(_toDate, timeMax());
+
+        orderFreq = int642int(salesTable.RecId);
+
+        select count(RecId) from salesQuotationTable
+            where salesQuotationTable.CustAccount == custTable.AccountNum &&
+                  salesQuotationTable.createdDateTime >= DateTimeUtil::newDateTime(_fromDate, 0) &&
+                  salesQuotationTable.createdDateTime <= DateTimeUtil::newDateTime(_toDate, timeMax());
+
+        orderFreqQuote = int642int(salesQuotationTable.RecId);
+
+        select count(RecId) from salesTable
+            where salesTable.CustAccount == custTable.AccountNum &&
+                  salesTable.SalesType == SalesType::ReturnItem &&
+                  salesTable.createdDateTime >= DateTimeUtil::newDateTime(_fromDate, 0) &&
+                  salesTable.createdDateTime <= DateTimeUtil::newDateTime(_toDate, timeMax());
+
+        orderFreqReturn = int642int(salesTable.RecId);
+
+        this.addFieldValue(#sales, _parentNode, lineAmount, true);
+        this.addFieldValue(#quotes, _parentNode, lineAmountQuote, true);
+        this.addFieldValue(#profits, _parentNode, turnoverAmount, true);
+        this.addFieldValue(#reminders, _parentNode, reminderAmount, true);
+        this.addFieldValue(#overdueAmounts, _parentNode, overdueAmount, true);
+        this.addFieldValue(#invoicedAmounts, _parentNode, invoiceAmount, true);
+        this.addFieldValue(#paidInvoices, _parentNode, paidInvoiceAmount, true);
+        this.addFieldValue(#discountedAmount, _parentNode, discAmount, true);
+        this.addFieldValue(#orderReturns, _parentNode, -returnAmount, true);
+        this.addFieldValue(#orderFrequency, _parentNode, orderFreq, true);
+        this.addFieldValue(#quoteFrequency, _parentNode, orderFreqQuote, true);
+        this.addFieldValue(#orderReturnFrequency, _parentNode, orderFreqReturn, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTableWebshopFilters2Query</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected QueryBuildDatasource addTableWebshopFilters2Query(QueryBuildDatasource  _queryBuildDatasource, TableId _tableId)
+    {
+        SC_FilterWebShopsTable  filterWebShopsTable;
+        boolean                 webshopFilterExists;        
+
+        while select FieldName, FilterStr from filterWebShopsTable
+            where filterWebShopsTable.WebShopId == webShopsTable.WebShopId &&
+                  filterWebShopsTable.TableName == tableId2Name(_tableId)
+        {
+            _queryBuildDatasource.addRange(fieldname2id(_tableId, filterWebShopsTable.FieldName)).value(filterWebShopsTable.FilterStr);
+            webshopFilterExists = true;
+        }
+
+
+        if(webshopFilterExists && filterFields && filterFields.length())
+        {
+            _queryBuildDatasource = _queryBuildDatasource.addDataSource(_tableId);
+
+            switch(_tableId)
+            {
+                case tableNum(CustTable):
+                    _queryBuildDatasource.addLink(fieldnum(CustTable, AccountNum), fieldnum(CustTable, AccountNum));
+                    break;
+
+                case tableNum(ContactPerson):
+                    _queryBuildDatasource.addLink(fieldnum(ContactPerson, ContactPersonId), fieldnum(ContactPerson, ContactPersonId));
+                    break;
+
+                case tableNum(HcmWorker):
+                    _queryBuildDatasource.addLink(fieldnum(HcmWorker, Person), fieldnum(HcmWorker, Person));
+                    break;
+            }
+            _queryBuildDatasource.joinMode(JoinMode::ExistsJoin);
+        }
+
+        return _queryBuildDatasource;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyRetailAffiliations</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void copyRetailAffiliations(CustAccount _templateAccount)
+    {
+        RecordInsertList      dataRealInsertList = new RecordInsertList(tableNum(RetailCustAffiliation));
+        RetailCustAffiliation retailCustAffiliation, retailCustAffiliationCopy, retailTemplateAffiliation;
+
+        if(this.isRetailEnabled())
+        {
+            while select RetailAffiliationId from retailTemplateAffiliation
+                where retailTemplateAffiliation.CustAccountNum == _templateAccount
+                notExists join TableId from retailCustAffiliationCopy
+                    where retailCustAffiliationCopy.CustAccountNum      == custTable.AccountNum &&
+                          retailCustAffiliationCopy.RetailAffiliationId == retailTemplateAffiliation.RetailAffiliationId
+            {
+                retailCustAffiliation.CustAccountNum      = custTable.AccountNum;
+                retailCustAffiliation.RetailAffiliationId = retailTemplateAffiliation.RetailAffiliationId;                
+                dataRealInsertList.add(retailCustAffiliation);
+            }
+
+            dataRealInsertList.insertDatabase();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createOrUpdatePostalAddress</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected DirPartyPostalAddressView createOrUpdatePostalAddress(DirPartyPostalAddressView _partyPostalAddressView, RecId _party)
+    {
+        DirPartyPostalAddressView    newPartyPostalAddressView;
+        DirPartyLocationEntity       partyLocationEntity;
+        LogisticsPostalAddress       postalAddress;
+        LogisticsPostalAddressView   postalAddressView;
+        LogisticsPostalAddressEntity postalAddressEntity;  
+        LogisticsLocation            logisticsLocation;
+
+        if (!_partyPostalAddressView.Party)
+        {
+            _partyPostalAddressView.Party = _party;
+        }
+
+        if (DirPartyLocation::findByPartyLocation(_partyPostalAddressView.Party, _partyPostalAddressView.Location))
+        {
+            if(_partyPostalAddressView.LocationName && LogisticsLocation::find(_partyPostalAddressView.Location).Description != _partyPostalAddressView.LocationName)
+            {
+                logisticsLocation = LogisticsLocation::find(_partyPostalAddressView.Location, true);
+                logisticsLocation.Description = _partyPostalAddressView.LocationName;
+                ttsbegin;
+                logisticsLocation.update();
+                ttscommit;
+            }
+
+            postalAddress = LogisticsPostalAddress::findByLocation(_partyPostalAddressView.Location, true);
+            postalAddressView.initFromPartyPostalAddressView(_partyPostalAddressView);
+            postalAddressEntity = LogisticsPostalAddressEntity::construct(_partyPostalAddressView.Location);
+
+            if(postalAddress && !this.checkAddressDuplicate(postalAddress, postalAddressView))
+            {
+                postalAddress = postalAddressEntity.initFromView(postalAddressView, postalAddress);
+                postalAddress.validTimeStateUpdateMode(ValidTimeStateUpdate::CreateNewTimePeriod);
+                postalAddress.LogisticsPostalAddressMap::formatAddress();
+                ttsbegin;
+                postalAddress.update();
+                ttscommit;
+            }
+            newPartyPostalAddressView = DirPartyPostalAddressView::find(_partyPostalAddressView.Party, postalAddress.Location);
+        }
+        else
+        {
+            postalAddressView.initFromPartyPostalAddressView(_partyPostalAddressView);
+
+            if (LogisticsPostalAddressEntity::validate(postalAddressView))
+            {
+                postalAddressEntity    = LogisticsPostalAddressEntity::construct();
+                postalAddress          = postalAddressEntity.initFromView(postalAddressView);
+                postalAddress.Location = LogisticsLocation::create(postalAddressView.LocationName, true).RecId;
+
+                postalAddress.LogisticsPostalAddressMap::formatAddress();
+
+                if (postalAddress.validateWrite())
+                {
+                    postalAddress.insert();
+                }
+            }
+
+            if(postalAddress) // Create party links
+            {
+                DirPartyLocationContract partyLocationContract = new DirPartyLocationContract();
+                partyLocationContract.parmIsPostalAddress(true);                
+                partyLocationContract.parmRoleIds([LogisticsLocationRole::findBytype(LogisticsLocationRoleType::Delivery).RecId]);
+
+                partyLocationEntity = DirPartyLocationEntity::construct(_partyPostalAddressView.Party);
+                partyLocationEntity.parmLocation(postalAddress.Location);
+                partyLocationEntity.createOrUpdatePartyLocation(partyLocationContract);
+                newPartyPostalAddressView = DirPartyPostalAddressView::find(_partyPostalAddressView.Party, postalAddress.Location);
+            }
+        }
+
+        return newPartyPostalAddressView;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetAnonymousCustomer</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetAnonymousCustomer(XmlDocument _request)
+    {        
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        custTable     = CustTable::find(webShopsTable.TemplateCustAccount);
+        customerValid = custTable && this.checkValidationRules(custTable, false, true);
+
+        this.initCustomerDefaultFields();
+
+        this.setWebshopDataMappingGetAPI('GetAnonymousCustomer', custTable);
+        
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetBalanceInfo</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetBalanceInfo(XmlDocument _request)
+    {
+        CustCreditLimit custCreditLimit;
+        boolean         isCreditExceed;        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        custTable = CustTable::find(accountId);
+        custTable = custTable.InvoiceAccount ? CustTable::find(custTable.InvoiceAccount) : custTable;
+
+        if(custTable)
+        {
+            custCreditLimit = CustCreditLimit::construct(custTable);
+
+            this.addFieldValue(#balance, resultNode, CurrencyExchangeHelper::curAmount(conPeek(custCreditLimit.balance(), 1), currencyId));
+            this.addFieldValue(#creditLimit, resultNode, CurrencyExchangeHelper::curAmount(custTable.CreditMax, currencyId));
+            isCreditExceed = (CustParameters::find().salesCheckCreditOnHeader() || custTable.MandatoryCreditLimit) &&
+                              CustParameters::find().CreditLineError == CreditLineErrorType::Error && custTable.CreditMax;
+            this.addFieldValue(#preventExceedingCreditLimit, resultNode, isCreditExceed ?  #one : #zero);
+
+            this.setWebshopDataMappingGetAPI('GetBalanceInfo', custTable);
+        }
+        else
+        {
+            this.errorHandler(strFmt(#error0011, accountId));
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetContacts</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetContacts(XmlDocument _request)
+    {
+        Query                   query = new Query();
+        QueryRun                queryRun;
+        QueryBuildDatasource    contactQbd, nameQbd;
+        Counter                 pageStart;        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        contactQbd    = query.addDataSource(tablenum(ContactPerson));
+        contactQbd.addRange(fieldNum(ContactPerson, Inactive)).value(queryValue(NoYes::No));
+
+        if(sortField == #bigName)
+        {
+            nameQbd = contactQbd.addDataSource(tablenum(DirPartyTable));
+            nameQbd.addLink(fieldnum(ContactPerson, Party), fieldnum(DirPartyTable, RecId));
+            nameQbd.joinMode(JoinMode::InnerJoin);
+            nameQbd.addOrderByField(fieldnum(DirPartyTable, Name), sortAsc ? SortOrder::Ascending : SortOrder::Descending);
+        }
+        else
+        {
+            contactQbd.addOrderByField(fieldnum(ContactPerson, ContactPersonId), sortAsc ? SortOrder::Ascending : SortOrder::Descending);
+        }
+
+        contactQbd = this.addTableWebshopFilters2Query(contactQbd, tableNum(ContactPerson));
+        contactQbd = this.addFilters2Query(contactQbd, tableNum(ContactPerson));
+        queryRun   = new queryRun(query);
+        pageStart  = pageIndex * pageSize + 1;
+
+        if(pageSize)
+        {
+            queryRun.enablePositionPaging(true);
+            queryRun.addPageRange(pageStart, pageSize);
+        }
+
+        while(queryRun.next())
+        {
+            contactPerson = queryRun.get(tablenum(ContactPerson));
+
+            this.initContactDefaultFields();
+            this.setWebshopDataMappingGetAPI('GetContacts', contactPerson);
+        }
+
+        resultNode.appendChild(resultXml.createElement(#totalCount)).innerText(int2str(this.countQuerytotal(queryRun.pack(false))));
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCustomerByContact</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetCustomerByContact(XmlDocument _request)
+    {        
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        select firstonly custTable
+            where custTable.Party == ContactPerson::find(contactId).ContactForParty;
+
+        customerValid = custTable && this.checkValidationRules(custTable, false, true);
+
+        if(validOnly && customerValid || !validOnly && custTable)
+        {
+            this.initCustomerDefaultFields();
+            this.setWebshopDataMappingGetAPI('GetCustomerByContact', custTable);
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCustomers</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetCustomers(XmlDocument _request)
+    {
+        Query                   query = new Query();
+        QueryRun                queryRun;
+        QueryBuildDatasource    salesPersonQbd, customerQbd, nameQbd;
+        Counter                 pageStart;
+        boolean                 custFound;        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        customerQbd = query.addDataSource(tablenum(CustTable), tableStr(CustTable));
+        hcmWorker   = salesPersonId ? HcmWorker::findByPersonnelNumber(salesPersonId) : null;
+
+        if(salesPersonId)
+        {
+            if((select firstOnly RecId from CommissionSalesRep).RecId) //use query only if sales reps table not empty
+            {
+                salesPersonQbd = customerQbd.addDataSource(tableNum(CommissionSalesRep), tableStr(CommissionSalesRep));
+                salesPersonQbd.joinMode(JoinMode::ExistsJoin);
+                salesPersonQbd.fetchMode(QueryFetchMode::One2One);
+                salesPersonQbd.addRange(fieldnum(CommissionSalesRep, DataAreaId)).value(strFmt(#custSalesRepRange,
+                                             hcmWorker ? any2int64(hcmWorker.Person) : -1,
+                                             hcmWorker ? any2int64(hcmWorker.RecId) : -1));
+            }
+            else
+            {
+                customerQbd.addRange(fieldNum(CustTable, MainContactWorker)).value(queryValue(hcmWorker.RecId));
+            }
+        }
+
+        if(sortField == #bigName)
+        {
+            nameQbd = customerQbd.addDataSource(tablenum(DirPartyTable));
+            nameQbd.addLink(fieldnum(CustTable, Party), fieldnum(DirPartyTable, RecId));
+            nameQbd.joinMode(JoinMode::InnerJoin);
+            nameQbd.fetchMode(QueryFetchMode::One2One);
+            nameQbd.addOrderByField(fieldnum(DirPartyTable, Name), sortAsc ? SortOrder::Ascending : SortOrder::Descending);
+        }
+        else
+        {
+            customerQbd.addOrderByField(fieldnum(CustTable, AccountNum), sortAsc ? SortOrder::Ascending : SortOrder::Descending);
+        }
+
+        customerQbd = this.addTableWebshopFilters2Query(customerQbd, tableNum(CustTable));
+        customerQbd = this.addFilters2Query(customerQbd, tableNum(CustTable));
+        queryRun    = new queryRun(query);
+        pageStart   = pageIndex * pageSize + 1;
+
+        if(pageSize)
+        {
+            queryRun.enablePositionPaging(true);
+            queryRun.addPageRange(pageStart, pageSize);
+        }
+
+        while(queryRun.next())
+        {
+            custTable = queryRun.get(tablenum(CustTable));
+
+            customerValid = this.checkCustomerValid();
+
+            if(validOnly && customerValid || !validOnly)
+            {
+                this.initCustomerDefaultFields();
+                this.setWebshopDataMappingGetAPI('GetCustomers', custTable);
+                custFound = true;
+            }
+        }
+
+        resultNode.appendChild(resultXml.createElement(#totalCount)).innerText(int2str(custFound || pageIndex ? this.countQuerytotal(queryRun.pack(false)) : 0));
+        
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkCustomerValid</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    public boolean checkCustomerValid(CustTable _custTable = custTable)
+    {
+        return this.checkValidationRules(_custTable, false, true) && this.checkValidationRules(DirParty::primaryPostalAddress(_custTable.Party), false, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCustomerStatistics</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetCustomerStatistics(XmlDocument _request)
+    {
+        Query                   query = new Query();
+        QueryRun                queryRun;
+        QueryBuildDatasource    customerQbd;
+        Counter                 pageStart;
+        SalesTable              salesTable;
+        SalesQuotationTable     salesQuotationTable;
+        XmlNode                 custNode;        
+        PreferredLocale         preferredLocale = (new xSession()).PreferredLocale();
+        EventHandlerResult      customResult = new EventHandlerResult();        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        customerQbd = query.addDataSource(tablenum(CustTable));
+
+        customerQbd.addOrderByField(fieldnum(CustTable, AccountNum), sortAsc ? SortOrder::Ascending : SortOrder::Descending);
+
+        customerQbd = this.addTableWebshopFilters2Query(customerQbd, tableNum(CustTable));
+        customerQbd = this.addFilters2Query(customerQbd, tableNum(CustTable));
+        queryRun    = new queryRun(query);
+        pageStart   = pageIndex * pageSize + 1;
+
+        if(pageSize)
+        {
+            queryRun.enablePositionPaging(true);
+            queryRun.addPageRange(pageStart, pageSize);
+        }
+
+        while(queryRun.next())
+        {
+            custTable  = queryRun.get(tablenum(CustTable));
+            custNode   = resultNode.appendChild(resultXml.createElement(#customer));            
+
+            //General statistic
+            this.addFieldValue(#id, custNode, custTable.AccountNum, true);
+            this.addFieldValue(#currencyid, custNode, Ledger::accountingCurrency(CompanyInfo::current()), true);
+
+            select count(RecId) from salesTable
+                where salesTable.CustAccount == custTable.AccountNum &&
+                      salesTable.SalesType == SalesType::Sales;
+
+            this.addFieldValue(#totalOrders, custNode, int642int(salesTable.RecId), true);
+
+            select count(RecId) from salesQuotationTable
+                where salesQuotationTable.CustAccount == custTable.AccountNum;
+
+            this.addFieldValue(#totalQuotes, custNode, int642int(salesQuotationTable.RecId), true);                        
+            this.addFieldValue(#totalOutstandingOrderAmount, custNode, this.calcOutstandingOrderAmount(), true);
+            this.addFieldValue(#totalOutstandingInvoiceAmount, custNode,  custTable.openInvoiceBalanceMST(), true);
+
+            //Periodic statistic
+            if(loadForThisYear)
+            {
+                node = custNode.appendChild(resultXml.createElement(#forThisYear));               
+                this.addPeriodicStatistic(node, DateTimeUtil::getStartOfYearDate(preferredLocale, DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone())), DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()));
+            }
+
+            if(loadForLastYear)
+            {
+                node = custNode.appendChild(resultXml.createElement(#forLastYear));
+                this.addPeriodicStatistic(node, DateTimeUtil::getStartOfYearDate(preferredLocale, prevYr(DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()))), DateTimeUtil::getEndOfYearDate(preferredLocale, prevYr(DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()))));
+            }
+
+            if(loadForToDate)
+            {
+                node = custNode.appendChild(resultXml.createElement(#forToDate));
+                this.addPeriodicStatistic(node);
+            }
+
+            this.setWebshopDataMappingGetAPI('GetCustomerStatistics', custTable);
+
+            this.addCustomPeriodicStatisticDelegate(custNode, customResult);
+
+            if(customResult.result())
+            {
+                custNode = customResult.result();
+            }
+        }
+
+        resultNode.appendChild(resultXml.createElement(#totalCount)).innerText(int2str(this.countQuerytotal(queryRun.pack(false))));
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCustomPeriodicStatisticDelegate</Name>
+				<Source><![CDATA[
+    delegate void addCustomPeriodicStatisticDelegate(XmlNode _custNode, EventHandlerResult _result){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcOutstandingOrderAmount</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Amount calcOutstandingOrderAmount()
+    {
+        Salesline               salesline;
+        SalesQuotationLine      salesQuotationLine;
+        SalesTable              salesTable;
+        SalesQuotationTable     salesQuotationTable;
+        Amount                  lineAmount;
+
+        while select salesline
+                where Salesline.SalesStatus == SalesStatus::Backorder
+                join TableId from SalesTable
+                    where salesline.SalesId == salesTable.SalesId &&
+                          salesTable.CustAccount == custTable.AccountNum &&
+                          salesTable.SalesType == SalesType::Sales
+        {
+            try
+            {
+                lineAmount += salesline.lineAmountMST();
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        while select salesQuotationLine
+                where salesQuotationLine.QuotationStatus == SalesQuotationStatus::Created ||
+                      salesQuotationLine.QuotationStatus == SalesQuotationStatus::Sent
+                join TableId from salesQuotationTable
+                    where salesQuotationLine.QuotationId == salesQuotationTable.QuotationId &&
+                          salesQuotationTable.CustAccount == custTable.AccountNum
+        {
+            try
+            {
+                lineAmount += CurrencyExchangeHelper::mstAmount(salesQuotationLine.LineAmount, Ledger::accountingCurrency(), salesQuotationLine.TransDate,
+                                                  UnknownNoYes::Unknown, salesQuotationLine.salesQuotationTable().exchRate(), salesQuotationLine.salesQuotationTable().exchRateSecondary());
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        return lineAmount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCustomerStatisticsFields</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetCustomerStatisticsFields(XmlDocument _request)
+    {
+        this.createHeaderXml();
+        this.getParameters(_request);
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #totalOrders);
+        this.addFieldValue(#caption, node, #totalOrders);
+        this.addFieldValue(#bigType, node, 'Integer');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #totalQuotes);
+        this.addFieldValue(#caption, node, #totalQuotes);
+        this.addFieldValue(#bigType, node, 'Integer');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #totalOutstandingOrderAmount);
+        this.addFieldValue(#caption, node, #totalOutstandingOrderAmount);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #totalOutstandingInvoiceAmount);
+        this.addFieldValue(#caption, node, #totalOutstandingInvoiceAmount);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        //Periodic statistic
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #sales);
+        this.addFieldValue(#caption, node, #sales);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #quotes);
+        this.addFieldValue(#caption, node, #quotes);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #profits);
+        this.addFieldValue(#caption, node, #profits);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #reminders);
+        this.addFieldValue(#caption, node, #reminders);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #overdueAmounts);
+        this.addFieldValue(#caption, node, #overdueAmounts);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #invoicedAmounts);
+        this.addFieldValue(#caption, node, #invoicedAmounts);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #paidInvoices);
+        this.addFieldValue(#caption, node, #paidInvoices);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #discountedAmount);
+        this.addFieldValue(#caption, node, #discountedAmount);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #orderReturns);
+        this.addFieldValue(#caption, node, #orderReturns);
+        this.addFieldValue(#bigType, node, 'Decimal');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #orderFrequency);
+        this.addFieldValue(#caption, node, #orderFrequency);
+        this.addFieldValue(#bigType, node, 'Integer');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #quoteFrequency);
+        this.addFieldValue(#caption, node, #quoteFrequency);
+        this.addFieldValue(#bigType, node, 'Integer');
+
+        node = resultNode.appendChild(resultXml.createElement(#bigField));
+        this.addFieldValue(#bigName, node, #orderReturnFrequency);
+        this.addFieldValue(#caption, node, #orderReturnFrequency);
+        this.addFieldValue(#bigType, node, 'Integer');
+
+        this.setWebshopDataMappingGetAPI('GetCustomerStatisticsFields', null);
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustNumber</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected AccountNum getCustNumber(Integer _i=1)
+    {
+        AccountNum  custAccount;
+        
+        custAccount = _i == 1 ? NumberSeq::newGetNum(CustParameters::numRefCustAccount(), true).num() : '';
+
+        if(!custAccount)
+        {
+            custAccount = 'CUST' + int642str((select count(RecId) from CustTable).RecId + _i);
+        }
+
+        while(CustTable::find(custAccount))
+        {
+            _i++;
+            custAccount = this.getCustNumber(_i);
+        }
+
+        return custAccount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetSalesPersons</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetSalesPersons(XmlDocument _request)
+    {
+        Query                   query = new Query();
+        QueryRun                queryRun;
+        QueryBuildDatasource    personQbd, personQbdMain, nameQbd;
+        Counter                 pageStart;        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        personQbdMain = query.addDataSource(tablenum(HcmWorker));
+        personQbd     = personQbdMain.addDataSource(tableNum(hcmEmployment));
+        personQbd.addLink(fieldNum(HcmWorker, recId), fieldNum(HcmEmployment, Worker));
+        personQbd.joinMode(JoinMode::ExistsJoin);
+        personQbd.addRange(fieldNum(HcmEmployment, ValidFrom)).value('..' + queryValue(DateTimeUtil::utcNow()));
+        personQbd.addRange(fieldNum(HcmEmployment, ValidTo)).value(queryValue(DateTimeUtil::utcNow()) + '..');
+
+        if(sortField == #bigName)
+        {
+            nameQbd = personQbdMain.addDataSource(tablenum(DirPartyTable));
+            nameQbd.addLink(fieldnum(HcmWorker, person), fieldnum(DirPartyTable, RecId));
+            nameQbd.joinMode(JoinMode::InnerJoin);
+            nameQbd.fetchMode(QueryFetchMode::One2One);
+            nameQbd.addOrderByField(fieldnum(DirPartyTable, Name), sortAsc ? SortOrder::Ascending : SortOrder::Descending);
+        }
+        else
+        {
+            personQbdMain.addOrderByField(fieldnum(HcmWorker, PersonnelNumber), sortAsc ? SortOrder::Ascending : SortOrder::Descending);
+        }
+
+        personQbdMain = this.addTableWebshopFilters2Query(personQbdMain, tableNum(HcmWorker));
+        personQbdMain = this.addFilters2Query(personQbdMain, tableNum(HcmWorker));
+        queryRun      = new queryRun(query);
+        pageStart     = pageIndex * pageSize + 1;
+
+        if(pageSize)
+        {
+            queryRun.enablePositionPaging(true);
+            queryRun.addPageRange(pageStart, pageSize);
+        }
+
+        while(queryRun.next())
+        {
+            hcmWorker = queryRun.get(tablenum(HcmWorker));
+
+            this.initSalesPersonFields();
+
+            this.setWebshopDataMappingGetAPI('GetSalesPersons', hcmWorker);
+        }
+
+        resultNode.appendChild(resultXml.createElement(#totalCount)).innerText(int2str(this.countQuerytotal(queryRun.pack(false))));
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetShippingAddresses</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetShippingAddresses(XmlDocument _request)
+    {
+        DirPartyLocation        partyLocation;
+        DirPartyLocationRole    dirPartyLocationRole;
+        LogisticsLocationRole   logisticsLocationRole;
+        XmlNode                 shippingAddress;        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        custTable = CustTable::find(accountId);
+        isExtraFieldsRequired = true;
+
+        if(custTable)
+        {
+            while select Location, IsPrimary from partyLocation
+                order by IsPrimary desc
+                where partyLocation.Party == CustTable.Party
+                exists join PartyLocation,LocationRole from dirPartyLocationRole
+                    where dirPartyLocationRole.PartyLocation == partyLocation.RecId
+                    exists join logisticsLocationRole
+                        where logisticsLocationRole.RecId == dirPartyLocationRole.LocationRole &&
+                                (logisticsLocationRole.Type == LogisticsLocationRoleType::Delivery || partyLocation.IsPrimary)
+            {
+                address = LogisticsPostalAddress::findByLocation(partyLocation.Location);
+
+                if(address)
+                {
+                    shippingAddress = resultNode.appendChild(resultXml.createElement(#shippingAddress));
+                    this.initAddressFields(shippingAddress, address, partyLocation.IsPrimary);
+                    this.setWebshopDataMappingGetAPI('GetShippingAddresses', address);
+                }
+            }
+        }
+        else
+        {
+            this.errorHandler(strFmt(#error0011, accountId));
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetShippingOrigin</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetShippingOrigin(XmlDocument _request)
+    {
+        XmlNode shippingOrigin;        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        custTable = CustTable::find(accountId);
+        isExtraFieldsRequired = true;
+
+        if(!custTable.InventLocation)
+        {
+            custTable = CustTable::find(webShopsTable.TemplateCustAccount);
+        }
+
+        if(custTable.InventLocation)
+        {
+            address         = InventLocation::find(custTable.InventLocation).logisticsPostalAddress();
+            shippingOrigin  = resultNode.appendChild(resultXml.createElement(#shippingOrigin));
+
+            this.initAddressFields(shippingOrigin, address, false);
+            this.setWebshopDataMappingGetAPI('GetShippingOrigin', address);
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initContactDefaultFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initContactDefaultFields()
+    {
+        LogisticsPostalAddress            invoiceAddress;
+        DirDunsNumber                     dirDunsNumber;
+        DirOrganizationBase               dirOrganizationBase;
+
+        node    = resultNode.appendChild(resultXml.createElement(#contact));
+        address = DirParty::primaryPostalAddress(contactPerson.Party);
+        invoiceAddress = DirParty::postalAddress(contactPerson.Party, LogisticsLocationRoleType::Invoice);
+
+        this.addFieldValue(#id, node, contactPerson.ContactPersonId);
+
+        this.initAddressFields(node, address, true, false, contactPerson.ContactPersonId);
+        
+        this.addFieldValue(#currencyId, node, Currency::find(SmmBusRelTable::findByParty(contactPerson.ContactForParty).Currency).CurrencyCodeISO);
+        this.addFieldValue(#phoneNo, node, contactPerson.phone());
+        this.addFieldValue(#faxNo, node, contactPerson.telefax());
+        this.addFieldValue(#email, node, contactPerson.email());
+        this.addFieldValue(#salesPersonId, node, HcmWorker::find(contactPerson.MainResponsibleWorker).PersonnelNumber);
+        this.addFieldValue(#customerId, node, contactPerson.CustAccount);
+
+        select firstOnly dirDunsNumber
+            join DunsNumberRecId, RecId from dirOrganizationBase
+                where dirOrganizationBase.DunsNumberRecId == dirDunsNumber.RecId &&
+                        dirOrganizationBase.RecId == contactPerson.ContactForParty;
+
+        this.addFieldValue(#taxNo, node, dirDunsNumber.DunsNumber);
+
+        this.addExtraFields(node, contactPerson);
+        this.addSavedCustomFields(node, SmmBusRelTable::findByParty(contactPerson.ContactForParty));
+        customFieldsIds = contactCustomFieldsIds;
+        this.addSavedCustomFields(node, contactPerson);
+
+        if(invoiceAddress)
+        {
+            node = node.appendChild(resultXml.createElement(#billingAddress));
+
+            this.initAddressFields(node, invoiceAddress, false, false, contactPerson.ContactPersonId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initAddressFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initAddressFields(XmlNode _parentNode, LogisticsPostalAddress  _address, boolean _isPrimary = false, boolean _isCustomerAddress = true, ContactPersonId _contactPersonId = custTable.ContactPersonId)
+    {
+        LogisticsAddressCountryRegionName addressCountryName;        
+        
+        if(_address)
+        {
+            if(_isCustomerAddress)
+            {
+                this.addFieldValue(#id, _parentNode, _address.RecId);
+                this.addFieldValue(#contactName, _parentNode, ContactPerson::find(_contactPersonId).personName());
+            }
+
+            this.addFieldValue(#bigName, _parentNode, _isPrimary ? (_isCustomerAddress ? custTable.Name() : ContactPerson::find(_contactPersonId).personName()): LogisticsLocation::find(_address.Location).Description);
+            this.addFieldValue(#address, _parentNode, this.splitBeforeSeparator(_address.Street, '\n'));
+            this.addFieldValue(#address2, _parentNode, this.splitAfterSeparator(_address.Street, '\n'));
+            this.addFieldValue(#city, _parentNode, _address.City);
+            this.addFieldValue(#zipCode, _parentNode, _address.ZipCode);
+            this.addFieldValue(#countryId, _parentNode, LogisticsAddressCountryRegion::find(_address.CountryRegionId).ISOcode);
+
+            //short name can be like lable @SYS12345 if languageid not suppported
+            addressCountryName = LogisticsAddressCountryRegionTranslation::find(_address.CountryRegionId, languageId).ShortName;
+            addressCountryName = !addressCountryName || strContains(addressCountryName, '@') ? LogisticsAddressCountryRegion::find(_address.CountryRegionId).displayName() : addressCountryName;
+            this.addFieldValue(#countryName, _parentNode, addressCountryName);
+            this.addFieldValue(#state, _parentNode, _address.State);
+
+            //add extra fields
+            this.addSavedCustomFields(_parentNode, _address, true);
+
+            if(!this.addExtraFieldsGlobal(_parentNode, shippingAddressExtraFields, _address) && isExtraFieldsRequired)
+            {
+                this.addExtraFields(_parentNode, _address);
+            }
+        }        
+        else if(_isPrimary)
+        {
+            this.addFieldValue(#bigName, _parentNode, _isCustomerAddress ? custTable.Name() : ContactPerson::find(_contactPersonId).personName());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initCustomerDefaultFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initCustomerDefaultFields()
+    {
+        CustTable                         custTableLocal;
+        LogisticsPostalAddress            invoiceAddress, custAddress;
+        AccountNum                        invoiceAccount;
+        LogisticsAddressCountryRegionName addressCountryName;
+        
+        custTableLocal = CustTable::find(custTable.AccountNum); //refresh address updates
+        invoiceAccount = custTableLocal.InvoiceAddress == InvoiceOrderAccount::InvoiceAccount ? (custTableLocal.InvoiceAccount ? custTableLocal.InvoiceAccount : custTableLocal.AccountNum) : custTableLocal.AccountNum;
+        invoiceAddress = DirParty::postalAddress(CustTable::find(invoiceAccount).Party, LogisticsLocationRoleType::Invoice);
+        custAddress    = DirParty::primaryPostalAddress(custTableLocal.Party);
+
+        if(!invoiceAddress && (invoiceAccount != custTableLocal.AccountNum))
+        {
+            invoiceAddress = DirParty::primaryPostalAddress(CustTable::find(invoiceAccount).Party);
+        }
+
+        node = resultNode.appendChild(resultXml.createElement(#customer));
+
+        this.addFieldValue(#id, node, custTableLocal.AccountNum);
+        this.addFieldValue(#bigName, node, custTableLocal.name());
+        this.addFieldValue(#address, node, this.splitBeforeSeparator(custAddress.Street, '\n'));
+        this.addFieldValue(#address2, node, this.splitAfterSeparator(custAddress.Street, '\n'));
+        this.addFieldValue(#city, node, custAddress.City);
+        this.addFieldValue(#zipCode, node, custAddress.ZipCode);
+        this.addFieldValue(#countryId, node, LogisticsAddressCountryRegion::find(custAddress.CountryRegionId).ISOcode);
+        this.addFieldValue(#state, node, custAddress.State);
+
+        addressCountryName = LogisticsAddressCountryRegionTranslation::find(custAddress.CountryRegionId, languageId).ShortName;
+        addressCountryName = !addressCountryName || strContains(addressCountryName, '@') ? LogisticsAddressCountryRegion::find(custAddress.CountryRegionId).displayName() : addressCountryName;
+        this.addFieldValue(#countryName, node, addressCountryName);
+        this.addFieldValue(#contactName, node, ContactPerson::find(custTableLocal.ContactPersonId).personName());
+        this.addFieldValue(#currencyId, node, Currency::find(custTableLocal.Currency).CurrencyCodeISO);
+        this.addFieldValue(#phoneNo, node, custTableLocal.phone());
+        this.addFieldValue(#faxNo, node, custTableLocal.telefax());
+        this.addFieldValue(#email, node, custTableLocal.email());
+        this.addFieldValue(#billToCustomerId, node, custTableLocal.InvoiceAddress == InvoiceOrderAccount::InvoiceAccount ? custTableLocal.InvoiceAccount : '');
+        this.addFieldValue(#pricesInclTax, node, custTableLocal.InclTax);
+        this.addFieldValue(#b2cCustomer, node, custTableLocal.SC_B2cCustomer);
+        this.addFieldValue(#languagePreference, node, this.language2LocaleId(custTableLocal.LanguageId()));
+        this.addFieldValue(#creditLimit, node, CurrencyExchangeHelper::curAmount(custTableLocal.CreditMax, custTableLocal.Currency));
+        this.addFieldValue(#customerGroupId, node, custTableLocal.CustGroup);
+        this.addFieldValue(#isValid, node, customerValid);
+        this.addFieldValue(#salesPersonId, node, HcmWorker::find(custTableLocal.MainContactWorker).PersonnelNumber);
+
+        if(!customerValid && errorMsg)
+        {
+            this.addFieldValue(#nonValidReason, node, errorMsg);
+        }
+
+        this.addFieldValue(#isGuest, node, custTableLocal.SC_IsGuest);
+
+        this.addExtraFields(node, custTableLocal);
+        this.addSavedCustomFields(node, custTableLocal);
+        this.addCustomerShippingAddresses(node);
+
+        if(invoiceAddress)
+        {
+            node = node.appendChild(resultXml.createElement(#billingAddress));
+
+            this.initAddressFields(node, invoiceAddress, false, true, CustTable::find(invoiceAccount).ContactPersonId);
+        }        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initSalesPersonFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initSalesPersonFields()
+    {
+        CommissionSalesRep  commissionSalesRep;
+        HcmWorker           hcmWorkerLocal;
+        XmlElement          customerNode;        
+
+        node = resultNode.appendChild(resultXml.createElement(#salesPerson));
+
+        this.addFieldValue(#id, node, HcmWorker.PersonnelNumber);
+        this.addFieldValue(#bigName, node, HcmWorker.name());
+        this.addFieldValue(#email, node, HcmWorker.email());
+        this.addFieldValue(#phoneNo, node, HcmWorker.phone());
+        this.addFieldValue(#jobTitle, node, HcmWorker.title());
+
+        this.addExtraFields(node, HcmWorker);
+
+        if(loadRelatedCustomers)
+        {
+            node = node.appendChild(resultXml.createElement(#relatedCustomers));
+
+            while select AccountNum from custTable
+                exists join GroupId, Person from commissionSalesRep
+                    where commissionSalesRep.GroupId == custTable.salesGroup &&
+                          commissionSalesRep.Person  == HcmWorker.Person
+                exists join TableId from hcmWorkerLocal
+                    where hcmWorkerLocal.RecId == hcmWorker.RecId &&
+                          hcmWorkerLocal.RecId != custTable.MainContactWorker
+            {
+                customerNode = node.appendChild(resultXml.createElement(#relatedCustomer));
+                customerNode.setAttribute(#id, custTable.AccountNum);
+            }
+
+            while select AccountNum from custTable
+                where custTable.MainContactWorker == HcmWorker.RecId
+            {
+                customerNode = node.appendChild(resultXml.createElement(#relatedCustomer));
+                customerNode.setAttribute(#id, custTable.AccountNum);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SaveContact</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument SaveContact(XmlDocument _request)
+    {
+        smmBusRelTable              smmBusRelTable;
+        smmBusRelTypeGroup          smmBusRelTypeGroup;
+        DirPartyTable               dirPartyTable;
+        DirPartyPostalAddressView   addressView;
+        DirOrganizationBase         dirOrganizationBase;
+        DirDunsNumber               dirDunsNumber;
+        ContactPersonSyncEntity     contactEntity;        
+        DirParty                    dirParty;
+        LogisticsPostalAddress      custPostalAddress;
+        TaxGroup                    taxGroupTemplate, stateTaxGroup;
+        LogisticsLocationExt        logisticsLocationExt;
+        CustAccount                 custAccount;
+        EventHandlerResult          customResult = new EventHandlerResult();        
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        ttsbegin;
+
+        //find/create Prospect type for business relation
+        select firstonly smmBusRelTypeGroup
+            where smmBusRelTypeGroup.TableType == smmBusRelTypeSourceTable::Relation &&
+                    smmBusRelTypeGroup.TypeId like 'prospect';
+
+        if(!smmBusRelTypeGroup)
+        {
+            smmBusRelTypeGroup.clear();
+            smmBusRelTypeGroup.TableType        = smmBusRelTypeSourceTable::Relation;
+            smmBusRelTypeGroup.TypeId           = #prospect;
+            smmBusRelTypeGroup.TypeDescription  = #prospect;
+            smmBusRelTypeGroup.insert();
+        }
+
+        //start create business relation
+        smmBusRelTable.clear();
+        smmBusRelTable.initValue();
+        smmBusRelTable.BusRelTypeId  = smmBusRelTypeGroup.TypeId;
+        smmBusRelTable.BusRelAccount = smmParameters::getNumber(smmNumbSeqUsed::BusRel);
+
+        if(!smmBusRelTable.BusRelAccount)
+        {
+            throw error("@SCL108");
+        }
+
+        //get contact params fields
+        for(i=0;contactFields && i<contactFields.length();i++)
+        {
+            node = contactFields.item(i);
+
+            if(!node.attributes().getNamedItem(#value))
+            {
+                continue;
+            }
+
+            switch(node.attributes().getNamedItem(#name).innerText())
+            {
+                case #salesPersonId:
+                    smmBusRelTable.MainContactWorker = HcmWorker::findByPersonnelNumber(node.attributes().getNamedItem(#value).innerText()).RecId;
+                    break;
+
+                case #bigName:
+                    dirPartyTable = DirPartyTable::createNew(DirPartyType::Organization, node.attributes().getNamedItem(#value).innerText());
+                    break;
+
+                case #taxNo:
+                    ttsBegin;
+                    select firstOnly dirDunsNumber where dirDunsNumber.DunsNumber == node.attributes().getNamedItem(#value).innerText();
+                    if(!dirDunsNumber && node.attributes().getNamedItem(#value).innerText())
+                    {
+                        dirDunsNumber.DunsNumber = node.attributes().getNamedItem(#value).innerText();
+                        dirDunsNumber.insert();
+                    }
+
+                    select firstonly forUpdate dirOrganizationBase
+                        where dirOrganizationBase.RecId == dirPartyTable.RecId;
+
+                    if(dirOrganizationBase && dirDunsNumber)
+                    {
+                        dirOrganizationBase.DunsNumberRecId = dirDunsNumber.RecId;
+                        dirOrganizationBase.doUpdate();
+                    }
+                    ttsCommit;
+                    break;
+
+                default:
+                    this.customContactParamsDelegate(node, this, customResult);
+
+                    if(!customResult.result())
+                    {
+                        fieldId = fieldName2id(tableNum(smmBusRelTable), node.attributes().getNamedItem(#name).innerText());
+
+                        if(fieldId)
+                        {
+                            smmBusRelTable.(fieldId) = this.convert2Type(node.attributes().getNamedItem(#value).innerText(), typeof(smmBusRelTable.(fieldId)));
+                            customFieldsIds += node.attributes().getNamedItem(#name).innerText();
+                        }
+                        else
+                        {
+                            fieldId = fieldName2id(tableNum(Contactperson), node.attributes().getNamedItem(#name).innerText());
+                            if(fieldId)
+                            {
+                                contactCustomFieldsIds += node.attributes().getNamedItem(#name).innerText();
+                                customFieldsValues += node.attributes().getNamedItem(#value).innerText();
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+
+        //start create business relation address
+        addressView.initFromPostalAddressView(this.setAddressFromParams(contactFields));
+
+        //find country template customer
+        custAccount = SC_AddressCountryRegionSetup::find(addressView.CountryRegionId, webShopsTable.WebShopId).TemplateCustomer;
+        if(custAccount)
+        {
+            custTable           = CustTable::find(custAccount, true);
+            custPostalAddress   = custTable.postalAddress();
+            taxGroupTemplate    = LogisticsLocationExt::find(custPostalAddress.Location).TaxGroup;
+        }
+
+        smmBusRelTable.Party     = dirPartyTable.RecId;
+        smmBusRelTable.Currency  = custTable ? custTable.Currency  : smmBusRelTable.Currency;
+        smmBusRelTable.InclTax   = custTable ? custTable.InclTax   : smmBusRelTable.InclTax;
+        smmBusRelTable.TaxGroup  = custTable ? custTable.TaxGroup  : smmBusRelTable.TaxGroup;
+        smmBusRelTable.DlvTerm   = custTable ? custTable.DlvTerm   : smmBusRelTable.DlvTerm;
+        smmBusRelTable.DlvMode   = custTable ? custTable.DlvMode   : smmBusRelTable.DlvMode;
+        smmBusRelTable.CustGroup = custTable ? custTable.CustGroup : smmBusRelTable.CustGroup;
+        smmBusRelTable.insert();
+
+        dirParty = DirParty::constructFromCommon(smmBusRelTable);
+
+        //create phone, email etc.
+        this.setCommunicationInfoFromParams(dirParty, contactFields);
+
+
+        //validate and finish to create business relation address
+        addressView.IsPrimary   = NoYes::Yes;
+
+        if(!LogisticsAddressCountryRegion::exist(addressView.CountryRegionId))
+        {
+            throw error(strfmt("@SCL141", addressView.CountryRegionId, curext()));
+        }
+
+        if(addressView.State && !LogisticsAddressState::exist(addressView.CountryRegionId, addressView.State))
+        {
+            throw error(strfmt("@SCL159", addressView.State, addressView.CountryRegionId));
+        }
+
+        if(!addressView.City || !addressView.CountryRegionId)
+        {
+            throw error("@SCL140");
+        }
+
+        this.updateZipCode(addressView);
+        
+        addressView = this.createOrUpdatePostalAddress(addressView, dirParty.getPartyRecId());
+
+        //set address tax group from template customer address
+        stateTaxGroup = (select firstOnly SC_TaxGroup from LogisticsAddressState
+                         where LogisticsAddressState.StateId == addressView.State &&
+                               LogisticsAddressState.CountryRegionId == addressView.CountryRegionId).SC_TaxGroup;
+
+        if(taxGroupTemplate || stateTaxGroup)
+        {
+            logisticsLocationExt = LogisticsLocationExt::find(addressView.Location, true);
+
+            if(logisticsLocationExt && !logisticsLocationExt.TaxGroup)
+            {
+                logisticsLocationExt.TaxGroup = stateTaxGroup ? stateTaxGroup : taxGroupTemplate;
+                logisticsLocationExt.doUpdate();
+            }
+
+            if(!logisticsLocationExt)
+            {
+                logisticsLocationExt.Location = addressView.Location;
+                logisticsLocationExt.TaxGroup = stateTaxGroup ? stateTaxGroup : taxGroupTemplate;
+                logisticsLocationExt.insert();
+            }
+        }
+
+        //create and relate contact person for business relation
+        contactperson.clear();
+        contactperson.initValue();
+        contactperson.initFromBusRel(smmBusRelTable);  
+      
+        //check initFromCommon in next version D365, tableId of dirPartyTable changing to DirOrganization, looks like MS bug
+        //next two lines replace it
+        //contactperson.initFromCommon(dirPartyTable);
+        
+        //init as organization from dirPartyTable
+        contactperson.ContactForParty = dirPartyTable.RecId;
+        contactperson.initFromParty(DirPartyTable::findRec(contactperson.ContactForParty));    
+   
+        //set contact extra fields
+        for(i=1;i<=conLen(contactCustomFieldsIds);i++)
+        {
+            fieldId = fieldName2id(tableNum(Contactperson), conPeek(contactCustomFieldsIds, i));
+            if(fieldId)
+            {
+                contactperson.(fieldId) = this.convert2Type(conPeek(customFieldsValues, i), typeof(contactperson.(fieldId)));
+            }
+        }
+ 
+        //set custom default values and field mapping
+        this.setWebshopDataMapping([custTable.TableId, contactperson.TableId], [contactperson.TableId]);
+
+        contactEntity = ContactPersonSyncEntity::construct(contactPerson);
+
+        contactperson.MainResponsibleWorker = smmBusRelTable.MainContactWorker;
+        contactEntity.parmFirstName(strContains(dirPartyTable.Name, ' ') ? subStr(dirPartyTable.Name, 1, strFind(dirPartyTable.Name, ' ', 1, strLen(dirPartyTable.Name))-1) : dirPartyTable.Name);
+        contactEntity.parmLastName(strContains(dirPartyTable.Name, ' ') ? subStr(dirPartyTable.Name, strFind(dirPartyTable.Name, ' ', 1, strLen(dirPartyTable.Name))+1, strLen(dirPartyTable.Name)) : '');        
+        contactEntity.parmLanguageId(dirPartyTable.LanguageId);
+        contactEntity.write();
+
+        this.setCommunicationInfoFromParams(contactEntity, contactFields);
+
+        this.initContactDefaultFields();
+
+        ttscommit;
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customContactParamsDelegate</Name>
+				<Source><![CDATA[
+    //return true in _result for skip add parameters as custom fields in getOrderParameters
+    delegate void customContactParamsDelegate(XmlNode _node, Object _object, EventHandlerResult _result){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SaveCustomer</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument SaveCustomer(XmlDocument _request)
+    {
+        AccountNum                      custAccount, templateAccount, billToCustomerId, sanaCustomerId;
+        CustName                        customerName;
+        DirPartyTable                   dirPartyTable;
+        DirPartyPostalAddressView       addressView;
+        CustomerEntity                  customerEntity;
+        TaxGroup                        taxGroupTemplate, stateTaxGroup;
+        LogisticsLocationExt            logisticsLocationExt;
+        DirPartyLocation                partyLocation;
+        LogisticsElectronicAddress      logisticsElectronicAddress;
+        CustTable                       custTableTemplate, custTableLocal;
+        LogisticsAddressCountryRegionId templateCountry;
+        boolean                         pricesInclTax, inclTaxNodeExists, b2cCustomer, blocked, isGuest, editCustomer;
+        SC_LargeText                    email;
+        EventHandlerResult              customResult = new EventHandlerResult();
+        DirPartyType                    dirPartyType;
+        container                       nameparts;
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        loadShippingAddresses = true;
+
+        //get customer params fields
+        for(i=0;customerFields && i<customerFields.length();i++)
+        {
+            node = customerFields.item(i);
+
+            if(node.name() == #billingAddress)
+            {
+                billingAddressFields = node.childNodes();
+            }
+
+            if(!node.attributes().getNamedItem(#value))
+            {
+                continue;
+            }
+
+            switch(node.attributes().getNamedItem(#name).innerText())
+            {
+                case #id:
+                    custTable = CustTable::find(node.attributes().getNamedItem(#value).innerText(), true);
+                    break;
+
+                case #sanaCustomerId:
+                    sanaCustomerId = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #bigName:
+                    customerName = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #countryId:
+                    templateCountry = this.countryISO2Id(node.attributes().getNamedItem(#value).innerText());
+                    templateAccount = this.findCountryTemplate(templateCountry, _request);
+                    customerValid   = this.checkCustomerValid(CustTable::find(templateAccount));
+                    
+                    if(!customerValid)
+                    {
+                        throw error(errorMsg);
+                    }
+                    break;
+
+                case #billToCustomerId:
+                    billToCustomerId = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #pricesInclTax:
+                    pricesInclTax     = str2int(node.attributes().getNamedItem(#value).innerText());
+                    inclTaxNodeExists = true;
+                    break;
+
+                case #b2cCustomer:
+                    b2cCustomer = str2int(node.attributes().getNamedItem(#value).innerText());
+                    break;
+
+                case #blocked:
+                    blocked = str2int(node.attributes().getNamedItem(#value).innerText());
+                    break;
+
+                case #isGuest:
+                    isGuest = str2int(node.attributes().getNamedItem(#value).innerText());
+                    break;
+
+                case #email:
+                    email = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                default:   
+                    this.customCustParamsDelegate(node, this, customResult);
+                                    
+                    if(!customResult.result() && !node.childNodes().length())                
+                    {
+                        customFieldsIds    += node.attributes().getNamedItem(#name).innerText();
+                        customFieldsValues += node.attributes().getNamedItem(#value).innerText();
+                    }
+                    break;
+            }
+        }
+
+        if(!custTable && sanaCustomerId)
+        {
+            select firstOnly forupdate custTable where custTable.SC_ImportCustNum == sanaCustomerId;
+        }
+
+        if(!custTable && email) //search guest duplicate by email
+        {
+            select firstOnly forUpdate custTable
+                exists join partyLocation
+                    where partyLocation.Party == custTable.Party &&
+                          custTable.SC_IsGuest
+                exists join logisticsElectronicAddress
+                    where logisticsElectronicAddress.Location == partyLocation.Location &&
+                          logisticsElectronicAddress.Type == LogisticsElectronicAddressMethodType::Email &&
+                          logisticsElectronicAddress.Locator == email;
+        }
+
+        if(!custTable)
+        {            
+            custTable = CustTable::find(templateAccount, true);
+
+            if(!custTable)
+            {
+                throw error(strfmt("@SCL72", fieldPName(SC_AddressCountryRegionSetup, TemplateCustomer), tableId2pname(tableNum(LogisticsAddressCountryRegion))));
+            }
+
+            if(b2cCustomer || !webShopsTable.EnableB2BCustTemplate)
+            {
+                dirPartyType = webShopsTable.B2CregistrationType == SC_B2CRegistrationType::Organization ? DirPartyType::Organization : DirPartyType::Person;
+            }
+            else
+            {
+                dirPartyType = webShopsTable.B2BregistrationType == SC_B2CRegistrationType::Organization ? DirPartyType::Organization : DirPartyType::Person;
+            }
+
+            dirPartyTable            = DirPartyTable::createNew(dirPartyType, customerName);
+            dirPartyTable.LanguageId = custTable.languageId();
+            dirPartyTable.update();
+
+            if(isGuest)
+            {
+                custAccount      = this.getNumberSeq(false, true);
+            }
+
+            custTable.AccountNum = custAccount ? custAccount : this.getCustNumber();
+            custTable.Party      = dirPartyTable.RecId;
+            custTable.insert();  
+        }
+        else
+        {
+            editCustomer = true;
+        }
+
+        //update customer information
+        ttsBegin;
+        customerValid   = true;
+        customerEntity  = DirParty::constructFromCommon(CustTable);
+
+        if(customerName && !dirPartyTable)
+        {
+            if(customerEntity.parmType() == DirPartyType::Person)
+            {
+                nameparts = DirPerson::splitNameParts(customerName);
+            
+                customerEntity.parmFirstName(conPeek(nameparts,1));
+                customerEntity.parmMiddleName(conPeek(nameparts,2));
+                customerEntity.parmLastName(conPeek(nameparts,3));
+            }
+            else
+            {
+                customerEntity.parmName(customerName);
+            }
+            customerEntity.update();
+        }        
+
+        //update whole customer from template if country changed
+        if(DirParty::primaryPostalAddress(custTable.Party).CountryRegionId != templateCountry)
+        {
+            custTableLocal.data(custTable);
+            custTableTemplate       = CustTable::find(templateAccount);
+    
+            buf2Buf(custTableTemplate, custTable);
+    
+            custTable.AccountNum    = custTableLocal.AccountNum;
+            custTable.Party         = custTableLocal.Party;
+        }
+
+        //set customer extra fields
+        for(i=1;i<=conLen(customFieldsIds);i++)
+        {
+            fieldId = fieldName2id(tableNum(CustTable), conPeek(customFieldsIds, i));
+            if(fieldId)
+            {
+                custTable.(fieldId) = this.convert2Type(conPeek(customFieldsValues, i), typeof(custTable.(fieldId)));
+            }
+        }
+
+        custTable.InvoiceAccount    = billToCustomerId;
+        custTable.InclTax           = inclTaxNodeExists ? pricesInclTax : custTable.InclTax;
+        custTable.SC_B2cCustomer    = b2cCustomer;
+        custTable.Blocked           = blocked ? CustVendorBlocked::All : CustVendorBlocked::No;
+        custTable.SC_ImportCustNum  = sanaCustomerId;
+        custTable.SC_IsGuest        = isGuest;
+
+        //set custom default values and field mapping
+        if(!editCustomer)
+        {
+            this.setWebshopDataMapping([custTable.TableId], [custTable.TableId]);
+        }
+
+        custTable.update();
+
+        //create phone, email etc.
+        this.setCommunicationInfoFromParams(customerEntity, customerFields);
+
+        //create/update customer address
+        addressView.initFromPostalAddressView(this.setAddressFromParams(customerFields));
+        addressView.Location = DirParty::primaryPostalAddress(custTable.Party).Location;
+
+        if(!LogisticsAddressCountryRegion::exist(addressView.CountryRegionId))
+        {
+            throw error(strfmt("@SCL141", addressView.CountryRegionId, curext()));
+        }
+
+        if(addressView.State && !LogisticsAddressState::exist(addressView.CountryRegionId, addressView.State))
+        {
+            throw error(strfmt("@SCL159", addressView.State, addressView.CountryRegionId));
+        }
+
+        this.updateZipCode(addressView);
+        addressView.IsPrimary = NoYes::Yes;
+        this.createOrUpdatePostalAddress(addressView, customerEntity.getPartyRecId());
+
+        //set address tax group from template customer address
+        taxGroupTemplate = LogisticsLocationExt::find(CustTable::find(templateAccount).postalAddress().Location).TaxGroup;
+        stateTaxGroup    = (select firstOnly SC_TaxGroup from LogisticsAddressState 
+                                where LogisticsAddressState.StateId == addressView.State &&
+                                      LogisticsAddressState.CountryRegionId == addressView.CountryRegionId).SC_TaxGroup;
+
+        if(taxGroupTemplate || stateTaxGroup)
+        {
+            logisticsLocationExt = LogisticsLocationExt::find(custTable.postalAddress().Location, true);
+
+            if(logisticsLocationExt && !logisticsLocationExt.TaxGroup)
+            {
+                logisticsLocationExt.TaxGroup = stateTaxGroup ? stateTaxGroup : taxGroupTemplate;
+                logisticsLocationExt.doUpdate();
+            }
+
+            if(!logisticsLocationExt)
+            {
+                logisticsLocationExt.Location = custTable.postalAddress().Location;
+                logisticsLocationExt.TaxGroup = stateTaxGroup ? stateTaxGroup : taxGroupTemplate;
+                logisticsLocationExt.insert();
+            }
+        }
+
+        this.copyRetailAffiliations(templateAccount);
+        ttsCommit;
+
+        this.initCustomerDefaultFields();
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customCustParamsDelegate</Name>
+				<Source><![CDATA[
+    //return true in _result for skip add parameters as custom fields in getOrderParameters
+    delegate void customCustParamsDelegate(XmlNode _node, Object _object, EventHandlerResult _result){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findCountryTemplate</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected CustAccount findCountryTemplate(LogisticsAddressCountryRegionId _countryId, XmlDocument _request)
+    {
+        SC_AddressCountryRegionSetup addressCountryRegionSetup = SC_AddressCountryRegionSetup::find(_countryId, webShopsTable.WebShopId);
+        XmlNode                      isB2CNode;
+        boolean                      isB2CCustomer;        
+        CustAccount                  countryTemplateAccount;
+        
+        isB2CNode     = _request.selectSingleNode('/Request/Params/Customer/field[@name="B2cCustomer"]/@value');
+        isB2CCustomer = isB2CNode ? (isB2CNode.value() == #one ? true : false) : false;
+
+        if(isB2CCustomer)
+        {
+            countryTemplateAccount = addressCountryRegionSetup.TemplateCustomer;
+        }
+        else
+        {
+            countryTemplateAccount = webShopsTable.EnableB2BCustTemplate ? addressCountryRegionSetup.B2BTemplateCustomer : addressCountryRegionSetup.TemplateCustomer;
+        }
+
+        return countryTemplateAccount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCommunicationInfoFromParams</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void setCommunicationInfoFromParams(DirParty _partyRelation, XmlNodeList _fieldsList)
+    {
+        DirPartyContactInfoView     contactInfoView;
+        LogisticsLocationEntity     logisticsLocationEntity; 
+        Integer b;
+
+        for(b=0;_fieldsList && b<_fieldsList.length();b++)
+        {
+            node = _fieldsList.item(b);
+
+            if(!node.attributes().getNamedItem(#value))
+            {
+                continue;
+            }
+
+            contactInfoView.clear();
+            contactInfoView.IsPrimary = NoYes::Yes;
+
+            switch(node.attributes().getNamedItem(#name).innerText())
+            {
+                case #phoneNo:
+                    contactInfoView.Type      = LogisticsElectronicAddressMethodType::Phone;
+                    contactInfoView.Locator   = node.attributes().getNamedItem(#value).innerText();
+                    logisticsLocationEntity   = _partyRelation.getPrimaryElectronicAddressLocation(LogisticsElectronicAddressMethodType::Phone);
+
+                    if(logisticsLocationEntity) //update existing
+                    {
+                        contactInfoView.Location          = logisticsLocationEntity.getLogisticsLocation().RecId;
+                        contactInfoView.ElectronicAddress = LogisticsElectronicAddress::findByLocationAndType(contactInfoView.Location, LogisticsElectronicAddressMethodType::Phone).RecId;
+                    }
+                    _partyRelation.createOrUpdateContactInfo(contactInfoView);
+                    break;
+
+                case #email:
+                    contactInfoView.Type      = LogisticsElectronicAddressMethodType::Email;
+                    contactInfoView.Locator   = node.attributes().getNamedItem(#value).innerText();
+                    logisticsLocationEntity   = _partyRelation.getPrimaryElectronicAddressLocation(LogisticsElectronicAddressMethodType::Email);
+
+                    if(logisticsLocationEntity) //update existing
+                    {
+                        contactInfoView.Location          = logisticsLocationEntity.getLogisticsLocation().RecId;
+                        contactInfoView.ElectronicAddress = LogisticsElectronicAddress::findByLocationAndType(contactInfoView.Location, LogisticsElectronicAddressMethodType::Email).RecId;
+                    }
+                    _partyRelation.createOrUpdateContactInfo(contactInfoView);
+                    break;
+
+                case #faxNo:
+                    contactInfoView.Type      = LogisticsElectronicAddressMethodType::Fax;
+                    contactInfoView.Locator   = node.attributes().getNamedItem(#value).innerText();
+                    logisticsLocationEntity   = _partyRelation.getPrimaryElectronicAddressLocation(LogisticsElectronicAddressMethodType::Fax);
+
+                    if(logisticsLocationEntity) //update existing
+                    {
+                        contactInfoView.Location          = logisticsLocationEntity.getLogisticsLocation().RecId;
+                        contactInfoView.ElectronicAddress = LogisticsElectronicAddress::findByLocationAndType(contactInfoView.Location, LogisticsElectronicAddressMethodType::Fax).RecId;
+                    }
+                    _partyRelation.createOrUpdateContactInfo(contactInfoView);
+                    break;
+
+                default:
+                    this.customCommunicationInfoDelegate(_partyRelation, node);
+                    break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customCommunicationInfoDelegate</Name>
+				<Source><![CDATA[
+    delegate void customCommunicationInfoDelegate(DirParty _partyRelation, XmlNode _communicationNode) {}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateZipCode</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void updateZipCode(DirPartyPostalAddressView _addressView)
+    {
+        LogisticsAddressZipCode newZipCode;
+        LogisticsPostalAddress  postalAddress;
+        
+        newZipCode = LogisticsAddressZipCode::findZipCodeCountryRegion(_addressView.ZipCode, _addressView.CountryRegionId, true);
+
+        if(!newZipCode)
+        {
+            newZipCode.clear();
+            newZipCode.City            = _addressView.City;
+            newZipCode.CountryRegionId = _addressView.CountryRegionId;
+            newZipCode.County          = _addressView.County;
+            newZipCode.District        = _addressView.District;
+            newZipCode.DistrictName    = _addressView.DistrictName;
+            newZipCode.State           = _addressView.State;
+            newZipCode.StreetName      = _addressView.Street;
+            newZipCode.TimeZone        = _addressView.TimeZone;
+            newZipCode.ZipCode         = _addressView.ZipCode;
+            newZipCode.insert();
+        }        
+
+        postalAddress = LogisticsPostalAddress::findByLocation(_addressView.Location, true);
+
+        if(postalAddress && postalAddress.ZipCodeRecId != newZipCode.RecId)
+        {
+            ttsbegin;
+            postalAddress.ZipCodeRecId = newZipCode.RecId;
+            postalAddress.validTimeStateUpdateMode(ValidTimeStateUpdate::Correction);
+            postalAddress.update();
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateLastModifiedDate</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    static void updateLastModifiedDate(CustAccount _account)
+    {
+        System.DateTime dateTime;
+        Real            dReal;
+        CustTable       custtable = CustTable::find(_account, true);
+    
+        if(custtable)
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+    
+            dateTime = DateTimeUtil::utcNow();
+            dReal    = dateTime.ToOADate();
+    
+            ttsBegin;
+            custtable.SC_LastModified = dReal;
+            custtable.doUpdate();
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public static SC_AXDataServiceClient_Customer construct()
+    {
+        SC_AXDataServiceClient_Customer seviceclient = new SC_AXDataServiceClient_Customer();
+        
+        seviceclient.clearCache();
+
+        return seviceclient;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SaveShippingAddress</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument SaveShippingAddress(XmlDocument _request)
+    {
+        XmlNode                         shippingAddress;
+        DirPartyPostalAddressView       addressView;
+        LogisticsPostalAddressView      logisticAddressView;
+        LogisticsLocationExt            logisticsLocationExt;
+        TaxGroup                        stateTaxGroup;
+        AccountNum                      countryTemplateAccount;
+        SC_AddressCountryRegionSetup    addressCountryRegionSetup;
+        TaxGroup                        taxGroupTemplate;
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        if(shipAddressFields && shipAddressFields.length())
+        {
+            logisticAddressView = this.setAddressFromParams(shipAddressFields);
+            custTable           = CustTable::find(addressAccountId);
+        
+            if(!custTable)
+            {
+                throw error(strFmt("@SYS16734", addressAccountId));
+            }
+
+            addressView.initFromPostalAddressView(logisticAddressView);     
+            addressView.IsPrivate       = logisticAddressView.IsPrivate;
+            addressView.PrivateForParty = logisticAddressView.PrivateForParty;
+
+            if(logisticAddressView.RecId)
+            {
+                address = LogisticsPostalAddress::findRecId(logisticAddressView.RecId, true);
+                addressView.Location = address.Location;
+            }
+
+            if(!LogisticsAddressCountryRegion::exist(addressView.CountryRegionId))
+            {
+                throw error(strfmt("@SCL141", addressView.CountryRegionId, curext()));
+            }
+
+            if(addressView.State && !LogisticsAddressState::exist(addressView.CountryRegionId, addressView.State))
+            {
+                throw error(strfmt("@SCL159", addressView.State, addressView.CountryRegionId));
+            }
+
+            this.updateZipCode(addressView);
+
+            addressView = this.createOrUpdatePostalAddress(addressView, custTable.Party);
+            address = LogisticsPostalAddress::findByLocation(addressView.Location);
+            addressCountryRegionSetup = SC_AddressCountryRegionSetup::find(address.CountryRegionId, webShopsTable.WebShopId);
+
+            if(custTable.SC_B2cCustomer)
+            {
+                countryTemplateAccount = addressCountryRegionSetup.TemplateCustomer;
+            }
+            else
+            {
+                countryTemplateAccount = webShopsTable.EnableB2BCustTemplate ? addressCountryRegionSetup.B2BTemplateCustomer : addressCountryRegionSetup.TemplateCustomer;
+            }
+
+            taxGroupTemplate = LogisticsLocationExt::find(CustTable::find(countryTemplateAccount).postalAddress().Location).TaxGroup;
+            stateTaxGroup = (select firstOnly SC_TaxGroup from LogisticsAddressState
+                                                where LogisticsAddressState.StateId == address.State &&
+                                                      LogisticsAddressState.CountryRegionId == address.CountryRegionId).SC_TaxGroup;
+            if(taxGroupTemplate || stateTaxGroup)
+            {
+                logisticsLocationExt = LogisticsLocationExt::find(custTable.postalAddress().Location, true);
+
+                if(logisticsLocationExt && !logisticsLocationExt.TaxGroup)
+                {
+                    ttsbegin;
+                    logisticsLocationExt.TaxGroup = stateTaxGroup ? stateTaxGroup : taxGroupTemplate;
+                    logisticsLocationExt.doUpdate();
+                    ttsCommit;
+                }
+
+                if(!logisticsLocationExt)
+                {
+                    logisticsLocationExt.Location = custTable.postalAddress().Location;
+                    logisticsLocationExt.TaxGroup = stateTaxGroup ? stateTaxGroup : taxGroupTemplate;
+                    logisticsLocationExt.insert();
+                }
+            }
+
+            shippingAddress = resultNode.appendChild(resultXml.createElement(#shippingAddress));
+            this.initAddressFields(shippingAddress, address);
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeleteShippingAddress</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument DeleteShippingAddress(XmlDocument _request)
+    {
+        boolean isDefault;
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        address = LogisticsPostalAddress::findRecId(addressId, true);
+    
+        custTable = CustTable::find(accountId);
+
+        if(custTable && !DirPartyLocation::findByPartyLocation(custTable.Party, address.Location).IsPrimary)
+        {
+            if(LogisticsLocationDefault::implementsDefaultLocations(custTable) &&
+               LogisticsLocationDefault::isAddressDefault(addressId, custTable))
+            {
+                isDefault = true;
+            }
+        
+            address.deactivate(custTable, isDefault);
+        }
+        else
+        {
+            this.errorHandler("@SYS112388");
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkAddressDuplicate</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean checkAddressDuplicate(LogisticsPostalAddress _postalAddress, LogisticsPostalAddressView _postalAddressView)
+    {
+        LogisticsPostalAddress       postalAddressOrig, postalAddress;
+        LogisticsPostalAddressEntity postalAddressEntity;
+    
+        postalAddressOrig.data(_postalAddress);
+        postalAddressEntity = new LogisticsPostalAddressEntity();
+        postalAddress       = postalAddressEntity.initFromView(_postalAddressView, _postalAddress);
+   
+        return bufCmp(postalAddress, postalAddressOrig);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getActiveBuffer</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Common getActiveBuffer(TableId _tableId)
+    {
+        Common  ret;
+
+        switch(_tableId)
+        {
+            case tableNum(CustTable):
+                ret = custTable as CustTable;
+                break;
+            case tableNum(ContactPerson):
+                ret = contactPerson as ContactPerson;
+                break;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

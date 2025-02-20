@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_FilterWebShopsTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_FilterWebShopsTable extends common
+{
+   
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public boolean validateWrite()
+    {
+        boolean ret;
+    
+        ret = super();
+    
+        if(ret && !fieldName2id(tableName2id(this.TableName), this.FieldName))
+        {
+            ret = checkFailed(strFmt("@SYS75684", this.FieldName, this.TableName));
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    static boolean exists(SC_WebshopId _webshopId)
+    {        
+        return (select firstOnly SC_FilterWebShopsTable where SC_FilterWebShopsTable.WebShopId == _webshopId).RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>existFilters</Name>
+				<Source><![CDATA[
+    static boolean existFilters(SC_WebshopId _webshopId, TableName _tableName)
+    {        
+        return (select firstOnly SC_FilterWebShopsTable where SC_FilterWebShopsTable.WebShopId == _webshopId && SC_FilterWebShopsTable.TableName == _tableName).RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTables</Name>
+				<Source><![CDATA[
+    client static void lookupTables(FormControl _formControl, str _filterStr)
+    {
+        TmpSysQuery     tmpSysQuery;
+        SqlDictionary   sqlDictionary;
+        SysTableLookup  sysTableLookup = SysTableLookup::newParameters(tablenum(TmpSysQuery), _formControl);        
+                
+        while select tabId from sqlDictionary
+            group by tabId
+            where sqlDictionary.tabId == tableNum(CustTable) ||
+                  sqlDictionary.tabId == tableNum(InventTable) ||
+                  sqlDictionary.tabId == tableNum(EcoResCategory) ||
+                  sqlDictionary.tabId == tableNum(ContactPerson) ||
+                  sqlDictionary.tabId == tableNum(HcmWorker)
+        {
+            tmpSysQuery.Table_Id = sqlDictionary.tabId;
+            tmpSysQuery.Tablelabel = tableId2name(sqlDictionary.tabId);            
+            tmpSysQuery.insert();
+        }
+
+        //BP Deviation documented
+        sysTableLookUp.parmTmpBuffer(tmpSysQuery);
+        sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Tablelabel), true);            
+        sysTableLookUp.setLabel("@SYS92116");            
+        sysTableLookUp.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWebshopFilters</Name>
+				<Source><![CDATA[
+    static Map getWebshopFilters(SC_WebshopId _webshopId, TableName _tableName = tablestr(InventTable))
+    {
+        Map                     ret = new Map(Types::String, Types::String);
+        SC_FilterWebShopsTable  filterWebShopsTable;
+        
+        while select FilterStr, FieldName from filterWebShopsTable
+            where filterWebShopsTable.WebShopId == _webshopId &&
+                  filterWebShopsTable.TableName == _tableName
+        {
+            ret.insert(filterWebShopsTable.FieldName, filterWebShopsTable.FilterStr);
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableFields</Name>
+				<Source><![CDATA[
+    client static void lookupTableFields(FormControl _formControl, TableId _tableId)
+    {
+        TmpSysQuery         tmpSysQuery;
+        SysTableLookUp      sysTableLookUp = SysTableLookUp::newParameters(tablenum(TmpSysQuery), _formControl);
+        TmpSysTableField    tmpSysTableField;
+        DictTable           dictTable      = new DictTable(_tableId);        
+
+        if(dictTable)
+        {
+            tmpSysTableField = TmpSysTableField::findTableFields(tmpSysTableField, dictTable.id());
+
+            while select tmpSysTableField
+            {
+                tmpSysQuery.Tablelabel = tmpSysTableField.FieldName;
+                tmpSysQuery.FieldLabel = tmpSysTableField.FieldLabel;
+                tmpSysQuery.RangeValue = tmpSysTableField.FieldHelp;
+                tmpSysQuery.insert();
+            }
+
+            //BP Deviation documented
+            sysTableLookUp.parmTmpBuffer(tmpSysQuery);
+            sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Tablelabel), true);
+            sysTableLookUp.setLabel("@SYS112132");
+            sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, FieldLabel));
+            sysTableLookUp.setLabel("@SYS92116");
+            sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, RangeValue));
+            sysTableLookUp.setLabel("@SYS104939");
+            sysTableLookUp.performFormLookup();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>editFieldValue</Name>
+				<Source><![CDATA[
+    public edit SC_LargeText editFieldValue(boolean _set, SC_LargeText _value)
+    {
+        if (_set)
+        {
+            if(_value)
+            {
+                if(fieldName2id(tableName2id(this.TableName), this.FieldName) == fieldNum(EcoResCategory, Name))
+                {
+                    this.FilterStr += EcoResCategory::find(str2int64(_value)).Name;
+                }
+                else
+                {
+                    this.FilterStr = _value;
+                }
+            }
+            else
+            {
+                this.FilterStr = _value;
+            }
+        }
+
+
+        return this.FilterStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL147</DeveloperDocumentation>
+	<FormRef>SC_WebShops</FormRef>
+	<Label>@SCL4</Label>
+	<TitleField1>WebShopId</TitleField1>
+	<TitleField2>FieldName</TitleField2>
+	<CacheLookup>EntireTable</CacheLookup>
+	<ClusteredIndex>ShopIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<PrimaryIndex>ShopIdx</PrimaryIndex>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FilterStr</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FilterStr</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Description</Name>
+			<Label>@SYS25589</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FilterStr</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Setup</Name>
+			<Label>@SYS12687</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_FieldName</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FilterStr</Name>
+			<ExtendedDataType>SC_LargeText</ExtendedDataType>
+			<HelpText>@SYS55288</HelpText>
+			<Label>@SYS35881</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WebShopId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TableName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>tablename</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ShopIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WebShopId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TableName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>FieldName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>SC_WebShopsTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>SC_WebShopsTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

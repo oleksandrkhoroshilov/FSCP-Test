@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLabelFile xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SCL_cs</Name>
+	<LabelContentFileName>SCL.cs.label.txt</LabelContentFileName>
+	<LabelFileId>SCL</LabelFileId>
+	<Language>cs</Language>
+	<RelativeUriInModelStore>ApplicationSuite/ApplicationSuite.Sana/AxLabelFile/LabelResources/cs/SCL.cs.label.txt</RelativeUriInModelStore>
+</AxLabelFile>

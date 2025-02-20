@@ -1,0 +1,2820 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_IntegrityCheck</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_IntegrityCheck extends FormRun
+{    
+    Integer       imagePass, imageFail, imageWarning, imageInfo;
+    SC_LargeText  message;
+    Counter       totalChecksCnt, completedChecksCnt, failedChecksCnt, warningChecksCnt;
+    container     URLcon, selectedChecksCon;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {           
+        SC_WebShopsTable webshopsTable = SC_WebShopsTable::findFirst();        
+
+        super();
+
+        if(webshopsTable)
+        {
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Configure-the-Webshop-D365FO.htm';                 //1
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Configure-the-Webshop-D365FO.htm';                 //2
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Configure-the-Webshop-D365FO.htm';                 //3
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Sales-Orders/Sales-Reports-D365FO.htm';                           //4
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Product-Attachments-D365FO.htm';                  //5
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Sales-Orders/Sales-Document-Attachments-D365FO.htm';              //6
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Sales-Orders/Order-Processing-D365FO.htm';                        //7
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Sales-Orders/Online-Invoice-Payments-D365FO.htm';                 //8
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Product-Categories-D365FO.htm';                   //9
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Item-Groups-D365FO.htm';                          //10
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Default-Storage-Dimensions-D365FO.htm';           //11
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Default-Storage-Dimensions-D365FO.htm';           //12
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Sales-Orders/Shopping-Cart-Suggestions-D365FO.htm';               //13
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Customers/Countries-D365FO.htm';                                  //14
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Customers/Countries-D365FO.htm';                                  //15
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Data-Validation-Rules-D365FO.htm';                 //16
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Products-D365FO.htm';                             //17
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Product-Variants-D365FO.htm';                     //18
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Units-of-Measure-D365FO.htm';                     //19
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Customers/Currencies-D365FO.htm';                                 //20
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Bill-of-Materials-D365FO.htm';                    //21
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Number-Sequences-D365FO.htm';                      //22
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Webshop-Parameters-D365FO.htm';                    //23
+
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/AX-Retail/Introduction-AX-Retail.htm';                                                       //24
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/AX-Retail/Assortments-AX-Retail.htm';                                                        //25
+
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Sales-Orders/Prepayments-D365FO.htm';                             //26
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Customers/Customer-Overview-D365FO.htm';                          //27
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Webshop-Catalog-Overview-D365FO.htm';             //28
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Webshop-Parameters-D365FO.htm';                    //29
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Other-Features/Webshop-Parameters-D365FO.htm';                    //30
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Product-Prices-and-Line-Discounts-D365FO.htm';    //31
+            URLcon +='https://support.sana-commerce.com/Content/ERP-User-Guide/365-Finance-and-Operations/Webshop-Catalog/Product-Prices-and-Line-Discounts-D365FO.htm';    //32
+            
+            imageInfo    = 4;
+            imageWarning = 3;
+            imagePass    = 1;
+            imageFail    = 2;
+
+            WebShopId.text(webshopsTable.WebShopId);
+            WebShopId.modified();
+        }
+        else
+        {
+            if(Box::yesNo("@SCL350", DialogButton::Yes) == DialogButton::Yes)
+            {
+                new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(new Args());
+            }
+            element.close();
+        }    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initData</Name>
+				<Source><![CDATA[
+    public void initData(boolean _execute = false)
+    {
+        totalChecksCnt     = 0;
+        completedChecksCnt = 0;
+        failedChecksCnt    = 0;
+        warningChecksCnt   = 0;
+
+        select firstOnly tempData where tempData.CompileErrorString == WebshopId.text();
+
+        if(!tempData || _execute)
+        {
+            this.checkCustIndexability(_execute);
+            this.checkTemplateCustomer(_execute);
+            this.checkPaymentCost(_execute);
+            this.checkShippingCost(_execute);
+            this.checkReportDownload(_execute);
+            this.checkProdAttachment(_execute);
+            this.checkDocAttachment(_execute);
+            this.checkOrderProcessing(_execute);
+            this.checkQuotePromote(_execute);
+            this.checkInvoicePaymProcess(_execute);
+            this.checkPrepayments(_execute);
+            this.checkCategoryHierarchy(_execute);
+            this.checkItemGroups(_execute);
+            this.checkStorageDim(_execute);
+            this.checkOverrideStorageDim(_execute);
+            this.checkProdSuggestions(_execute);
+            this.checkCountries(_execute);
+            this.checkCountryTemplates(_execute);
+            this.checkDataValidationRules(_execute);
+            this.checkProductVisibility(_execute);
+            this.checkProductsIndexability(_execute);
+            this.checkProductVariants(_execute);
+            this.checkUOMVisibility(_execute);
+            this.checkCurrencyVisibility(_execute);
+            this.checkBOMVisibility(_execute);
+            this.checkNumberSeq(_execute);
+            this.checkLanguageMapping(_execute);
+            this.checkRetail(_execute);
+            this.checkRetailAssortment(_execute);
+            this.checkLogging(_execute);
+            this.checkTotalDiscountActivation(_execute);
+            this.checkProductTotalDiscountActivation(_execute);
+        }
+        else
+        {
+            select count(RecId) from tempData where tempData.CompileErrorString == WebshopId.text();
+            totalChecksCnt   = int642int(tempData.RecId);            
+        }
+        
+        select count(RecId) from tempData where tempData.CompileErrorString == WebshopId.text() && tempData.UtilElementImage == imageWarning;
+        warningChecksCnt = int642int(tempData.RecId);
+        select count(RecId) from tempData where tempData.CompileErrorString == WebshopId.text() && tempData.UtilElementImage == imageFail;
+        failedChecksCnt  = int642int(tempData.RecId);
+        select count(RecId) from tempData where tempData.CompileErrorString == WebshopId.text() &&
+                                           (tempData.UtilElementImage == imagePass || tempData.UtilElementImage == imageInfo);
+        completedChecksCnt = int642int(tempData.RecId);
+
+        TotalChecks.value(totalChecksCnt);
+        CompleteChecks.value(completedChecksCnt);
+        FailedChecks.value(failedChecksCnt);
+        WarningChecks.value(warningChecksCnt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isStringIndexable</Name>
+				<Source><![CDATA[
+    public boolean isStringIndexable(SC_LargeText _text)
+    {
+        return !System.Text.RegularExpressions.Regex::IsMatch(_text, @"[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u0084\u0086-\u009F\uD800-\uDFFF\uFDD0-\uFDEF\uFFFE-\uFFFF]");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductDescriptions</Name>
+				<Source><![CDATA[
+    public boolean checkProductDescriptions(EcoResProductRecId _product)
+    {
+        EcoResProductTranslation    inventTxt;
+        SC_LanguageParametersTable  languageParametersTable;
+        boolean                     ret = true;        
+
+        while select Description from inventTxt
+            index hint ProductLanguageIdx
+            where inventTxt.Product == _product && inventTxt.Description
+                exists join TableId from languageParametersTable
+                    where languageParametersTable.LanguageId == inventTxt.LanguageId
+        {
+            ret = element.isStringIndexable(inventTxt.Description);
+
+            if(!ret)
+            {
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductTranslations</Name>
+				<Source><![CDATA[
+    public boolean checkProductTranslations(EcoResProductRecId _product)
+    {
+        EcoResProductTranslation    inventTxt;
+        SC_LanguageParametersTable  languageParametersTable;
+        boolean                     ret = true;        
+
+        while select Name from inventTxt
+            index hint ProductLanguageIdx
+            where inventTxt.Product == _product && inventTxt.Name
+                exists join TableId from languageParametersTable
+                    where languageParametersTable.LanguageId == inventTxt.LanguageId
+        {
+            ret = element.isStringIndexable(inventTxt.Name);
+
+            if(!ret)
+            {
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductsIndexability</Name>
+				<Source><![CDATA[
+    private void checkProductsIndexability(boolean _execute = false)
+    {
+        SC_WebShopsTable        webshopTable = SC_WebShopsTable::find(webshopId.text());
+        Map                     filters;
+        MapEnumerator           filtersEnum;
+        QueryRun                queryRun;
+        Query                   query = new Query();
+        QueryBuildDataSource    qbd;
+        InventTable             inventTable;
+        InventDimCombination    inventDimCombination;        
+        boolean                 ret;        
+
+        if(_execute && conFind(selectedChecksCon, 28))
+        {
+            select firstOnly forUpdate tempData where tempData.Line == 28 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            filters     = SC_FilterWebShopsTable::getWebshopFilters(webshopTable.WebShopId, tableStr(InventTable));
+            filtersEnum = filters.getEnumerator();
+
+            qbd =  query.addDataSource(tableNum(InventTable));
+
+            while(filtersEnum.moveNext())
+            {
+                qbd.addRange(fieldname2id(tablenum(InventTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+            }
+
+            queryRun   = new QueryRun(query);            
+
+            while(queryRun.next())
+            {
+                inventTable = queryRun.get(tablenum(InventTable));
+
+                ret = element.isStringIndexable(inventTable.ItemId);
+                message = ret ? message : strFmt("@SCL476","@SYS12836");
+
+                if(ret)
+                {
+                    ret = element.checkProductTranslations(inventTable.Product);
+                    message = ret ? message : strFmt("@SCL476","@SYS59620");
+                }
+
+                if(ret)
+                {
+                    ret = element.checkProductDescriptions(inventTable.Product);
+                    message = ret ? message : strFmt("@SCL476","@SYS58893");
+                }
+
+                if(ret)
+                {
+                    while select DistinctProductVariant from inventDimCombination
+                        where inventDimCombination.ItemId == inventTable.itemId &&
+                                inventDimCombination.SC_VisibleInWebShop
+                    {
+                        ret = element.checkProductTranslations(inventDimCombination.DistinctProductVariant);
+                        message = ret ? message : strFmt("@SCL476","@SCL485");
+
+                        if(!ret)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if(!ret)
+                {
+                    tempData.UtilElementImage   = imageFail;
+                    tempData.SysPropertyName    = "@SYS87219";
+                    failedChecksCnt++;
+                    break;
+                }
+            }
+
+            if(ret)
+            {
+                message = "@SCL487";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 28;
+            tempData.SysAotMethodName   = "@SCL489";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkBOMVisibility</Name>
+				<Source><![CDATA[
+    private void checkBOMVisibility(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        InventTable         inventTable;
+        BOM                 BOM;        
+
+        if(_execute && conFind(selectedChecksCon, 21))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 21 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select firstOnly inventTable where inventTable.PmfProductType == PmfProductType::BOM && inventTable.SC_VisibleInWebShop;
+            select count(RecId) from BOM where BOM.SC_VisibleInWebShop;
+
+            if(!inventTable || (inventTable && BOM.RecId))
+            {
+                message = !inventTable ? "@SCL351" : strFmt("@SCL352", BOM.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = !inventTable ? "@SYS88623" : "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL353";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS88623";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 21;
+            tempData.SysAotMethodName   = "@SCL354";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+
+            tempData.insert();
+        }
+
+        totalChecksCnt++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkCustIndexability</Name>
+				<Source><![CDATA[
+    private void checkCustIndexability(boolean _execute = false)
+    {
+        SC_WebShopsTable                    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        boolean                             ret = true;
+        LogisticsPostalAddress              address;
+        DirPartyLocation                    partyLocation;
+        DirPartyLocationRole                dirPartyLocationRole;
+        LogisticsLocationRole               logisticsLocationRole;
+        SC_LanguageParametersTable          languageParametersTable;
+        LogisticsAddressCountryRegionName   addressCountryName;
+        Map                                 filters;
+        MapEnumerator                       filtersEnum;
+        CustTable                           custTable;
+        QueryBuildDataSource                qbd;
+        Query                               query = new Query();
+        QueryRun                            queryRun;                
+
+        if(_execute && conFind(selectedChecksCon, 27))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 27 && tempData.CompileErrorString == webshopTable.WebShopId;
+        
+            filters     = SC_FilterWebShopsTable::getWebshopFilters(webshopId.text(), tableStr(CustTable));
+            filtersEnum = filters.getEnumerator();
+
+            qbd =  query.addDataSource(tableNum(CustTable));
+
+            while(filtersEnum.moveNext())
+            {
+                qbd.addRange(fieldname2id(tablenum(CustTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+            }
+
+            queryRun = new QueryRun(query);
+
+            while(queryRun.next())
+            {
+                custTable = queryRun.get(tablenum(CustTable));
+            
+                ret = element.isStringIndexable(custTable.AccountNum);
+                message = ret ? message : strFmt("@SCL476", "@SYS7149");
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(custTable.name());
+                    message = ret ? message : strFmt("@SCL476", "@SYS27874");
+                }
+
+                //primary address check
+                address = DirParty::primaryPostalAddress(custTable.Party);
+
+                if(address)
+                {
+
+                    if(ret)
+                    {
+                        ret = element.isStringIndexable(address.Street);
+                        message = ret ? message : strFmt("@SCL477", "@SYS323505");
+                    }
+
+                    if(ret)
+                    {
+                        ret = element.isStringIndexable(address.City);
+                        message = ret ? message : strFmt("@SCL477", "@SYS22249");
+                    }
+
+                    if(ret)
+                    {
+                        ret = element.isStringIndexable(address.ZipCode);
+                        message = ret ? message : strFmt("@SCL477", "@SYS12463");
+                    }
+
+                    if(ret)
+                    {
+                        ret = element.isStringIndexable(address.State);
+                        message = ret ? message : strFmt("@SCL477", "@SYS21924");
+                    }
+
+                    if(ret)
+                    {
+                        while select languageParametersTable
+                        {
+                            addressCountryName = LogisticsAddressCountryRegionTranslation::find(address.CountryRegionId, languageParametersTable.LanguageId).ShortName;
+                            addressCountryName = !addressCountryName || strContains(addressCountryName, '@') ? LogisticsAddressCountryRegion::find(address.CountryRegionId).displayName() : addressCountryName;
+                            ret = element.isStringIndexable(addressCountryName);
+                            message = ret ? message : strFmt("@SCL477", "@SYS314935");
+
+                            if(!ret)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if(ret)
+                    {
+                        ret = element.isStringIndexable(LogisticsLocation::find(address.Location).Description);
+                        message = ret ? message : strFmt("@SCL477", "@SYS6303");
+                    }
+                }
+
+                //shippping addresses check
+                if(ret)
+                {
+                    while select Location, IsPrimary from partyLocation
+                        order by IsPrimary desc
+                        where partyLocation.Party == custTable.Party
+                            exists join dirPartyLocationRole
+                                where dirPartyLocationRole.PartyLocation == partyLocation.RecId
+                                    exists join logisticsLocationRole
+                                        where logisticsLocationRole.RecId == dirPartyLocationRole.LocationRole &&
+                                                (logisticsLocationRole.Type == LogisticsLocationRoleType::Delivery || partyLocation.IsPrimary)
+                    {
+                        address = LogisticsPostalAddress::findByLocation(partyLocation.Location);
+
+                        if(address)
+                        {
+                            ret = element.isStringIndexable(address.Street);
+                            message = ret ? message : strFmt("@SCL478", "@SYS323505");
+
+                            if(ret)
+                            {
+                                ret = element.isStringIndexable(address.City);
+                                message = ret ? message : strFmt("@SCL478", "@SYS22249");
+                            }
+
+                            if(ret)
+                            {
+                                ret = element.isStringIndexable(address.ZipCode);
+                                message = ret ? message : strFmt("@SCL478", "@SYS12463");
+                            }
+
+                            if(ret)
+                            {
+                                ret = element.isStringIndexable(address.State);
+                                message = ret ? message : strFmt("@SCL478", "@SYS21924");
+                            }
+
+                            if(ret)
+                            {
+                                while select languageParametersTable
+                                {
+                                    addressCountryName = LogisticsAddressCountryRegionTranslation::find(address.CountryRegionId, languageParametersTable.LanguageId).ShortName;
+                                    addressCountryName = !addressCountryName || strContains(addressCountryName, '@') ? LogisticsAddressCountryRegion::find(address.CountryRegionId).displayName() : addressCountryName;
+                                    ret = element.isStringIndexable(addressCountryName);
+                                    message = ret ? message : strFmt("@SCL478", "@SYS314935");
+
+                                    if(!ret)
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if(ret)
+                            {
+                                ret = element.isStringIndexable(LogisticsLocation::find(address.Location).Description);
+                                message = ret ? message : strFmt("@SCL478", "@SYS6303");
+                            }
+                        }
+
+                        if(!ret)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(ContactPerson::find(custTable.ContactPersonId).personName());
+                    message = ret ? message : strFmt("@SCL476", "@SYS325541");
+                }
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(custTable.email());
+                    message = ret ? message : strFmt("@SCL476", "@SYS5845");
+                }
+            
+                if(!ret)
+                {
+                    tempData.UtilElementImage   = imageFail;
+                    tempData.SysPropertyName    = "@SYS87219";
+                    failedChecksCnt++;
+                    break; //stop at first non-indexable customer
+                }
+            }
+        
+            if(ret)
+            {
+                message = "@SCL486";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }            
+        
+            tempData.TreeNodePath = message;
+            tempData.update();
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 27;
+            tempData.SysAotMethodName   = "@SCL488";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkCategoryHierarchy</Name>
+				<Source><![CDATA[
+    private void checkCategoryHierarchy(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());
+        EcoResCategory   ecoResCategory;        
+
+        if(_execute && conFind(selectedChecksCon, 9))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 9 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.EnableProdCategories)
+            {
+                select count(RecId) from ecoResCategory where ecoResCategory.CategoryHierarchy == webshopTable.CategoryHierarchy && ecoResCategory.SC_VisibleInWebshop;
+
+                if(ecoResCategory.RecId)
+                {
+                    message = strFmt("@SCL356", EcoResCategoryHierarchy::find(webshopTable.CategoryHierarchy).Name, ecoResCategory.RecId);
+                    tempData.UtilElementImage   = imagePass;
+                    tempData.SysPropertyName    = "@SYS60755";
+                }
+                else
+                {
+                    message = strFmt("@SCL357", EcoResCategoryHierarchy::find(webshopTable.CategoryHierarchy).Name);
+                    tempData.UtilElementImage   = imageFail;
+                    tempData.SysPropertyName    = "@SYS87219";
+                    failedChecksCnt++;
+                }
+            }
+            else
+            {
+                message = "@SCL358";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS88623";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 9;
+            tempData.SysAotMethodName   = "@SYS130822";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkCountries</Name>
+				<Source><![CDATA[
+    private void checkCountries(boolean _execute = false)
+    {
+        SC_WebShopsTable                webshopTable = SC_WebShopsTable::find(webshopId.text());
+        SC_AddressCountryRegionSetup    addressCountryRegionSetup;        
+
+        if(_execute && conFind(selectedChecksCon, 14))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 14 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select count(RecId) from addressCountryRegionSetup where addressCountryRegionSetup.WebShopId == webshopTable.WebShopId && addressCountryRegionSetup.VisibleInWebshop;
+
+            if(addressCountryRegionSetup.RecId)
+            {
+                message = strFmt("@SCL359", addressCountryRegionSetup.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL360";
+                tempData.UtilElementImage   = imageFail;
+                tempData.SysPropertyName    = "@SYS87219";
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 14;
+            tempData.SysAotMethodName   = "@SCL361";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkCountryTemplates</Name>
+				<Source><![CDATA[
+    private void checkCountryTemplates(boolean _execute = false)
+    {
+        SC_WebShopsTable                webshopTable = SC_WebShopsTable::find(webshopId.text());
+        SC_AddressCountryRegionSetup    addressCountryRegionSetup;    
+        SC_AXDataServiceClient_Customer AXDataServiceClient = SC_AXDataServiceClient_Customer::construct();
+        boolean                         isValid;
+
+        if(_execute && conFind(selectedChecksCon, 15))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 15 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select count(RecId) from addressCountryRegionSetup
+                where addressCountryRegionSetup.WebShopId == webshopTable.WebShopId &&
+                      addressCountryRegionSetup.VisibleInWebshop && (!addressCountryRegionSetup.TemplateCustomer ||
+                      (!addressCountryRegionSetup.B2BTemplateCustomer && webshopTable.EnableB2BCustTemplate));
+
+            if(!addressCountryRegionSetup.RecId)
+            {
+                while select TemplateCustomer,B2BTemplateCustomer from addressCountryRegionSetup
+                    where addressCountryRegionSetup.WebShopId == webshopTable.WebShopId &&
+                          addressCountryRegionSetup.VisibleInWebshop && addressCountryRegionSetup.TemplateCustomer
+                {
+                    isValid = AXDataServiceClient.checkCustomerValid(CustTable::find(addressCountryRegionSetup.TemplateCustomer));
+
+                    if(isValid && webshopTable.EnableB2BCustTemplate)
+                    {
+                        isValid =  AXDataServiceClient.checkCustomerValid(CustTable::find(addressCountryRegionSetup.B2BTemplateCustomer));
+                    }
+                
+                    if(!isValid)
+                    {
+                        message = strFmt("@SCL634", addressCountryRegionSetup.CountryRegionId);
+                        tempData.UtilElementImage   = imageFail;
+                        tempData.SysPropertyName    = "@SYS87219";
+                        failedChecksCnt++;
+                        break;
+                    }
+                }
+            
+                if(isValid)
+                {
+                    message = "@SCL362";
+                    tempData.UtilElementImage   = imagePass;
+                    tempData.SysPropertyName    = "@SYS113651";
+                }                
+            }
+            else
+            {
+                message = strFmt("@SCL363", addressCountryRegionSetup.RecId);
+
+                select firstOnly RecId from addressCountryRegionSetup
+                    where addressCountryRegionSetup.WebShopId == webshopTable.WebShopId &&
+                          addressCountryRegionSetup.VisibleInWebshop && (addressCountryRegionSetup.TemplateCustomer ||
+                         (addressCountryRegionSetup.B2BTemplateCustomer && webshopTable.EnableB2BCustTemplate));
+
+                if(addressCountryRegionSetup.RecId)
+                {                    
+                    tempData.UtilElementImage   = imageWarning;
+                    tempData.SysPropertyName    = "@SYS6998";
+                    warningChecksCnt++;
+                }
+                else
+                {
+                    message = "@SCL512";
+                    tempData.UtilElementImage   = imageFail;
+                    tempData.SysPropertyName    = "@SYS87219";
+                    failedChecksCnt++;
+                }
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 15;
+            tempData.SysAotMethodName   = "@SCL364";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkCurrencyVisibility</Name>
+				<Source><![CDATA[
+    private void checkCurrencyVisibility(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        Currency            currency;        
+
+        if(_execute && conFind(selectedChecksCon, 20))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 20 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select count(RecId) from currency where currency.SC_VisibleInWebShop;
+
+            if(currency.RecId)
+            {
+                message = strFmt("@SCL365", currency.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL366";
+                tempData.UtilElementImage   = imageFail;
+                tempData.SysPropertyName    = "@SYS87219";
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 20;
+            tempData.SysAotMethodName   = "@SCL367";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkDataValidationRules</Name>
+				<Source><![CDATA[
+    private void checkDataValidationRules(boolean _execute = false)
+    {
+        SC_WebShopsTable                webshopTable = SC_WebShopsTable::find(webshopId.text());
+        SC_DataValidationRulesTable     dataValidationRulesTable;        
+
+        if(_execute && conFind(selectedChecksCon, 16))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 16 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select count(RecId) from dataValidationRulesTable where dataValidationRulesTable.Active;
+
+            if(dataValidationRulesTable.RecId)
+            {
+                message = strFmt("@SCL368", dataValidationRulesTable.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL369";
+                tempData.UtilElementImage   = imageFail;
+                tempData.SysPropertyName    = "@SYS87219";
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 16;
+            tempData.SysAotMethodName   = "@SCL185";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkDocAttachment</Name>
+				<Source><![CDATA[
+    private void checkDocAttachment(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());
+        DocuRef          docuRef;        
+
+        if(_execute && conFind(selectedChecksCon, 6))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 6 && tempData.CompileErrorString == WebShopId.text();
+            select count(RecId) from docuRef
+            where docuRef.RefTableId != tableNum(InventTable) &&
+                  docuRef.RefTableId != tableNum(InventDimCombination) &&
+                  docuRef.SC_VisibleInWebShop;
+
+            if(webshopTable.EnableDocAttachments && docuRef.RecId)
+            {
+                message = strFmt("@SCL370", docuRef.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS60755";
+            }
+            else
+            {
+                message = webshopTable.EnableDocAttachments ? "@SCL371" : "@SCL372";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS88623";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath  = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 6;
+            tempData.SysAotMethodName   = "@SCL373";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkItemGroups</Name>
+				<Source><![CDATA[
+    private void checkItemGroups(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());
+        InventItemGroup  inventItemGroup;        
+
+        if(_execute && conFind(selectedChecksCon, 10))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 10 && tempData.CompileErrorString == WebShopId.text();
+
+            if(!webshopTable.EnableProdCategories)
+            {
+                select count(RecId) from inventItemGroup where inventItemGroup.SC_VisibleInWebshop;
+
+                if(inventItemGroup.RecId)
+                {
+                    message = strFmt("@SCL374", inventItemGroup.RecId);
+                    tempData.UtilElementImage   = imagePass;
+                    tempData.SysPropertyName    = "@SYS60755";
+                }
+                else
+                {
+                    message = "@SCL375";
+                    tempData.UtilElementImage   = imageWarning;
+                    tempData.SysPropertyName    = "@SYS6998";
+                    
+                }
+            }
+            else
+            {
+                message = "@SCL376";
+                tempData.UtilElementImage   = imageInfo;
+                tempData.SysPropertyName    = "@SYS88623";                
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 10;
+            tempData.SysAotMethodName   = "@SYS3970";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkLanguageMapping</Name>
+				<Source><![CDATA[
+    private void checkLanguageMapping(boolean _execute = false)
+    {
+        SC_WebShopsTable            webshopTable = SC_WebShopsTable::find(webshopId.text());
+        SC_LanguageParametersTable  languageParametersTable;        
+
+        if(_execute && conFind(selectedChecksCon, 23))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 23 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select count(RecId) from languageParametersTable;
+
+            if(languageParametersTable.RecId)
+            {
+                message  = strFmt("@SCL377", languageParametersTable.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL378";
+                tempData.UtilElementImage   = imageFail;
+                tempData.SysPropertyName    = "@SYS87219";
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 23;
+            tempData.SysAotMethodName   = "@SCL379";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkNumberSeq</Name>
+				<Source><![CDATA[
+    private void checkNumberSeq(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 22))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 22 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            if(webshopTable.GuestNumberSequenceRefRecId && webshopTable.OrderNumberSequenceRefRecId && webshopTable.QuoteNumberSequenceRefRecId)
+            {
+                message  = strFmt("@SCL380", NumberSequenceTable::find(webshopTable.GuestNumberSequenceRefRecId).NumberSequence);
+                message += strFmt("@SCL381", NumberSequenceTable::find(webshopTable.OrderNumberSequenceRefRecId).NumberSequence);
+                message += strFmt("@SCL382", NumberSequenceTable::find(webshopTable.QuoteNumberSequenceRefRecId).NumberSequence);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL383";
+                tempData.UtilElementImage   = imageInfo;
+                tempData.SysPropertyName    = "@SYS88623";                
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 22;
+            tempData.SysAotMethodName   = "@SYS12649";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkOrderProcessing</Name>
+				<Source><![CDATA[
+    private void checkOrderProcessing(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 30))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 30 && tempData.CompileErrorString == WebShopId.text();
+
+            message = strFmt("@SCL513", webshopTable.OrderType, webshopTable.SyncOrderType);
+            tempData.UtilElementImage   = imageInfo;
+            tempData.SysPropertyName    = "@SYS60755";
+            tempData.TreeNodePath       = message;
+            tempData.update();
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 30;
+            tempData.SysAotMethodName   = "@SCL308";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkOverrideStorageDim</Name>
+				<Source><![CDATA[
+    private void checkOverrideStorageDim(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 12))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 12 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.OverrideCustDim)
+            {
+                message = strFmt("@SCL384", webshopTable.DefaultSiteId, webshopTable.DefaultLocationId);
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS60755";
+                warningChecksCnt++;
+            }
+            else
+            {
+                message = strFmt("@SCL385", webshopTable.DefaultSiteId, webshopTable.DefaultLocationId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS88623";
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 12;
+            tempData.SysAotMethodName   = "@SCL386";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkPaymentCost</Name>
+				<Source><![CDATA[
+    private void checkPaymentCost(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 2))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 2 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.PaymentLedgerDimension && DimensionAttributeValueCombination::exist(webshopTable.PaymentLedgerDimension))
+            {
+                message = strFmt("@SCL387", DimensionAttributeValueCombination::find(webshopTable.PaymentLedgerDimension).DisplayValue);
+                tempData.SysPropertyName    = "@SYS113651";
+                tempData.UtilElementImage   = imagePass;
+            }
+            else
+            {
+                message = strFmt("@SCL388", DimensionAttributeValueCombination::find(webshopTable.PaymentLedgerDimension).DisplayValue);
+                tempData.SysPropertyName    = "@SYS87219";
+                tempData.UtilElementImage   = imageFail;
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath  = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 2;
+            tempData.SysAotMethodName   = "@SCL389";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkInvoicePaymProcess</Name>
+				<Source><![CDATA[
+    private void checkInvoicePaymProcess(boolean _execute = false)
+    {
+        UserGroupList       userGroupList;
+        container           usersCon;
+        LedgerJournalName   ledgerJournalName;
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        CustPaymModeTable   custPaymModeTable;
+        boolean             ret;        
+
+        if(_execute && conFind(selectedChecksCon, 8))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 8 && tempData.CompileErrorString == WebShopId.text();
+        
+            if(webshopTable.PostAutoInvoicePayment)
+            {
+                ledgerJournalName = LedgerJournalName::find(webshopTable.CustPaymJournalName);
+
+                if(!ledgerJournalName)
+                {
+                    select firstOnly ledgerJournalName where ledgerJournalName.JournalType == LedgerJournalType::CustPayment;
+                }
+        
+                while select userId from userGroupList
+                    where userGroupList.GroupId == ledgerJournalName.ApproveGroupId
+                {
+                    usersCon += xUserInfo::find(false, userGroupList.userId).networkAlias;
+                }
+
+                if(ledgerJournalName.FixedOffsetAccount)
+                {
+                    ret = ledgerJournalName.OffsetLedgerDimension;
+                }
+                else if(!webshopTable.OffsetLedgerDimension)
+                {
+                    custPaymModeTable = CustPaymModeTable::find(webshopTable.TemplatePaymentCode);
+                    
+                    ret = custPaymModeTable.PaymentLedgerDimension;
+                }
+                else
+                {
+                    ret = webshopTable.OffsetLedgerCompany && webshopTable.OffsetLedgerDimension;
+                }
+        
+                if(!ret)
+                {
+                    message  = "@SCL391";
+                    tempData.SysPropertyName    = "@SYS88623";
+                    tempData.UtilElementImage   = imageWarning;
+                    warningChecksCnt++;
+                }
+                else if(ledgerJournalName.ApproveActive)
+                {
+                    if(conLen(usersCon))
+                    {
+                        message = "@SCL475" + ' ' + con2Str(usersCon);
+                        tempData.SysPropertyName    = "@SYS60755";
+                        tempData.UtilElementImage   = imageWarning;
+                        warningChecksCnt++;
+                    }
+                    else
+                    {
+                        message = "@SCL474";
+                        tempData.UtilElementImage   = imageFail;
+                        tempData.SysPropertyName    = "@SYS87219";
+                        failedChecksCnt++;
+                    }
+                }
+                else
+                {
+                    message  = "@SCL390";
+                    tempData.SysPropertyName    = "@SYS113651";
+                    tempData.UtilElementImage   = imagePass;
+                }
+            }
+            else
+            {
+                message = "@SCL514";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS88623";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath  = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 8;
+            tempData.SysAotMethodName   = "@SCL473";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+    
+        totalChecksCnt++;               
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkPrepayments</Name>
+				<Source><![CDATA[
+    private void checkPrepayments(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        LedgerJournalName   ledgerJournalName;
+        CustPaymModeTable   custPaymModeTable;
+        UserGroupList       userGroupList;        
+        container           usersCon;
+        boolean             ret;        
+
+        if(_execute && conFind(selectedChecksCon, 26))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 26 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            if(webshopTable.PostAutoPrepayment)
+            {
+                ledgerJournalName = LedgerJournalName::find(webshopTable.CustPaymJournalName);
+            
+                if(!ledgerJournalName)
+                {
+                    select firstOnly ledgerJournalName where ledgerJournalName.JournalType == LedgerJournalType::CustPayment;
+                }
+
+                if(ledgerJournalName.FixedOffsetAccount)
+                {
+                    ret = ledgerJournalName.OffsetLedgerDimension;
+                }
+                else if(!webshopTable.OffsetLedgerDimension)
+                {
+                    custPaymModeTable = CustPaymModeTable::find(webshopTable.TemplatePaymentCode);
+                    
+                    ret = custPaymModeTable.PaymentLedgerDimension;
+                }
+                else
+                {
+                    ret = webshopTable.OffsetLedgerCompany && webshopTable.OffsetLedgerDimension;
+                }
+
+                if(!ret)
+                {
+                    message  = "@SCL468";
+                    tempData.UtilElementImage   = imageFail;
+                    tempData.SysPropertyName    = "@SYS87219";
+                    failedChecksCnt++;
+                }
+                else if(ledgerJournalName.ApproveActive)
+                {
+                    while select userId from userGroupList
+                       where userGroupList.GroupId == ledgerJournalName.ApproveGroupId
+                    {
+                        usersCon += xUserInfo::find(false, userGroupList.userId).networkAlias;
+                    }
+
+                    if(conLen(usersCon))
+                    {
+                        message = "@SCL469" + ' ' + con2Str(usersCon);
+                        tempData.UtilElementImage   = imageWarning;
+                        tempData.SysPropertyName    = "@SYS60755";
+                        warningChecksCnt++;
+                    }
+                    else
+                    {
+                        message  = "@SCL470";
+                        tempData.UtilElementImage   = imageFail;
+                        tempData.SysPropertyName    = "@SYS87219";
+                        failedChecksCnt++;
+                    }
+                }
+                else
+                {
+                    message  = "@SCL390";
+                    tempData.SysPropertyName    = "@SYS113651";
+                    tempData.UtilElementImage   = imagePass;
+                }
+            }
+            else
+            {
+                message = "@SCL471";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS88623";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 26;
+            tempData.SysAotMethodName   = "@SCL472";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProdAttachment</Name>
+				<Source><![CDATA[
+    private void checkProdAttachment(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        EcoResProductImage  ecoResProductImage;
+        DocuRef             docuRef;        
+
+        if(_execute && conFind(selectedChecksCon, 5))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 5 && tempData.CompileErrorString == WebShopId.text();
+            select firstOnly ecoResProductImage where ecoResProductImage.DefaultImage;
+            select count(RecId) from docuRef
+            where docuRef.RefTableId == tableNum(InventTable) &&
+                  docuRef.SC_VisibleInWebShop;
+
+            if(webshopTable.EnableProdAttachments && (docuRef.RecId || ecoResProductImage))
+            {
+                message  = "@SCL392";
+                message += docuRef.RecId ? strFmt("@SCL393", docuRef.RecId) : '';
+                tempData.SysPropertyName    = "@SYS60755";
+                tempData.UtilElementImage   = imagePass;
+            }
+            else
+            {
+                message  = webshopTable.EnableProdAttachments ? "@SCL394" : "@SCL395";
+                tempData.SysPropertyName    = "@SYS88623";
+                tempData.UtilElementImage   = imageWarning;
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath  = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 5;
+            tempData.SysAotMethodName   = "@SCL396";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProdSuggestions</Name>
+				<Source><![CDATA[
+    private void checkProdSuggestions(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 13))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 13 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.DayRange && webshopTable.LookbackYears)
+            {
+                message = strFmt("@SCL397", webshopTable.LookbackYears, webshopTable.DayRange, webshopTable.SortingOption);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL398";
+                tempData.UtilElementImage   = imageInfo;
+                tempData.SysPropertyName    = "@SYS88623";                
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 13;
+            tempData.SysAotMethodName   = "@SCL309";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductVariants</Name>
+				<Source><![CDATA[
+    private void checkProductVariants(boolean _execute = false)
+    {
+        SC_WebShopsTable        webshopTable = SC_WebShopsTable::find(webshopId.text());
+        InventDimCombination    inventDimCombination;
+        EcoResProductMaster     ecoResProductMaster;
+        InventTable             inventTable;        
+
+        if(_execute && conFind(selectedChecksCon, 18))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 18 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            select count(RecId) from ecoResProductMaster
+            join TableId from inventTable
+                where inventTable.Product == ecoResProductMaster.RecId &&
+                      inventTable.SC_VisibleInWebShop
+            notexists join TableId from inventDimCombination
+                where inventTable.ItemId == inventDimCombination.ItemId &&
+                      inventDimCombination.SC_VisibleInWebShop;
+
+            select count(RecId) from inventDimCombination where inventDimCombination.SC_VisibleInWebShop;
+
+            if(!ecoResProductMaster.RecId)
+            {
+                message = inventDimCombination.RecId ? strFmt("@SCL399", inventDimCombination.RecId) : "@SCL400";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = strFmt("@SCL401", ecoResProductMaster.RecId);
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS6998";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 18;
+            tempData.SysAotMethodName   = "@SCL402";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductVisibility</Name>
+				<Source><![CDATA[
+    private void checkProductVisibility(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        InventTable         inventTable;        
+
+        if(_execute && conFind(selectedChecksCon, 17))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 17 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select count(RecId) from inventTable where inventTable.SC_VisibleInWebShop;
+
+            if(inventTable.RecId)
+            {
+                message = strFmt("@SCL403", inventTable.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL404";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS6998";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 17;
+            tempData.SysAotMethodName   = "@SCL405";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductTotalDiscountActivation</Name>
+				<Source><![CDATA[
+    private void checkProductTotalDiscountActivation(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        InventTable         inventTable;
+        InventTableModule   inventTableModule;        
+
+        if(_execute && conFind(selectedChecksCon, 32))
+        {
+            select firstOnly forUpdate tempData where tempData.Line == 32 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            select count(RecId) from inventTable
+                where inventTable.SC_VisibleInWebShop
+                    exists join EndDisc from inventTableModule
+                        where inventTableModule.ItemId == inventTable.ItemId &&
+                              inventTableModule.ModuleType == ModuleInventPurchSales::Sales &&
+                              !inventTableModule.EndDisc;
+
+            if(inventTable.RecId)
+            {
+                message = strFmt("@SCL545", inventTable.RecId);
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS6998";
+                warningChecksCnt++;
+            }
+            else
+            {
+                message = "@SCL546";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 32;
+            tempData.SysAotMethodName   = "@SCL547";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkTotalDiscountActivation</Name>
+				<Source><![CDATA[
+    private void checkTotalDiscountActivation(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 31))
+        {
+            select firstOnly forUpdate tempData where tempData.Line == 31 && tempData.CompileErrorString == WebShopId.text();
+
+            if(!webshopTable.DisableTotalDiscounts && (select firstOnly SalesEndAllAll from PriceParameters).SalesEndAllAll)
+            {
+                message = "@SCL548";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                if(webshopTable.DisableTotalDiscounts)
+                {
+                    message = "@SCL549";
+                }
+                else
+                {
+                    message = "@SCL550";
+                }
+
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS6998";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 31;
+            tempData.SysAotMethodName   = "@SCL551";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkQuotePromote</Name>
+				<Source><![CDATA[
+    private void checkQuotePromote(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 7))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 7 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.QuotePromotableDefault)
+            {
+                message  = "@SCL406";
+                tempData.SysPropertyName    = "@SYS60755";
+                tempData.UtilElementImage   = imagePass;
+            }
+            else
+            {
+                message  = "@SCL407";
+                tempData.SysPropertyName    = "@SYS88623";
+                tempData.UtilElementImage   = imageWarning;
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath  = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 7;
+            tempData.SysAotMethodName   = "@SCL408";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkReportDownload</Name>
+				<Source><![CDATA[
+    private void checkReportDownload(boolean _execute = false)
+    {        
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 4))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 4 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.EnableReports)
+            {
+                message = "@SCL409";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS60755";
+            }
+
+            if(!webshopTable.EnableReports)
+            {
+                message = "@SCL410";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS88623";
+                warningChecksCnt++;
+            }            
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 4;
+            tempData.SysAotMethodName   = "@SCL411";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkRetail</Name>
+				<Source><![CDATA[
+    private void checkRetail(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 24))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 24 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            if(!webshopTable.EnableRetail)
+            {
+                message                     = "@SCL412";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS88623";
+            }
+            else
+            {
+                if(RetailStoreTable::exist(webshopTable.RetailStore) && RetailTerminalTable::find(webshopTable.RetailTerminalId))
+                {
+                    message                     = strFmt("@SCL413", webshopTable.RetailStore, webshopTable.RetailTerminalId);
+                    tempData.UtilElementImage   = imagePass;
+                    tempData.SysPropertyName    = "@SYS60755";
+                }
+                else
+                {
+                    message = "@SCL414";
+                    tempData.UtilElementImage   = imageFail;
+                    tempData.SysPropertyName    = "@SYS87219";
+                    failedChecksCnt++;
+                }
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 24;
+            tempData.SysAotMethodName   = "@SCL415";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkRetailAssortment</Name>
+				<Source><![CDATA[
+    private void checkRetailAssortment(boolean _execute = false)
+    {
+        SC_WebShopsTable        webshopTable = SC_WebShopsTable::find(webshopId.text());
+        RetailAssortmentView    retailAssortmentView; 
+        RetailAssortmentTable   retailAssortmentTable;
+
+        if(_execute && conFind(selectedChecksCon, 25))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 25 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            if(!webshopTable.EnableRetail)
+            {
+                message                     = "@SCL412";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS88623";
+            }
+            else
+            {
+                if(webshopTable.EnableRetailAssortments)
+                {
+                    var datetimeNow = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+                    select count(RecId) from retailAssortmentView
+                        where retailAssortmentView.OMOperatingUnitId == RetailStoreTable::find(webShopTable.RetailStore).OMOperatingUnitID &&
+                              (retailAssortmentView.ValidFrom <= datetimeNow || !retailAssortmentView.ValidFrom) &&
+                              (retailAssortmentView.ValidTo >= datetimeNow || !retailAssortmentView.ValidTo)
+                        exists join retailAssortmentTable
+                            where retailAssortmentTable.RecId  == retailAssortmentView.AssortmentId &&
+                                  retailAssortmentTable.Status == RetailAssortmentStatusType::Published;
+
+                    if(retailAssortmentView.RecId)
+                    {
+                        message = strFmt("@SCL416", retailAssortmentView.RecId);
+                        tempData.UtilElementImage   = imagePass;
+                        tempData.SysPropertyName    = "@SYS60755";
+                    }
+                    else
+                    {
+                        message = "@SCL417";
+                        tempData.UtilElementImage   = imageFail;
+                        tempData.SysPropertyName    = "@SYS87219";
+                        failedChecksCnt++;
+                    }
+                }
+                else
+                {
+                    message = "@SCL418";
+                    tempData.UtilElementImage   = imagePass;
+                    tempData.SysPropertyName    = "@SYS88623";
+                }
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 25;
+            tempData.SysAotMethodName   = "@SCL419";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkShippingCost</Name>
+				<Source><![CDATA[
+    private void checkShippingCost(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 3))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 3 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.ShippingLedgerDimension && DimensionAttributeValueCombination::exist(webshopTable.ShippingLedgerDimension))
+            {
+                message  = strFmt("@SCL420", DimensionAttributeValueCombination::find(webshopTable.ShippingLedgerDimension).DisplayValue);
+                tempData.SysPropertyName    = "@SYS113651";
+                tempData.UtilElementImage   = imagePass;
+            }
+            else
+            {
+                message  = webshopTable.ShippingLedgerDimension ? "@SCL421" : "@SCL422";
+                message += "@SCL423";
+                tempData.SysPropertyName    = "@SYS87219";
+                tempData.UtilElementImage   = imageFail;
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath  = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 3;
+            tempData.SysAotMethodName   = "@SCL424";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkStorageDim</Name>
+				<Source><![CDATA[
+    private void checkStorageDim(boolean _execute = false)
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshopId.text());        
+
+        if(_execute && conFind(selectedChecksCon, 11))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 11 && tempData.CompileErrorString == WebShopId.text();
+
+            if(webshopTable.DefaultSiteId && InventSite::exist(webshopTable.DefaultSiteId) &&
+            webshopTable.DefaultLocationId && InventLocation::exist(webshopTable.DefaultLocationId))
+            {
+                message = strFmt("@SCL425", webshopTable.DefaultSiteId, webshopTable.DefaultLocationId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL426";
+                tempData.UtilElementImage   = imageFail;
+                tempData.SysPropertyName    = "@SYS87219";
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 11;
+            tempData.SysAotMethodName   = "@SCL427";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkTemplateCustomer</Name>
+				<Source><![CDATA[
+    private void checkTemplateCustomer(boolean _execute = false)
+    {
+        SC_WebShopsTable        webshopTable = SC_WebShopsTable::find(webshopId.text());
+        SC_AXDataServiceClient  AXDataServiceClient = SC_AXDataServiceClient::construct();
+        boolean                 isValid;        
+
+        if(_execute && conFind(selectedChecksCon, 1))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 1 && tempData.CompileErrorString == WebShopId.text();
+
+            isValid = webshopTable.TemplateCustAccount && AXDataServiceClient.checkValidationRules(CustTable::find(webshopTable.TemplateCustAccount));
+            isValid = isValid && AXDataServiceClient.checkValidationRules(DirParty::primaryPostalAddress(CustTable::find(webshopTable.TemplateCustAccount).Party));
+
+            if(isValid)
+            {
+                message = strFmt("@SCL428", webshopTable.TemplateCustAccount);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = strFmt("@SCL429", webshopTable.TemplateCustAccount);
+                tempData.UtilElementImage   = imageFail;
+                tempData.SysPropertyName    = "@SYS87219";
+                failedChecksCnt++;
+            }
+
+            tempData.TreeNodePath  = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 1;
+            tempData.SysAotMethodName   = "@SCL430";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkUOMVisibility</Name>
+				<Source><![CDATA[
+    private void checkUOMVisibility(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        UnitOfMeasure       unitOfMeasure;        
+
+        if(_execute && conFind(selectedChecksCon, 19))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 19 && tempData.CompileErrorString == webshopTable.WebShopId;
+            select count(RecId) from unitOfMeasure where unitOfMeasure.SC_VisibleInWebShop;
+
+            if(unitOfMeasure.RecId)
+            {
+                message = strFmt("@SCL431", unitOfMeasure.RecId);
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS113651";
+            }
+            else
+            {
+                message = "@SCL432";
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS6998";
+                warningChecksCnt++;
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();            
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 19;
+            tempData.SysAotMethodName   = "@SCL433";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkLogging</Name>
+				<Source><![CDATA[
+    private void checkLogging(boolean _execute = false)
+    {
+        SC_WebShopsTable    webshopTable = SC_WebShopsTable::find(webshopId.text());
+        SC_ParametersTable  parametersTable = SC_ParametersTable::find();        
+
+        if(_execute && conFind(selectedChecksCon, 29))
+        {
+            select firstonly forUpdate tempData where tempData.Line == 29 && tempData.CompileErrorString == webshopTable.WebShopId;
+
+            if(parametersTable.EnableLog)
+            {
+                message                     = strFmt("@SCL509", SC_ParametersTable::getLogFilesCount());
+                tempData.UtilElementImage   = imageWarning;
+                tempData.SysPropertyName    = "@SYS60755";
+                warningChecksCnt++;
+            }
+            else
+            {
+                message                     = "@SCL510";
+                tempData.UtilElementImage   = imagePass;
+                tempData.SysPropertyName    = "@SYS88623";
+            }
+
+            tempData.TreeNodePath = message;
+            tempData.update();
+        }
+        else if(!_execute)
+        {
+            tempData.Line               = 29;
+            tempData.SysAotMethodName   = "@SCL511";
+            tempData.SysPropertyName    = "@SCL355";
+            tempData.CompileErrorString = WebShopId.text();
+            tempData.UtilElementImage   = -1;
+            tempData.Column             = DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
+            tempData.insert();
+        }
+
+        totalChecksCnt++;        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TempData</Name>
+				<Methods>
+					<Method>
+						<Name>displayImageStatus</Name>
+						<Source><![CDATA[
+        //BP Deviation Documented
+        display container  displayImageStatus(TmpCompilerOutput _tempData)
+        {
+            container imgCon = conNull();
+
+            switch(_tempData.UtilElementImage)
+            {
+                case 1:
+                    imgCon = ImageReference::constructForSymbol(ImageReferenceSymbol::OK).pack();
+                    break;
+                case 2:
+                    imgCon = ImageReference::constructForSymbol(ImageReferenceSymbol::Error).pack();
+                    break;
+                case 3:
+                    imgCon = ImageReference::constructForSymbol(ImageReferenceSymbol::Warning).pack();
+                    break;
+                case 4:
+                    imgCon = ImageReference::constructForSymbol(ImageReferenceSymbol::Info).pack();
+                    break;
+
+            }
+
+            return imgCon;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayImageHelp</Name>
+						<Source><![CDATA[
+        //BP Deviation Documented
+        display container  displayImageHelp(TmpCompilerOutput _tempData)
+        {
+            return ImageReference::constructForSymbol(ImageReferenceSymbol::Help).pack();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>RunAllChecks</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            int counter;
+
+            for(counter=1; counter <= totalChecksCnt; counter++)
+            {
+                selectedChecksCon += counter;
+            }
+
+            super();
+                        
+            element.initData(true);            
+
+            TempData_ds.research();
+            TempData_ds.active();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RunSelectedChecks</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            MultiSelectionHelper selectionHelper = MultiSelectionHelper::construct();            
+            TmpCompilerOutput    tempDataLocal;
+
+            selectedChecksCon = conNull();
+
+            super();
+
+            selectionHelper.parmDataSource(tempData_ds);
+            tempDataLocal = selectionHelper.getFirst();
+
+            if(tempDataLocal.RecId)
+            {
+                while(tempDataLocal)
+                {
+                    selectedChecksCon += tempDataLocal.Line;
+                    tempDataLocal      = selectionHelper.getNext();
+                }
+            }
+                        
+            element.initData(true);
+            
+            TempData_ds.research();
+            TempData_ds.active();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ViewDetails</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            InventTable         inventTable;
+            InventTableModule   inventTableModule;
+            Args                args = new Args();            
+
+            super();
+            args.caller(this);
+            args.record(SC_WebShopsTable::find(WebshopId.text()));
+
+            switch(tempData.Line)
+            {
+                case 1:
+                    new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+                    new MenuFunction(menuitemdisplaystr(SC_DataValidationRules), MenuItemType::Display).run(args);
+                    break;
+
+                case 2, 3, 4, 7, 8, 11, 12, 13, 22, 24, 30:
+                    new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+                    break;
+                
+                case 5, 6:
+                    new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+                    new MenuFunction(menuitemDisplayStr(SC_InventItemInfoDetail), MenuItemType::Display).run(args);
+                    break;
+
+                case 9:
+                    new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+                    new MenuFunction(menuitemDisplayStr(EcoResCategoryHierarchyListPage), MenuItemType::Display).run(args);
+                    break;
+
+                case 10:
+                    new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+                    new MenuFunction(menuitemDisplayStr(InventItemGroup), MenuItemType::Display).run(args);
+                    break;
+
+                case 14, 15:
+                    new MenuFunction(menuitemDisplayStr(SC_LogisticsAddressSetup), MenuItemType::Display).run(args);
+                    break;
+
+                case 16:
+                    new MenuFunction(menuitemDisplayStr(SC_DataValidationRules), MenuItemType::Display).run(args);
+                    break;
+
+                case 17, 18, 21:
+                    new MenuFunction(menuitemDisplayStr(SC_InventItemInfoDetail), MenuItemType::Display).run(args);
+                    break;
+
+                case 19:
+                    new MenuFunction(menuitemDisplayStr(UnitOfMeasure), MenuItemType::Display).run(args);
+                    break;
+
+                case 20:
+                    new MenuFunction(menuitemDisplayStr(Currency), MenuItemType::Display).run(args);
+                    break;
+
+                case 23,29:
+                    new MenuFunction(menuitemDisplayStr(SC_Parameters), MenuItemType::Display).run(args);
+                    break;
+
+                case 25:
+                    new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+                    new MenuFunction(menuitemDisplayStr(RetailStores), MenuItemType::Display).run(args);
+                    break;
+                case 26:
+                    new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+
+                    if(LedgerJournalName::find(SC_WebShopsTable::find(webshopId.text()).CustPaymJournalName).ApproveActive)
+                    {
+                        new MenuFunction(menuitemDisplayStr(SysUserGroupInfo), MenuItemType::Display).run(args);
+                    }
+                    break;
+
+                case 27:
+                    new MenuFunction(menuitemDisplayStr(SC_CustomerOverview), MenuItemType::Display).run(new Args());
+                    break;
+
+                case 28:
+                    new MenuFunction(menuitemDisplayStr(SC_InventItemInfoDetail), MenuItemType::Display).run(args);
+                    break;
+                             
+                case 31:
+                    new MenuFunction(menuitemDisplayStr(PriceDiscActivation_Sales), MenuItemType::Display).run(new Args());
+                    break;
+
+                case 32:
+                    select firstonly inventTable
+                        where inventTable.SC_VisibleInWebShop
+                            exists join EndDisc from inventTableModule
+                                where inventTableModule.ItemId == inventTable.ItemId &&
+                                      inventTableModule.ModuleType == ModuleInventPurchSales::Sales &&
+                                      !inventTableModule.EndDisc;
+                    args.record(inventTable);
+                    new MenuFunction(menuitemDisplayStr(EcoResProductDetailsExtended), MenuItemType::Display).run(inventTable ? args : new Args());
+                    break;
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>WebshopId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();            
+    
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(SC_WebShopsTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebShopsTable::lookupWebshops(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;            
+
+            ret = super();
+
+            element.initData();
+
+            SysQuery::findOrCreateRange(TempData_ds.query().dataSourceTable(tableNum(TmpCompilerOutput)), fieldNum(TmpCompilerOutput, CompileErrorString)).value(WebshopId.text());
+
+            TempData_ds.executeQuery();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            boolean ret;
+
+            ret = super();
+
+            return ret && this.valueStr();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>HelpImage</Name>
+				<Type>Image</Type>
+				<Methods>
+					<Method>
+						<Name>toolTip</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public str toolTip()
+        {
+            return "@SYS78674";
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+
+            new Browser().navigate(conPeek(URLcon, tempData.Line));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TempData</Name>
+			<Table>TmpCompilerOutput</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Column</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompileErrorCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompileErrorImage</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompileErrorString</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LatestCompile</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Line</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysAotMethodName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysCompileErrorMessage</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysCompilerOutputTab</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysCompilerSeverity</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysPropertyName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysUtilElementName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TreeNodePath</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UtilElementImage</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UtilElementType</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<Index>DateTimeIdx</Index>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL436</Caption>
+		<DataSource xmlns="">TempData</DataSource>
+		<HideIfEmpty xmlns="">No</HideIfEmpty>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">SimpleList</Style>
+		<ViewEditMode xmlns="">View</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>477218588</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>Actions</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>RunAllChecks</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NormalImage>Last</NormalImage>
+								<Text>@SCL517</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>RunSelectedChecks</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MultiSelect>Yes</MultiSelect>
+								<NormalImage>Play</NormalImage>
+								<Text>@SCL518</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ViewDetails</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NormalImage>View</NormalImage>
+								<Text>View details</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>TempData</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>Grid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+									<Value>Task</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>WebshopId</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+						<Label>@SCL161</Label>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>Grid</Name>
+				<ElementPosition>954437176</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Grid</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormImageControl">
+						<Name>StatusImage</Name>
+						<Skip>Yes</Skip>
+						<Type>Image</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>displayImageStatus</DataMethod>
+						<DataSource>TempData</DataSource>
+						<ShowLabel>No</ShowLabel>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormImageControl">
+						<Name>HelpImage</Name>
+						<HelpText>@SYS78674</HelpText>
+						<Skip>Yes</Skip>
+						<Type>Image</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>displayImageHelp</DataMethod>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS14501</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Task</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SysAotMethodName</DataField>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS32645</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Status</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SysPropertyName</DataField>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS319505</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Message</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>TreeNodePath</DataField>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS106453</Label>
+						<Text>                                                                                                                  </Text>
+					</AxFormControl>
+				</Controls>
+				<DataSource>TempData</DataSource>
+				<DefaultAction>RunAllChecks</DefaultAction>
+				<Style>Tabular</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>Identification</Name>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>Auto</HeightMode>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Totals</Name>
+						<AllowEdit>No</AllowEdit>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>TotalChecks</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Integer</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SCL437</Label>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>CompleteChecks</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Integer</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SCL438</Label>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>FailedChecks</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Integer</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SCL439</Label>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>WarningChecks</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Integer</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SCL440</Label>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>MessageGroup</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>MessageFull</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>TreeNodePath</DataField>
+								<DataSource>TempData</DataSource>
+								<Label>@SYS106453</Label>
+								<MultiLine>Yes</MultiLine>
+							</AxFormControl>
+						</Controls>
+						<FrameType>None</FrameType>
+					</AxFormControl>
+				</Controls>
+				<ColumnsMode>Fill</ColumnsMode>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

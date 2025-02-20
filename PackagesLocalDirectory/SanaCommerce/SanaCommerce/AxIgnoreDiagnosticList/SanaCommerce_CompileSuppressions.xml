@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="utf-8"?>
+<IgnoreDiagnostics>
+  <Name>Sanacommerce_CompileSuppressions</Name>
+  <Items>   
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Product/Method/calcRetailItemPrice</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>TypeConversionLosesRangeAndPrecision</Moniker>
+      <Line>1320</Line>
+      <Column>177</Column>
+      <EndLine>1320</EndLine>
+      <EndColumn>181</EndColumn>
+      <Message>The type conversion from 'real' to 'int' loses range and precision.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>    
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Product/Method/GetVolumePrices</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>ExtensibleEnumInNumericalAssignment</Moniker>
+      <Line>3239</Line>
+      <Column>17</Column>
+      <EndLine>3239</EndLine>
+      <EndColumn>41</EndColumn>
+      <Message>Assigning a numerical value to extensible enum 'Extensible Enumeration(PriceDiscProductCodeType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Product/Method/GetVolumePrices</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>ExtensibleEnumInNumericalAssignment</Moniker>
+      <Line>3240</Line>
+      <Column>17</Column>
+      <EndLine>3240</EndLine>
+      <EndColumn>41</EndColumn>
+      <Message>Assigning a numerical value to extensible enum 'Extensible Enumeration(PriceDiscPartyCodeType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityView/SC_SalesTableEntity/Label</Path>
+      <Moniker>DuplicateLabelDetected</Moniker>
+      <Message>Conflicts were detected on the Label property '@SYS25193' for the following entities 'SC_SalesTableEntity(SanaCommerce), SalesTableBiEntity(BusinessIntelligence)'</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxEdtString/SC_LargeText/StringSize</Path>
+      <Moniker>InvalidIntegerValue</Moniker>
+      <Message>Invalid value '2048'. StringSize cannot be higher than 1000. Please use memo instead.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxEdtString/SC_Comments/StringSize</Path>
+      <Moniker>InvalidIntegerValue</Moniker>
+      <Message>Invalid value '2048'. StringSize cannot be higher than 1000. Please use memo instead.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxTable/SC_DataCacheTable/Indexes/KeyIdx/Name</Path>
+      <Moniker>ClusteredIndexMaxSize</Moniker>
+      <Message>Clustered Index Key 'KeyIdx' should not exceed the maximum size of 900 bytes.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxTable/SC_ItemVisibilityRulesTableStaging/Indexes/StagingIdx/Name</Path>
+      <Moniker>NonClusteredIndexMaxSize</Moniker>
+      <Message>Non Clustered Index Key 'StagingIdx' should not exceed the maximum size of 1700 bytes.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxTableExtension/BOMBillOfMaterialsLineV2Staging.Sana</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'BOMBillOfMaterialsLineV2Staging' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/Method/updateDesign</Path>
+      <ElementType>Form Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>128</Line>
+      <Column>31</Column>
+      <EndLine>128</EndLine>
+      <EndColumn>82</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/Method/updateDesign</Path>
+      <ElementType>Form Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>129</Line>
+      <Column>36</Column>
+      <EndLine>129</EndLine>
+      <EndColumn>87</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/Method/countQueryTotal</Path>
+      <ElementType>Form Method</ElementType>
+      <Moniker>TypeConversionLosesRange</Moniker>
+      <Line>215</Line>
+      <Column>17</Column>
+      <EndLine>215</EndLine>
+      <EndColumn>41</EndColumn>
+      <Message>The type conversion from 'int64' to 'int(Integer)' loses range.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormComboBoxControl/AccountType/Method/modified</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1091</Line>
+      <Column>16</Column>
+      <EndLine>1091</EndLine>
+      <EndColumn>66</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormComboBoxControl/AccountType/Method/modified</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1096</Line>
+      <Column>16</Column>
+      <EndLine>1096</EndLine>
+      <EndColumn>67</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormComboBoxControl/AccountType/Method/modified</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1101</Line>
+      <Column>16</Column>
+      <EndLine>1101</EndLine>
+      <EndColumn>67</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/jumpRef</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1126</Line>
+      <Column>20</Column>
+      <EndLine>1126</EndLine>
+      <EndColumn>71</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/jumpRef</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1131</Line>
+      <Column>20</Column>
+      <EndLine>1131</EndLine>
+      <EndColumn>70</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/jumpRef</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1136</Line>
+      <Column>20</Column>
+      <EndLine>1136</EndLine>
+      <EndColumn>71</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/lookup</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1147</Line>
+      <Column>16</Column>
+      <EndLine>1147</EndLine>
+      <EndColumn>66</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/lookup</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1151</Line>
+      <Column>21</Column>
+      <EndLine>1151</EndLine>
+      <EndColumn>72</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/modified</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1171</Line>
+      <Column>16</Column>
+      <EndLine>1171</EndLine>
+      <EndColumn>67</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/modified</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1176</Line>
+      <Column>16</Column>
+      <EndLine>1176</EndLine>
+      <EndColumn>66</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Form/SC_InventItemInfoDetail/FormDesign/AxFormDesign/FormTabControl/Tab/FormTabPageControl/FilterPage/FormGroupControl/Filters/FormStringControl/AccountNum/Method/modified</Path>
+      <ElementType>Form Control Method</ElementType>
+      <Moniker>ExtensibleEnumInComparisonAgainstNumericalValue</Moniker>
+      <Line>1181</Line>
+      <Column>16</Column>
+      <EndLine>1181</EndLine>
+      <EndColumn>67</EndColumn>
+      <Message>Comparing a numerical value with extensible enum 'Extensible Enumeration(SC_AccountType)' will yield unexpected results. Extensible enum values are not deterministically assigned to a numerical value.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxTableExtension/SalesOrderHeaderV2Staging.Sana</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'SalesOrderHeaderV2Staging' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_ProductCacheHelper/Method/dialogPostRun</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>ObsoleteEntityUsageWithReason</Moniker>
+      <Line>65</Line>
+      <Column>9</Column>
+      <EndLine>65</EndLine>
+      <EndColumn>66</EndColumn>
+      <Message>'controlMethodOverload' is obsolete: 'This is not a clean and recommended way to register override methods. Use registerOverrideMethod instead.'.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_ProductCacheHelper/Method/dialogPostRun</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>ObsoleteEntityUsageWithReason</Moniker>
+      <Line>66</Line>
+      <Column>9</Column>
+      <EndLine>66</EndLine>
+      <EndColumn>72</EndColumn>
+      <Message>'controlMethodOverloadObject' is obsolete: ''This is not a clean and recommended way to register override methods. Use registerOverrideMethod instead.''.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/SalesOrderHeaderV2Entity.Sana</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'SalesOrderHeaderV2Entity' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/BOMBillOfMaterialsLineV2Entity.Sana</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'BOMBillOfMaterialsLineV2Entity' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/SalesOrderLineV2Entity.Sana/Relations/SalesOrderHeader/RelatedDataEntity</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'SalesOrderHeaderEntity' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/SalesOrderLineV2Entity.Sana/Relations/SalesOrderHeaderV2/RelatedDataEntity</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'SalesOrderHeaderV2Entity' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/EcoResReleasedProductV2Entity.Sana/Relations/CatchWeightItemHandlingPolicy/RelatedDataEntity</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'WHSCatchWeightItemHandlingPolicyEntity' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/EcoResReleasedProductV2Entity.Sana/Relations/WHSProductFilterGroups/RelatedDataEntity</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'WHSProductFilterGroupEntity' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/SalesQuotationLineV2Entity.Sana/Relations/SalesQuotationHeader/RelatedDataEntity</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'SalesQuotationHeaderEntity' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/calcSalesMixAndMatchDiscounts</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>TypeConversionLosesRangeAndPrecision</Moniker>
+      <Line>566</Line>
+      <Column>29</Column>
+      <EndLine>566</EndLine>
+      <EndColumn>198</EndColumn>
+      <Message>The type conversion from 'real' to 'int(Counter)' loses range and precision.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/calcQuoteMixAndMatchDiscounts</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>TypeConversionLosesRangeAndPrecision</Moniker>
+      <Line>779</Line>
+      <Column>29</Column>
+      <EndLine>779</EndLine>
+      <EndColumn>216</EndColumn>
+      <Message>The type conversion from 'real' to 'int(Counter)' loses range and precision.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/convertDynamicLineParams</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>ObsoleteEntityUsageWithReason</Moniker>
+      <Line>2443</Line>
+      <Column>21</Column>
+      <EndLine>2446</EndLine>
+      <EndColumn>40</EndColumn>
+      <Message>'addProductDimensionValue' is obsolete: ''This method is deprecated. Please use the addNewProductDimensionValue() method instead.''.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyVariableTypeInaccessible</Moniker>
+      <Line>6962</Line>
+      <Column>9</Column>
+      <EndLine>6962</EndLine>
+      <EndColumn>46</EndColumn>
+      <Message>Type 'SrsProxy' of variable 'srsProxy' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+      <Line>6977</Line>
+      <Column>42</Column>
+      <EndLine>6977</EndLine>
+      <EndColumn>91</EndColumn>
+      <Message>Type 'SrsConfiguration' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyMethodInaccessible</Moniker>
+      <Line>6977</Line>
+      <Column>42</Column>
+      <EndLine>6977</EndLine>
+      <EndColumn>91</EndColumn>
+      <Message>Method 'getDefaultServerConfiguration' or type 'SrsConfiguration' in which it is declared is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' ''.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+      <Line>6977</Line>
+      <Column>42</Column>
+      <EndLine>6977</EndLine>
+      <EndColumn>91</EndColumn>
+      <Message>Type 'SRSReportServerConfiguration' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+      <Line>6977</Line>
+      <Column>9</Column>
+      <EndLine>6977</EndLine>
+      <EndColumn>92</EndColumn>
+      <Message>Type 'SRSReportServerConfiguration' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+      <Line>6985</Line>
+      <Column>57</Column>
+      <EndLine>6985</EndLine>
+      <EndColumn>91</EndColumn>
+      <Message>Type 'SRSReportServerConfiguration' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+      <Line>6985</Line>
+      <Column>20</Column>
+      <EndLine>6985</EndLine>
+      <EndColumn>92</EndColumn>
+      <Message>Type 'SrsProxy' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyMethodInaccessible</Moniker>
+      <Line>6985</Line>
+      <Column>20</Column>
+      <EndLine>6985</EndLine>
+      <EndColumn>92</EndColumn>
+      <Message>Method 'constructWithConfiguration' or type 'SrsProxy' in which it is declared is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' ''.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+      <Line>6985</Line>
+      <Column>20</Column>
+      <EndLine>6985</EndLine>
+      <EndColumn>92</EndColumn>
+      <Message>Type 'SRSReportServerConfiguration' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+      <Line>6987</Line>
+      <Column>16</Column>
+      <EndLine>6987</EndLine>
+      <EndColumn>24</EndColumn>
+      <Message>Type 'SrsProxy' is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' .</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_AXDataServiceClient_Order/Method/getReportByteArray</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>InternalUseOnlyMethodInaccessible</Moniker>
+      <Line>6987</Line>
+      <Column>16</Column>
+      <EndLine>6987</EndLine>
+      <EndColumn>150</EndColumn>
+      <Message>Method 'renderReportToByteArray' or type 'SrsProxy' in which it is declared is marked InternalUseOnly and is not accessible from the current module 'SanaCommerce' ''.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>BestPractices</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxFormExtension/SalesTable.Sana/Design/Controls/MainTab/TabPageDetails/DetailsTab/LineView/LineViewTab/LineViewLineDetails/LineDetailsTab/TabFinTagLine</Path>
+      <Moniker>BPErrorFormControlPatternUnspecified</Moniker>
+      <Message>'AxFormExtension/SalesTable.Sana/Design/Controls/MainTab/TabPageDetails/DetailsTab/LineView/LineViewTab/LineViewLineDetails/LineDetailsTab/TabFinTagLine' has not specified a pattern. Please apply one of the available patterns.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>BestPractices</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxFormExtension/SalesTable.Sana/Design/Controls/MainTab/TabPageDetails/DetailsTab/HeaderView/HeaderDetailsTab/TabFinTagHeader</Path>
+      <Moniker>BPErrorFormControlPatternUnspecified</Moniker>
+      <Message>'AxFormExtension/SalesTable.Sana/Design/Controls/MainTab/TabPageDetails/DetailsTab/HeaderView/HeaderDetailsTab/TabFinTagHeader' has not specified a pattern. Please apply one of the available patterns.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_OrdersCleanup/Method/dialogPostRun</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>ObsoleteEntityUsageWithReason</Moniker>
+      <Line>98</Line>
+      <Column>9</Column>
+      <EndLine>98</EndLine>
+      <EndColumn>66</EndColumn>
+      <Message>'controlMethodOverload' is obsolete: 'This is not a clean and recommended way to register override methods. Use registerOverrideMethod instead.'.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Compile</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics://Class/SC_OrdersCleanup/Method/dialogPostRun</Path>
+      <ElementType>Class Method</ElementType>
+      <Moniker>ObsoleteEntityUsageWithReason</Moniker>
+      <Line>99</Line>
+      <Column>9</Column>
+      <EndLine>99</EndLine>
+      <EndColumn>72</EndColumn>
+      <Message>'controlMethodOverloadObject' is obsolete: ''This is not a clean and recommended way to register override methods. Use registerOverrideMethod instead.''.</Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>Metadata</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>AxDataEntityViewExtension/EcoResReleasedProductV2Entity.Sana/Fields/PackageHandlingTime/DataField</Path>
+      <Moniker>ReferencedObjectIsObsolete</Moniker>
+      <Message>Referenced object 'WMSPickingQtyTime' is marked as obsolete. </Message>
+    <Justification>Under investigation</Justification></Diagnostic>
+  </Items>
+</IgnoreDiagnostics>

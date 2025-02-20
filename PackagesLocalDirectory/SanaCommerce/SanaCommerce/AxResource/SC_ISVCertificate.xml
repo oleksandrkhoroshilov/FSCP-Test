@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_ISVCertificate</Name>
+	<FileName>Sana Commerce.cer</FileName>
+	<RelativeUriInModelStore>SanaCommerce\SanaCommerce\AxResource\ResourceContent\Certificate\Sana Commerce.cer</RelativeUriInModelStore>
+	<TypeOfResource>Certificate</TypeOfResource>
+</AxResource>

@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DocPrintToNetworkPrinterHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Docentric.AX.Documents.Pdf.Conversion;
+using Docentric.AX.Framework.Collections;
+using System.IO;
+
+/// <summary>
+/// Handles all logic related to the printing to network printer feature on the Docentric report viewer form.
+/// </summary>
+public class DocPrintToNetworkPrinterHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Executes the main logic of the class, which is to print to a network printer as configured by the user via the "Print to network printer" menu.
+    /// Alternatively prints to default printer, if that option is chosen.
+    /// </summary>
+    /// <param name = "_args">The arguments for the method.</param>
+    public static void main(Args _args)
+    {
+        // Check if the DocReportViewerParams object has been passed.
+        if (!(_args.parmObject() is DocReportViewerParams))
+        {
+            DocGlobalHelper::handleException(funcName(), "@DocentricAX4:PrintToNetworkPrinterInvalidReportViewerParams");
+        }
+
+        // Check if the right enumerator has been passed.
+        if (_args.parmEnumType() != enumNum(DocPrintToNetworkPrinterMode))
+        {
+            DocGlobalHelper::handleException(funcName(), "@DocentricAX4:PrintToNetworkPrinterInvalidPrintingMode");
+        }
+
+        DocReportViewerParams reportViewerParams = _args.parmObject();
+        str previewPdfDocumentAsBase64String = reportViewerParams.parmOutputFileContentBase64String();
+        DocPrintReportSettings printReportSettings = reportViewerParams.parmPrintReportSettings();
+
+        // Call method appropriate for the printing mode.
+        try
+        {
+            switch (_args.parmEnum())
+            {
+                case DocPrintToNetworkPrinterMode::PrintToNetworkPrinter:
+                    DocPrintToNetworkPrinterHelper::printToNetworkPrinter(printReportSettings, previewPdfDocumentAsBase64String);
+                    break;
+
+                case DocPrintToNetworkPrinterMode::PrintToDefaultPrinter:
+                    DocPrintToNetworkPrinterHelper::printToDefaultPrinter(printReportSettings, previewPdfDocumentAsBase64String);
+                    break;
+            }
+        }
+        catch (Exception::CLRError)
+        {
+            DocGlobalHelper::handleClrException(funcName(), "@DocentricAX4:PrintToNetworkPrinterException");
+        }
+        catch
+        {
+            DocGlobalHelper::handleException(funcName(), "@DocentricAX4:PrintToNetworkPrinterException");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printToNetworkPrinter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Opens a Print destination settings form modified to only show the Docentric printer option.
+    /// This allows the user to print the report that is generated in the Docentric viewer with the options they choose on the dialog.
+    /// Made to work in a similar fashion to the standard PDF viewer Use network printer button.
+    /// </summary>
+    /// <param name = "_printReportSettings">The print report settings</param>
+    /// <param name = "_previewPdfDocumentAsBase64String">The PDF document shown in the preview Docentric report viewer form, can be null</param>
+    protected static void printToNetworkPrinter (DocPrintReportSettings _printReportSettings, str _previewPdfDocumentAsBase64String = null)
+    {
+        #PrintMgmtSetup
+
+        // Create a new formRun object based on SRSPrintDestinationSettingsForm.
+        Args args = new Args(formStr(SRSPrintDestinationSettingsForm));
+        FormRun printDestinationSettingsFormRun = classfactory.formRunClass(args);
+        
+        // Set up additional parameters for the print destination form.
+        PrintMgmtReportFormatName formatName = _printReportSettings.parmReportId();
+        PrintMgmtDocumentType documentType = DocPrintMgmtHelper::getFirstPrintMgmtDocumentType(_printReportSettings.parmReportId());
+        SrsPrintDestinationTokenType tokenType = DocPrintMgmtHelper::isPrintMgmtReport(formatName) ? #SRSPrintDestinationTokenPrintMgmt : SrsPrintDestinationTokens::defaultTokenType();
+                
+        str additionalParams = enum2Symbol(enumNum(PrintMgmtDocumentType), documentType);
+
+        // Set up print destination settings from the already generated report.
+        SRSPrintDestinationSettings srsPrintDestinationSettings = new SRSPrintDestinationSettings(_printReportSettings.parmSrsReportContract().parmPrintSettings().pack());
+        args.caller(srsPrintDestinationSettings);
+        args.parm(tokenType + (additionalParams ? ',' + additionalParams : ''));
+
+        // Initialize the print settings form.
+        printDestinationSettingsFormRun.init();
+
+        // Hide all non network printer related controls.
+        printDestinationSettingsFormRun.design().controlName(identifierStr(SelectedTemplate_DC)).visible(false);
+        printDestinationSettingsFormRun.design().controlName(identifierStr(PrintAsPdfTabPage_DC)).visible(!DocConstantGlobal::isOnPremEnvironment());
+        printDestinationSettingsFormRun.design().controlName(identifierStr(ReportSetup_DC)).visible(false);
+        printDestinationSettingsFormRun.design().controlName(identifierStr(ShowSrsPrintDest_DC)).visible(false);
+        printDestinationSettingsFormRun.design().controlName(identifierStr(OptionsTabPage_DC)).visible(false);
+        printDestinationSettingsFormRun.design().controlName(identifierStr(ReportPlaceholderListViewFromPrintDest_DC)).visible(false);
+        printDestinationSettingsFormRun.design().controlName(formControlStr(SRSPrintDestinationSettingsForm, SendTo)).visible(false);
+
+        // Declare all the relevant form controls as their rightful types, so that we can set/get their values.
+        FormStringControl selectedPrinterNameControl = printDestinationSettingsFormRun.design().controlName(identifierStr(PrinterNameLookup_DC));
+        FormComboBoxControl orientationControl = printDestinationSettingsFormRun.design().controlName(identifierStr(Orientation_DC));
+        FormComboBoxControl duplexPrintingControl = printDestinationSettingsFormRun.design().controlName(identifierStr(DuplexPrinting_DC));
+        FormCheckBoxControl collateControl = printDestinationSettingsFormRun.design().controlName(identifierStr(Collate_DC));
+        FormIntControl numberOfCopiesControl = printDestinationSettingsFormRun.design().controlName(identifierStr(NumberOfCopies_DC));
+        FormGroupControl rangeAllControl = printDestinationSettingsFormRun.design().controlName(identifierStr(RangeAllGroup_DC));
+        FormGroupControl rangeFromToControl = printDestinationSettingsFormRun.design().controlName(identifierStr(RangeFromToGroup_DC));
+        FormIntControl fromPageControl = printDestinationSettingsFormRun.design().controlName(identifierStr(FromPage_DC));
+        FormIntControl toPageControl = printDestinationSettingsFormRun.design().controlName(identifierStr(ToPage_DC));
+        FormCheckBoxControl printAsPdfControl = printDestinationSettingsFormRun.design().controlName(identifierStr(PrintAsPdf_DC));
+        FormStringControl printAsPdfFilenameControl = printDestinationSettingsFormRun.design().controlName(identifierStr(PrintAsPdfFilename_DC));
+        FormTabPageControl selectPrinterTab = printDestinationSettingsFormRun.design().controlName(identifierStr(SelectPrinterTab_DC));
+        FormTabPageControl printerSettingsTabPage = printDestinationSettingsFormRun.design().controlName(identifierStr(PrinterSettingsTabPage_DC));
+        FormTabPageControl printAsPdfTabPage = printDestinationSettingsFormRun.design().controlName(identifierStr(PrintAsPdfTabPage_DC));
+
+        // Get the sysLastValue settings.
+        container sysLastValueContainer = xSysLastValue::getValue(curExt(), curUserId(), UtilElementType::Report, _printReportSettings.parmReportId(), "@DocentricAX4:DocentricPrintToNetworkPrinterSettings");
+
+        // Apply the sysLastValue settings to the relevant controls.
+        selectedPrinterNameControl.text(conPeek(sysLastValueContainer, 1));
+        orientationControl.selection(conPeek(sysLastValueContainer, 2));
+        duplexPrintingControl.selection(conPeek(sysLastValueContainer, 3));
+        collateControl.checked(conPeek(sysLastValueContainer, 4));
+        numberOfCopiesControl.value(!sysLastValueContainer ? 1 : conPeek(sysLastValueContainer, 5));
+        rangeAllControl.optionValue(!sysLastValueContainer ? 1 : conPeek(sysLastValueContainer, 6));
+        rangeFromToControl.optionValue(conPeek(sysLastValueContainer, 7));
+        fromPageControl.value(conPeek(sysLastValueContainer, 8));
+        toPageControl.value(conPeek(sysLastValueContainer, 9));
+        printAsPdfControl.checked(conPeek(sysLastValueContainer, 10));
+        printAsPdfFilenameControl.text(conPeek(sysLastValueContainer, 11));
+
+        // Show the form.
+        printDestinationSettingsFormRun.run();
+
+        // Switch the target tab to the Docentric printer one.
+        FormTabControl targetTab = printDestinationSettingsFormRun.design().controlName(formControlStr(SRSPrintDestinationSettingsForm, TargetTab));
+        FormTabPageControl printTabControl = printDestinationSettingsFormRun.design().controlName(identifierStr(PrintTab_DC));
+        targetTab.tab(printTabControl.id());
+
+        // Focus and expand on the select printer tab, otherwise the controls won't work until a tab gets focus.
+        selectPrinterTab.setFocus();
+        selectPrinterTab.expand();
+
+        // Expand printer settings tab page so as to mimic the standard SSRS print to network printer form.
+        printerSettingsTabPage.expand();
+
+        // Enable or disable the PrintAsPdfFilename control.
+        if (printAsPdfControl.checked())
+        {
+            printAsPdfFilenameControl.allowEdit(true);
+            printAsPdfTabPage.caption(strFmt('%1 *', "@DocentricAX2:PrintAsPdf"));
+        }
+        else
+        {
+            printAsPdfFilenameControl.allowEdit(false);
+            printAsPdfTabPage.caption("@DocentricAX2:PrintAsPdf");
+        }
+
+        // Wait until user dismisses the form.
+        printDestinationSettingsFormRun.wait(true);
+
+        if (printDestinationSettingsFormRun.closedOk())
+        {
+            // Define print destination settings for the printer based on the selected printer name.
+            DocPrintDestSettingsPrinter printDestinationSettingsPrinter = DocPrintDestSettingsPrinter::construct(selectedPrinterNameControl.text());
+
+            // Get all the printer settings from the form and set them on the print destination settings printer object.
+            printDestinationSettingsPrinter.parmOrientation(orientationControl.selection());
+            printDestinationSettingsPrinter.parmDuplexPrinting(duplexPrintingControl.selection());
+            printDestinationSettingsPrinter.parmCollated(collateControl.checked());
+            printDestinationSettingsPrinter.parmNumberOfCopies(numberOfCopiesControl.value());
+            printDestinationSettingsPrinter.parmPrintAllPages(rangeAllControl.optionValue() == 1);
+            printDestinationSettingsPrinter.parmPrintFromPage(fromPageControl.value());
+            printDestinationSettingsPrinter.parmPrintToPage(toPageControl.value());
+            printDestinationSettingsPrinter.parmPrintAsPdf(printAsPdfControl.checked());
+            printDestinationSettingsPrinter.parmPrintAsPdfFilename(printAsPdfFilenameControl.text());
+
+            // Save the values of the relevant from controls to a container.
+            sysLastValueContainer = [selectedPrinterNameControl.text(),
+                        orientationControl.selection(),
+                        duplexPrintingControl.selection(),
+                        collateControl.checked(),
+                        numberOfCopiesControl.value(),
+                        rangeAllControl.optionValue(),
+                        rangeFromToControl.optionValue(),
+                        fromPageControl.value(),
+                        toPageControl.value(),
+                        printAsPdfControl.checked(),
+                        printAsPdfFilenameControl.text()];
+
+            // Save the sysLastValue settings.
+            xSysLastValue::putValue(sysLastValueContainer, curExt(), curUserId(), UtilElementType::Report, _printReportSettings.parmReportId(), "@DocentricAX4:DocentricPrintToNetworkPrinterSettings");
+                
+            // Call the method that print the report to printer.
+            DocPrintToNetworkPrinterHelper::printReportToPrinter(_printReportSettings, printDestinationSettingsPrinter, _previewPdfDocumentAsBase64String);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printToDefaultPrinter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Prints the report that is generated in the Docentric viewer to the default printer without opening a dialog.
+    /// </summary>
+    /// <param name = "_printReportSettings">The print report settings</param>
+    /// <param name = "_previewPdfDocumentAsBase64String">The PDF document shown in the preview Docentric report viewer form, can be null</param>
+    protected static void printToDefaultPrinter(DocPrintReportSettings _printReportSettings, str _previewPdfDocumentAsBase64String = null)
+    {
+        // Define print destination settings for the printer based on the selected default printer.
+        DocPrintDestSettingsPrinter printDestinationSettingsPrinter = DocPrintDestSettingsPrinter::constructForDefaultPrinter();
+
+        // Call the method that print the report to printer as EMF image.
+        DocPrintToNetworkPrinterHelper::printReportToPrinter(_printReportSettings, printDestinationSettingsPrinter, _previewPdfDocumentAsBase64String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printReportToPrinter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Prints the report that is generated in the Docentric viewer to the specified printer.
+    /// </summary>
+    /// <param name = "_printReportSettings">The print report settings</param>
+    /// <param name = "_printerPrintDestSettings">The print destination settings for the printer destination</param>
+    /// <param name = "_previewPdfDocumentAsBase64String">The PDF document shown in the preview Docentric report viewer form, can be null</param>
+    protected static void printReportToPrinter(
+        DocPrintReportSettings _printReportSettings,
+        DocPrintDestSettingsPrinter _printerPrintDestSettings,
+        str _previewPdfDocumentAsBase64String = null)
+    {
+        // Send the generated document from the Docentric viewer to a printer for printing.
+        if (DocConstantGlobal::isOnPremEnvironment())
+        {
+            // Check if the report is SSRS-based and is pre-processed
+            if (_printReportSettings.parmTemplateId() == DocConstant::BuiltInSsrsDesignPlaceholder
+                    && _printReportSettings.parmSrsReportContract()
+                    && DocReportingHelper::isSrsReportPreProcessing(_printReportSettings.parmSrsReportContract().parmRdpName()))
+            {
+                DocGlobalHelper::handleException(funcName(), "@DocentricAX5:PrintToNetworkPrinterSSRSBasedAndPreProcessedError");
+            }
+
+            DocOutputManager::printReportToPrinterOnPremise(
+                DocPrintToNetworkPrinterHelper::constructNetworkPrinterPrintReportSettings(_printReportSettings, _printerPrintDestSettings), _printerPrintDestSettings);
+        }
+        else
+        {
+            if (_printerPrintDestSettings.parmPrintAsPdf())
+            {
+                DocPrintToNetworkPrinterHelper::printReportToPrinterAsPdf(_printReportSettings, _printerPrintDestSettings, _previewPdfDocumentAsBase64String);
+            }
+            else
+            {
+                DocPrintToNetworkPrinterHelper::printReportToPrinterAsEmf(_printReportSettings, _printerPrintDestSettings, _previewPdfDocumentAsBase64String);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printReportToPrinterAsPdf</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Prints the report that is generated in the Docentric viewer as a PDF.
+    /// </summary>
+    /// <param name = "_printReportSettings">The print report settings.</param>
+    /// <param name = "_printerPrintDestSettings">The print destination settings for the printer destination.</param>
+    /// <param name = "_previewPdfDocumentAsBase64String">The PDF document shown in the preview Docentric report viewer form, can be null.</param>
+    protected static void printReportToPrinterAsPdf(
+        DocPrintReportSettings _printReportSettings,
+        DocPrintDestSettingsPrinter _printerPrintDestSettings,
+        str _previewPdfDocumentAsBase64String = null)
+    {
+        // Copy over the print report settings from the already generated report and override archive saving and
+        // preview before print settings, as those won't be needed. Also change print destination to printer.
+        DocPrintReportSettings networkPrinterPrintReportSettings = DocPrintToNetworkPrinterHelper::constructNetworkPrinterPrintReportSettings(_printReportSettings, _printerPrintDestSettings);
+
+        // If the template being printed is an SSRS design, we need to copy already generated PDF document to the newly created 
+        // instance of the DocPrintReportSettings class, otherwise just print the Docentric report directly to printer.
+        if (_printReportSettings.parmTemplateId() == DocConstant::BuiltInSsrsDesignPlaceholder)
+        {
+            // Create new memory stream for the PDF document.
+            MemoryStream reportPdfMemoryStream;
+
+            // If the base64 string parm is populated from the args, this means that the method was called from a form in preview mode, so we will use the preview report.
+            if (_previewPdfDocumentAsBase64String)
+            {
+                reportPdfMemoryStream = new MemoryStream(DocGlobalHelper::convertFromBase64String(_previewPdfDocumentAsBase64String));
+            }
+            // Else if the base64 string isn't found, this should mean that we're on the Docentric report viewer form 
+            // in the print to Docentric screen mode, so we should have the PDF document in the printed report parameter.
+            else if (_printReportSettings.parmPrintedReport())
+            {
+                reportPdfMemoryStream = _printReportSettings.parmPrintedReport().getReportContentMemoryStream();
+            }
+
+            // Create new printed report object and set the generated PDF memory stream.
+            DocPrintedReport networkPrinterPrintedReport = DocPrintedReport::createMemoryStream(reportPdfMemoryStream);
+
+            // Set the printed report output file format to be of type PDF.
+            networkPrinterPrintedReport.parmSrsOutputFileFormat(SRSReportFileFormat::PDF);
+
+            // Set the printed report parameter to be the printed report object that we have just generated.
+            networkPrinterPrintReportSettings.parmPrintedReport(networkPrinterPrintedReport);
+        }
+
+        // Send the newly created settings to be printed to printer.
+        DocOutputManager::printReportToPrinterAsPdf(networkPrinterPrintReportSettings, _printerPrintDestSettings);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printReportToPrinterAsEmf</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Prints the report that is generated in the Docentric viewer as a series of EMF images.
+    /// </summary>
+    /// <param name = "_printReportSettings">The print report settings.</param>
+    /// <param name = "_printerPrintDestSettings">The print destination settings for the printer destination.</param>
+    /// <param name = "_previewPdfDocumentAsBase64String">The PDF document shown in the preview Docentric report viewer form, can be null.</param>
+    protected static void printReportToPrinterAsEmf(
+        DocPrintReportSettings _printReportSettings,
+        DocPrintDestSettingsPrinter _printerPrintDestSettings,
+        str _previewPdfDocumentAsBase64String = null)
+    {
+        // Copy over the print report settings from the already generated report and override archive saving and 
+        // preview before print settings, as those won't be needed. Also change print destination to printer.
+        DocPrintReportSettings networkPrinterPrintReportSettings = DocPrintToNetworkPrinterHelper::constructNetworkPrinterPrintReportSettings(_printReportSettings, _printerPrintDestSettings);
+
+        // If the template being printed is an SSRS design, convert the PDF document to EMF for printing, 
+        // otherwise just print the Docentric report directly to printer.
+        if (_printReportSettings.parmTemplateId() == DocConstant::BuiltInSsrsDesignPlaceholder)
+        {
+            // Create new memory stream for the PDF document.
+            MemoryStream reportPdfMemoryStream;
+
+            // If the base64 string parm is populated from the args, this means that the method was called from a form in preview mode, so we will use the preview report.
+            if (_previewPdfDocumentAsBase64String)
+            {
+                reportPdfMemoryStream = new MemoryStream(DocGlobalHelper::convertFromBase64String(_previewPdfDocumentAsBase64String));
+            }
+            // Else if the base64 string isn't found, this should mean that we're on the Docentric report viewer form 
+            // in the print to Docentric screen mode, so we should have the PDF document in the printed report parameter.
+            else if (_printReportSettings.parmPrintedReport())
+            {
+                reportPdfMemoryStream = _printReportSettings.parmPrintedReport().getReportContentMemoryStream();
+            }
+
+            // Generate EMF document from the generated PDF document.
+            DocImageFormat imgFormat;
+            DocImageConversionOptions conversionOptions = new DocImageConversionOptions(DocGlobalHelper::getDotNetEnumValueForXppEnumValue(imgFormat.GetType(), enumNum(DocFileFormat), DocFileFormat::EMF));
+            if (!_printerPrintDestSettings.parmPrintAllPages())
+            {
+                // The StartPage and EndPage properties in the DocImageConversionOptions object are 0 based
+                conversionOptions.StartPage = _printerPrintDestSettings.parmPrintFromPage() - 1;
+                conversionOptions.EndPage = _printerPrintDestSettings.parmPrintToPage() - 1;
+            }
+            DocByteArrayList emfImageList = DocDocumentHelper::convertPdf2Emf(reportPdfMemoryStream, conversionOptions);
+        
+            // Dispose the memory stream that is no longer needed
+            if (_previewPdfDocumentAsBase64String && reportPdfMemoryStream != null)
+            {
+                reportPdfMemoryStream.Dispose();
+            }
+
+            // Create new printed report object and set the EMF image to be the one we have generated in the previous step. The EMF image needs to be of type List<Byte[]>.
+            DocPrintedReport networkPrinterPrintedReport = DocPrintedReport::createImageList(emfImageList);
+
+            // Set the printed report output file format to be of type Image (EMF).
+            networkPrinterPrintedReport.parmSrsOutputFileFormat(SRSReportFileFormat::Image);
+
+            // Set the printed report parameter to be the printed report object that we have just generated.
+            networkPrinterPrintReportSettings.parmPrintedReport(networkPrinterPrintedReport);
+        }
+
+        // Send the newly created settings to be printed to printer.
+        DocOutputManager::printReportToPrinter(networkPrinterPrintReportSettings, _printerPrintDestSettings);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructNetworkPrinterPrintReportSettings</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructs a new instance of the DocPrintReportSettings class based on the print report settings from
+    /// the already generated report and override archive saving and preview before print settings, as those 
+    /// won't be needed. Also change print destination to printer.
+    /// </summary>
+    /// <param name = "_printReportSettings">The print report settings</param>
+    /// <param name = "_printerPrintDestSettings">The print destination settings for the printer destination</param>
+    /// <returns>An instance of the DocPrintReportSettings class</returns>
+    /// <remarks> 
+    /// An existing instance of the DocPrintedReport class containing the generated document is not copied
+    /// to the newly created instance of the DocPrintReportSettings class. In the case of the SSRS design,
+    /// this must be set manually.
+    /// </remarks>
+    protected static DocPrintReportSettings constructNetworkPrinterPrintReportSettings(
+        DocPrintReportSettings _printReportSettings,
+        DocPrintDestSettingsPrinter _printerPrintDestSettings)
+    {
+        // Copy over the print report settings from the already generated report.
+        DocPrintReportSettings networkPrinterPrintReportSettings = DocPrintReportSettings::constructWithSameArchiveAndSrsReportContracts(_printReportSettings);
+
+        // Override archive saving and preview before print settings, as those won't be needed. Also change print destination to printer.
+        networkPrinterPrintReportSettings.parmSaveToArchive(false);
+        networkPrinterPrintReportSettings.parmSuppressSuccessMsg(false);
+        networkPrinterPrintReportSettings.parmPreviewBeforePrint(false);
+        networkPrinterPrintReportSettings.parmPrintDestination(DocPrintDestination::Printer);
+        networkPrinterPrintReportSettings.parmPrintedFrom(DocReportPrintedFrom::DocentricViewer);
+
+        // Resolve placeholders on the Docentric printer print destination
+        DocPlaceholderProcessor placeholderProcessor = DocPlaceholderProcessor::constructForPrinterPrintDestSettings(networkPrinterPrintReportSettings, _printerPrintDestSettings);
+
+        _printerPrintDestSettings.parmSelectedPrinterName(
+            placeholderProcessor.resolvePlaceholders(_printerPrintDestSettings.parmSelectedPrinterName()));
+        _printerPrintDestSettings.parmPrintAsPdfFilename(
+            DocFileMngHelper::replaceInvalidCharsForFileName(placeholderProcessor.resolvePlaceholders(_printerPrintDestSettings.parmPrintAsPdfFilename())));
+
+        return networkPrinterPrintReportSettings;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

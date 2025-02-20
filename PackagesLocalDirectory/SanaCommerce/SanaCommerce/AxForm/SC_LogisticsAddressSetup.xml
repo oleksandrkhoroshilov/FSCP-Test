@@ -1,0 +1,1127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_LogisticsAddressSetup</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+    public class SC_LogisticsAddressSetup extends FormRun
+{
+    LanguageId                      userLanguage;
+
+    // <GEERU><GBR>
+    #ISOCountryRegionCodes
+    // </GBR></GEERU>
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        UserInfo userInfo;        
+        ;
+
+        SC_AddressCountryRegionSetup::fillEmptyWebshopIds();
+
+        super();
+
+        // Get the language set for the current user
+        // and use that to set for the new translation record being created
+        select firstonly Language from userInfo where userInfo.Id == curUserId();
+        userLanguage = userInfo.Language;
+        
+        WebShopId.text(SC_WebShopsTable::findFirst().WebShopId);
+        WebShopId.modified();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>LogisticsAddressCountryRegion</Name>
+				<Methods>
+					<Method>
+						<Name>updateDesign</Name>
+						<Source><![CDATA[
+        // <RUP>
+        public void updateDesign()
+        {
+            boolean parentCountryRegionIdAllowEdit, isoCodeAllowEdit;
+
+            if (LogisticsAddressCountryRegion.ISOcode)
+            {
+                LogisticsAddressCountryRegion.RPayParentCountryRegionId = '';
+                parentCountryRegionIdAllowEdit  = false;
+                isoCodeAllowEdit                = true;
+            }
+            else if (LogisticsAddressCountryRegion.RPayParentCountryRegionId)
+            {
+                LogisticsAddressCountryRegion.isOcode = '';
+                parentCountryRegionIdAllowEdit  = true;
+                isoCodeAllowEdit                = false;
+            }
+            else
+            {
+                parentCountryRegionIdAllowEdit  = true;
+                isoCodeAllowEdit                = true;
+            }
+
+            LogisticsAddressCountryRegion_ds.object(fieldNum(LogisticsAddressCountryRegion, RPayParentCountryRegionId)).allowEdit(parentCountryRegionIdAllowEdit);
+            LogisticsAddressCountryRegion_ds.object(fieldNum(LogisticsAddressCountryRegion, isOcode)).allowEdit(isoCodeAllowEdit);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        // </RUP>
+
+        public int active()
+        {
+            int ret;
+
+            ret = super();
+
+            logisticsAddressCountryRegion_ds.object(fieldNum(LogisticsAddressCountryRegion, isOcode)).allowEdit(logisticsAddressCountryRegion.IsImmutable == NoYes::No);
+
+            ButtonGroupCountryRegionTranslation.enabled(logisticsAddressCountryRegion.RecId != 0);
+
+            //<GEERU>
+            logisticsAddressCountryRegion_ds.object(fieldNum(LogisticsAddressCountryRegion, oksmCode_RU)).allowEdit(SysCountryRegionCode::isLegalEntityInCountryRegion([#isoRU]));
+            //</GEERU>
+            // <RUP>
+            this.updateDesign();
+            // </RUP>
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            this.query().dataSourceTable(tableNum(LogisticsAddressCountryRegionTranslation)).addRange(fieldNum(LogisticsAddressCountryRegionTranslation, LanguageId)).value(queryValue(userLanguage));
+            super();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        public void delete()
+        {
+            super();
+            LogisticsAddressCountryRegion_ds.research();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validateDelete</Name>
+						<Source><![CDATA[
+        public boolean validateDelete()
+        {
+            boolean ret;
+
+            ret = super();
+
+            if(ret)
+            {
+                SC_AddressCountryRegionSetup_ds.delete();
+            }
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>CountryRegionId</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+
+                if (!LogisticsAddressCountryRegionTranslation)
+                {
+                    LogisticsAddressCountryRegionTranslation.CountryRegionId = LogisticsAddressCountryRegion.CountryRegionId;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ISOcode</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                // <RUP>
+                LogisticsAddressCountryRegion_ds.updateDesign();
+                // </RUP>
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>LogisticsAddressCountryRegionTranslation</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+            logisticsAddressCountryRegionTranslation.LanguageId = userLanguage;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+
+            ret = super();
+
+            logisticsAddressCountryRegionTranslation.LanguageId = userLanguage;
+            logisticsAddressCountryRegionTranslation.CountryRegionId = logisticsAddressCountryRegion.CountryRegionId;
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validateWrite</Name>
+						<Source><![CDATA[
+        public boolean validateWrite()
+        {
+            boolean ret;
+
+            logisticsAddressCountryRegionTranslation.CountryRegionId = logisticsAddressCountryRegion.CountryRegionId;
+            ret = super();            
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        public void write()
+        {
+            // Set the CountryRegionId
+            logisticsAddressCountryRegionTranslation.CountryRegionId = logisticsAddressCountryRegion.CountryRegionId;
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>SC_AddressCountryRegionSetup</Name>
+				<Methods>
+					<Method>
+						<Name>validateWrite</Name>
+						<Source><![CDATA[
+        public boolean validateWrite()
+        {
+            boolean ret;
+
+            SC_AddressCountryRegionSetup.CountryRegionId = LogisticsAddressCountryRegion.CountryRegionId;
+
+            ret = super();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>TemplateCustomer</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            public void modified()
+            {
+                super();
+
+                SC_AddressCountryRegionSetup_ds.write();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>VisibleInWebshop</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            public void modified()
+            {
+                super();
+
+                SC_AddressCountryRegionSetup_ds.write();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>WebshopId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(SC_WebShopsTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebShopsTable::lookupWebshops(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean                      ret;
+            SC_AddressCountryRegionSetup addressCountryRegionSetup;
+            RecordInsertList             recordInsertList = new RecordInsertList(tableNum(SC_AddressCountryRegionSetup));
+            ;
+
+            ret = super();
+
+            if(WebshopId.text())
+            {
+                while select LogisticsAddressCountryRegion
+                    notexists join addressCountryRegionSetup
+                    where LogisticsAddressCountryRegion.CountryRegionId == addressCountryRegionSetup.CountryRegionId &&
+                          addressCountryRegionSetup.WebShopId == WebshopId.text()
+                {
+                    addressCountryRegionSetup.CountryRegionId = LogisticsAddressCountryRegion.CountryRegionId;
+                    addressCountryRegionSetup.WebShopId = WebshopId.text();
+                    recordInsertList.add(addressCountryRegionSetup);
+                }            
+
+                recordInsertList.insertDatabase();
+            }
+
+            if(SC_WebShopsTable::find(WebshopId.text()).EnableB2BCustTemplate)
+            {
+                SC_AddressCountryRegionSetup_B2BTemplateCustomer.visible(true);
+                SC_AddressCountryRegionSetup_TemplateCustomer.label("@SCL638");
+            }
+            else
+            {
+                SC_AddressCountryRegionSetup_B2BTemplateCustomer.visible(false);
+                SC_AddressCountryRegionSetup_TemplateCustomer.label("@SCL63");
+            }
+
+            SysQuery::findOrCreateRange(SC_AddressCountryRegionSetup_ds.query().dataSourceTable(tableNum(SC_AddressCountryRegionSetup)), fieldNum(SC_AddressCountryRegionSetup, WebshopId)).value(WebshopId.text());
+            SC_AddressCountryRegionSetup_ds.executeQuery();
+            LogisticsAddressCountryRegion_ds.executeQuery();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnCountryNew</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            logisticsAddressCountryRegion_ds.create();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnCountryDelete</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            logisticsAddressCountryRegion_ds.delete();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnCountrySave</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            if(!LogisticsAddressCountryRegionTranslation)
+            {
+                LogisticsAddressCountryRegionTranslation.CountryRegionId = LogisticsAddressCountryRegion.CountryRegionId;
+            }
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonState</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Args args = new Args();
+
+            args.lookupValue(int642str((select firstOnly LogisticsAddressState where LogisticsAddressState.CountryRegionId == LogisticsAddressCountryRegion.CountryRegionId).recId));
+            new MenuFunction(menuitemdisplaystr(LogisticsAddressState), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>LogisticsAddressCountryRegion</Name>
+			<Table>LogisticsAddressCountryRegion</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AddressUseZipPlus4</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AddrFormat</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BACENCode_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CurrencyCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsImmutable</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ISOcode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MCRIOR_Facility_ID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MemberOfCustomsUnion_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OKSMCode_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RPayParentCountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TimeZone</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>LogisticsAddressCountryRegionTranslation</Name>
+			<Table>LogisticsAddressCountryRegionTranslation</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LanguageId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LongName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShortName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>LogisticsAddressCountryRegion</JoinSource>
+			<LinkType>OuterJoin</LinkType>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_AddressCountryRegionSetup</Name>
+			<Table>SC_AddressCountryRegionSetup</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>B2BTemplateCustomer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TemplateCustomer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VisibleInWebshop</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebShopId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>LogisticsAddressCountryRegion</JoinSource>
+			<LinkType>InnerJoin</LinkType>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SYS101482</Caption>
+		<Pattern xmlns="">Custom</Pattern>
+		<SetCompany xmlns="">No</SetCompany>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>GroupCountryHeader</Name>
+				<ElementPosition>1073741822</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Skip>Yes</Skip>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>StaticTextCountry</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Skip>Yes</Skip>
+						<Type>StaticText</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Style>MainInstruction</Style>
+						<Text>@SYS303360</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>FiltersGroup</Name>
+						<Pattern>CustomFilters</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>WebshopId</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+								<Label>@SCL161</Label>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+						<FrameType>None</FrameType>
+						<Style>CustomFilter</Style>
+						<ViewEditMode>Edit</ViewEditMode>
+					</AxFormControl>
+				</Controls>
+				<AllowUserSetup>No</AllowUserSetup>
+				<FrameType>None</FrameType>
+				<Style>TOCTitleContainer</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>GroupCountryBody</Name>
+				<ElementPosition>1610612733</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Pattern>NestedSimpleListDetails</Pattern>
+				<PatternVersion>UX7 1.1</PatternVersion>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormActionPaneControl">
+						<Name>ActionPane_Country</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>ActionPane</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneTabControl">
+								<Name>ActionPaneTab_Country</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ActionPaneTab</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>ButtonGroupCountry</Name>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Left>0</Left>
+										<Type>ButtonGroup</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>BtnCountryNew</Name>
+												<ElementPosition>858993458</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CommandButton</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+												<NormalImage>New</NormalImage>
+												<Text>@SYS2055</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>BtnCountryDelete</Name>
+												<ElementPosition>1717986916</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CommandButton</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+												<NormalImage>Delete</NormalImage>
+												<SaveRecord>No</SaveRecord>
+												<Text>@SYS14425</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>BtnCountrySave</Name>
+												<ElementPosition>1288490187</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CommandButton</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>Save</Command>
+												<NormalImage>Save</NormalImage>
+												<Text>@SYS12229</Text>
+											</AxFormControl>
+										</Controls>
+										<ArrangeMethod>Vertical</ArrangeMethod>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>ButtonGroupCountryRegionTranslation</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1717986916</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Left>0</Left>
+										<Type>ButtonGroup</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormMenuFunctionButtonControl">
+												<Name>MenuItemButton_Trans</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>MenuFunctionButton</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+												<CopyCallerQuery>Yes</CopyCallerQuery>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+												<MenuItemName>DirTranslation_LogisticsAddressCountryRe</MenuItemName>
+												<NeedsRecord>Yes</NeedsRecord>
+												<NormalImage>Translate</NormalImage>
+											</AxFormControl>
+										</Controls>
+										<ArrangeMethod>Vertical</ArrangeMethod>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>ButtonGroupState</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>FormButtonState</Name>
+												<HelpText>@SYS21819</HelpText>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>@SYS21924</Text>
+											</AxFormControl>
+										</Controls>
+										<Caption>@SYS21924</Caption>
+									</AxFormControl>
+								</Controls>
+								<AlignChild>No</AlignChild>
+								<AlignChildren>No</AlignChildren>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SYS2055</Caption>
+							</AxFormControl>
+						</Controls>
+						<AlignChild>No</AlignChild>
+						<AlignChildren>No</AlignChildren>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+						<DataSource>LogisticsAddressCountryRegion</DataSource>
+						<Style>Strip</Style>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>CountryBody</Name>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>CountryNavigationList</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>GridCountry</Name>
+										<AllowEdit>No</AllowEdit>
+										<ElementPosition>1610612734</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToContent</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>CountryRegionId</Name>
+												<ElementPosition>477218588</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CountryRegionId</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>CountryShortName</Name>
+												<ElementPosition>715827882</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ShortName</DataField>
+												<DataSource>LogisticsAddressCountryRegionTranslation</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>LogisticsAddressCountryRegion_MemberOfCustomsUnion_RU</Name>
+												<ElementPosition>2143289342</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataField>MemberOfCustomsUnion_RU</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>LogisticsAddressCountryRegion</DataSource>
+										<MultiSelect>No</MultiSelect>
+										<ShowRowLabels>No</ShowRowLabels>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>CountryDetailsGroup</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>CountryDetailsHeader</Name>
+										<Type>Group</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>stringCountryRegionId</Name>
+												<ElementPosition>477218588</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CountryRegionId</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>stringCountryShortName</Name>
+												<ElementPosition>715827882</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ShortName</DataField>
+												<DataSource>LogisticsAddressCountryRegionTranslation</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>stringCountryLongName</Name>
+												<ElementPosition>954437176</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LongName</DataField>
+												<DataSource>LogisticsAddressCountryRegionTranslation</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>stringCountryAddrFormat</Name>
+												<ElementPosition>1193046470</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>AddrFormat</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<FrameType>None</FrameType>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>CountryDetailsBody</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>Group</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>cmbCountryTimeZone</Name>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>ComboBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>TimeZone</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>CheckBoxCountryZip4</Name>
+												<ElementPosition>1670265058</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataField>AddressUseZipPlus4</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>LogisticsAddressCountryRegion_ISOcode</Name>
+												<ElementPosition>1908874352</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ISOcode</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>LogisticsAddressCountryRegion_MCRIOR_Facility_ID</Name>
+												<ElementPosition>2028178999</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>MCRIOR_Facility_ID</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>LogisticsAddressCountryRegion_BACENCode_BR</Name>
+												<ElementPosition>2130706430</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>BACENCode_BR</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>stringCountry_OKSMCode_RU</Name>
+												<ElementPosition>2130706430</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>OKSMCode_RU</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>LogisticsAddressCountryRegion_RPayParentCountryRegionId</Name>
+												<ElementPosition>2139095038</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>RPayParentCountryRegionId</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>SanaCommerceGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SC_AddressCountryRegionSetup_TemplateCustomer</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>TemplateCustomer</DataField>
+														<DataSource>SC_AddressCountryRegionSetup</DataSource>
+														<Label>@SCL63</Label>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SC_AddressCountryRegionSetup_B2BTemplateCustomer</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>B2BTemplateCustomer</DataField>
+														<DataSource>SC_AddressCountryRegionSetup</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>SC_AddressCountryRegionSetup_VisibleInWebshop</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>VisibleInWebshop</DataField>
+														<DataSource>SC_AddressCountryRegionSetup</DataSource>
+													</AxFormControl>
+												</Controls>
+												<Caption>@SCL2</Caption>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<FrameType>None</FrameType>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Columns>2</Columns>
+						<FrameType>None</FrameType>
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

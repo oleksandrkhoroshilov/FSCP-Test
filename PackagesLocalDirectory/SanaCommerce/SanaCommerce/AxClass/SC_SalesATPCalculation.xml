@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_SalesATPCalculation</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class SC_SalesATPCalculation extends SalesATPCalculation
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static protected SC_SalesATPCalculation construct()
+    {
+        return new SC_SalesATPCalculation();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>newSalesCalculation</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public static SalesATPCalculation newSalesCalculation(ItemId _itemId, InventDimId _inventDimId, CustAccount _custAccount, DataAreaId _custAccountCompany = '')
+    {
+        SalesATPCalculation             salesATPCalculation = SC_SalesATPCalculation::construct();
+
+        SalesATPSettingsMap salesATPSettingsMap = SalesATPCalculation::findSalesOrderSettings(_itemId, _inventDimId);
+
+        salesATPCalculation.parmItemId(_itemId);
+        salesATPCalculation.parmInventDimId(_inventDimId);
+        salesATPCalculation.parmSalesATPSettingsMap(salesATPSettingsMap);
+
+        return salesATPCalculation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calculation</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected SalesTmpATP calculation(InventTransId _inventTransId = '')
+    {
+        InventDim                       inventDimCriteria;
+        InventDimParm                   inventDimParm;
+        SalesTmpATP                     salesTmpATP = null;
+
+        inventDimCriteria.data(InventDim::find(inventDimId));
+        inventDimParm.initFromInventDim(inventDimCriteria);
+
+        this.calculateOrders(
+            salesTmpATP,
+            _inventTransId,
+            inventDimCriteria,
+            inventDimParm);
+
+        if (salesATPSettingsMap.atpInclPlannedOrders)
+        {
+            this.calculatePlannedOrders(
+                salesTmpATP,
+                _inventTransId,
+                inventDimCriteria,
+                inventDimParm);
+        }
+
+        this.calculateOnHand(
+            salesTmpATP,
+            inventDimCriteria,
+            inventDimParm);
+
+        return salesTmpATP;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcSalesATPQty</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public Qty calcSalesATPQty()
+    {
+        SalesTmpATP salesTmpATP;
+
+        salesTmpATP = this.calcSalesTmpATP();
+
+        select firstOnly ATPQty from salesTmpATP order by ATPDate;
+
+        return salesTmpATP.ATPQty;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,3065 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_DefaultDataWizard</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_DefaultDataWizard extends FormRun
+{    
+    SC_DefaultDataWizard sysWizard;
+    DialogButton         dialogButton;
+    boolean              dialogButtonInit;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    void init()
+    {        
+        super();
+        
+        if (element.Args().caller())
+        {
+            sysWizard = element.Args().caller();
+        }
+        else
+        {
+            SC_DefaultDataWizard::main(new args());
+            element.closeCancel();
+        }
+
+        SC_ItemVisibilityRulesTable::fillEmptyWebshopIds();
+        SC_AddressCountryRegionSetup::fillEmptyWebshopIds();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDesign</Name>
+				<Source><![CDATA[
+    public void updateDesign()
+    {
+        DictField   dictField;
+        SysDictType sysDictType;
+
+        SC_ItemVisibilityRules_Value.enabled(SC_ItemVisibilityRules.ItemCode == SC_TableGroupCategory::ItemField);
+
+        SC_ItemVisibilityRules_Value.visible((select firstonly SC_ItemVisibilityRulesTable where SC_ItemVisibilityRulesTable.ItemCode ==
+                                             SC_TableGroupCategory::ItemField && SC_ItemVisibilityRulesTable.WebShopId == SC_WebShopsTable.WebShopId).RecId != 0 ||
+                                             SC_ItemVisibilityRules.ItemCode == SC_TableGroupCategory::ItemField);
+        
+        switch(SC_ItemVisibilityRules.ItemCode)
+        {
+            case SC_TableGroupCategory::Table:
+                Grid1_ItemRelation.extendedDataType(extendedTypeNum(ItemId));
+                break;
+
+            case SC_TableGroupCategory::Group:
+                Grid1_ItemRelation.extendedDataType(extendedTypeNum(ItemGroupId));
+                break;
+
+            case SC_TableGroupCategory::Category:
+                Grid1_ItemRelation.extendedDataType(extendedTypeNum(EcoResCategoryId));
+                break;
+
+            case SC_TableGroupCategory::ItemField:
+                Grid1_ItemRelation.extendedDataType(extendedTypeNum(FieldName));
+
+                dictField = new DictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), SC_ItemVisibilityRules.ItemRelation));
+
+                if(dictField)
+                {
+                    sysDictType = new SysDictType(dictField.typeId());
+
+                    if((sysDictType && sysDictType.getLookupRelation()) || dictField.baseType() == Types::UtcDateTime ||
+                    dictField.baseType() == Types::Date || dictField.enumId())
+                    {
+                        SC_ItemVisibilityRules_Value.lookupButton(FormLookupButton::Always);
+                    }
+                    else
+                    {
+                        SC_ItemVisibilityRules_Value.lookupButton(FormLookupButton::Hidden);
+                    }
+
+                    SC_ItemVisibilityRules_Value.extendedDataType(dictField.typeId());
+                }
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    void run()
+    {
+        element.setTexts();
+    
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSkipTab</Name>
+				<Source><![CDATA[
+    void setSkipTab()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setTexts</Name>
+				<Source><![CDATA[
+    void setTexts()
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tab</Name>
+				<Source><![CDATA[
+    FormTabControl tab()
+    {
+        return tab;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>wizard</Name>
+				<Source><![CDATA[
+    SysWizard wizard()
+    {
+        return sysWizard;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>SC_WebShopsTable</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int                          ret;
+            SC_AddressCountryRegionSetup addressCountryRegionSetup;
+            RecordInsertList             addressCountryRegionSetupList = new RecordInsertList(tableNum(SC_AddressCountryRegionSetup));
+            ;
+
+            ret = super();
+
+            if(SC_WebShopsTable.WebShopId)
+            {
+                while select LogisticsAddressCountryRegion
+                    notexists join addressCountryRegionSetup
+                    where LogisticsAddressCountryRegion.CountryRegionId == addressCountryRegionSetup.CountryRegionId &&
+                          addressCountryRegionSetup.WebShopId == SC_WebShopsTable.WebShopId                      
+                {
+                    addressCountryRegionSetup.CountryRegionId = LogisticsAddressCountryRegion.CountryRegionId;
+                    addressCountryRegionSetup.WebShopId = SC_WebShopsTable.WebShopId;
+                    addressCountryRegionSetupList.add(addressCountryRegionSetup);
+                }
+
+                addressCountryRegionSetupList.insertDatabase();
+            }
+
+            if(SC_WebShopsTable.EnableB2BCustTemplate)
+            {
+                SC_AddressCountryRegionSetup_B2BTemplateCustomer.visible(true);
+                TemplateAccount.label("@SCL638");
+            }
+            else
+            {
+                SC_AddressCountryRegionSetup_B2BTemplateCustomer.visible(false);
+                TemplateAccount.label("@SCL63");
+            }
+            
+            SysQuery::findOrCreateRange(SC_AddressCountryRegionSetup_ds.query().dataSourceTable(tableNum(SC_AddressCountryRegionSetup)), fieldNum(SC_AddressCountryRegionSetup, WebshopId)).value(SC_WebShopsTable.WebShopId);
+            LogisticsAddressCountryRegion_ds.executeQuery();
+
+            SysQuery::findOrCreateRange(SC_ItemVisibilityRules_ds.query().dataSourceTable(tableNum(SC_ItemVisibilityRulesTable)), fieldNum(SC_ItemVisibilityRulesTable, WebshopId)).value(SC_WebShopsTable.WebShopId);
+            SC_ItemVisibilityRules_ds.executeQuery();            
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>RetailPaymMethod</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                SC_WebShopsTable::lookupCallCenterPaymMethods(_formControl);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>SC_ItemVisibilityRules</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+    
+            ret = super();
+
+            element.updateDesign();
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        public void write()
+        {
+            boolean doUpdate;
+
+            if(Box::yesNo("@SCL519",DialogButton::Yes) == DialogButton::Yes)
+            {
+                doUpdate = true;
+            }
+
+            if(doUpdate && (SC_ItemVisibilityRules.orig().ItemCode != SC_ItemVisibilityRules.ItemCode || SC_ItemVisibilityRules.orig().ItemRelation != SC_ItemVisibilityRules.ItemRelation))
+            {
+                SC_ItemVisibilityRules.updateLastModifiedDateOnProduct(SC_ItemVisibilityRules.orig().ItemCode, SC_ItemVisibilityRules.orig().ItemRelation, SC_ItemVisibilityRules.orig().Value);
+            }
+
+            super();
+
+            if(doUpdate)
+            {
+                SC_ItemVisibilityRules.updateLastModifiedDateOnProduct(SC_ItemVisibilityRules.ItemCode, SC_ItemVisibilityRules.ItemRelation, SC_ItemVisibilityRules.Value);
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        public void delete()
+        {
+            if(!dialogButtonInit && SC_ItemVisibilityRules_ds.cursor())
+            {
+                dialogButton     = Box::yesNo("@SCL519", DialogButton::Yes);
+                dialogButtonInit = true;
+            }
+
+            if(dialogButton == DialogButton::Yes)
+            {
+                SC_ItemVisibilityRules.updateLastModifiedDateOnProduct(SC_ItemVisibilityRules.ItemCode, SC_ItemVisibilityRules.ItemRelation, SC_ItemVisibilityRules.Value);
+            }
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>ItemCode</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+
+                if(SC_ItemVisibilityRules.orig().ItemCode != SC_ItemVisibilityRules.ItemCode)
+                {
+                    SC_ItemVisibilityRules.ItemRelation = '';
+                }
+
+                element.updateDesign();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>LogisticsAddressCountryRegion</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+
+            ret = super();
+
+            SysQuery::findOrCreateRange(SC_AddressCountryRegionSetup_ds.query().dataSourceTable(tableNum(SC_AddressCountryRegionSetup)), fieldNum(SC_AddressCountryRegionSetup, WebshopId)).value(SC_WebShopsTable.WebShopId);
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>Grid1_ItemRelation</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            Args                            args;
+            FormRun                         formRun;
+            EcoResCategoryHierarchy         categoryHierarchy;
+            EcoResCategoryLookupParameters  lookupParameters;
+
+            switch(SC_ItemVisibilityRules.ItemCode)
+            {
+                case SC_TableGroupCategory::Category:
+                    select firstonly categoryHierarchy;
+                    lookupParameters = new EcoResCategoryLookupParameters();
+                    lookupParameters.parmMultiRoleSelectionSet([EcoResCategoryNamedHierarchyRole::Retail,
+                                            EcoResCategoryNamedHierarchyRole::RetailSpecialGroup,
+                                            EcoResCategoryNamedHierarchyRole::Sales,
+                                            EcoResCategoryNamedHierarchyRole::RetailChannelNavigation,
+                                            EcoResCategoryNamedHierarchyRole::Commodity,
+                                            EcoResCategoryNamedHierarchyRole::Financials,
+                                            EcoResCategoryNamedHierarchyRole::Procurement,
+                                            EcoResCategoryNamedHierarchyRole::RetailVendorProductHierarchy]);
+
+                    args = new Args();
+                    args.name(formStr(EcoResCategorySingleLookup));
+                    args.caller(this);
+                    args.record(categoryHierarchy);
+                    args.lookupField(fieldNum(EcoResCategory, RecId));
+                    args.lookupValue(SC_ItemVisibilityRules.ItemRelation);
+                    args.parmObject(lookupParameters);
+
+                    formRun = classfactory.formRunClass(args);
+                    formRun.init();
+
+                    this.performFormLookup(formRun);
+                    break;
+
+                case SC_TableGroupCategory::ItemField:
+                    SC_ItemVisibilityRulesTable::lookupTableFields(this);
+                    break;
+
+                case SC_TableGroupCategory::Table:
+                    SC_ItemVisibilityRulesTable::lookupItem(this);
+                    break;
+
+                default:
+                    super();
+            }           
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+
+            ret = super();
+
+            SC_ItemVisibilityRules.Value = '';
+
+            element.updateDesign();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// table relations validation doesnt work in 10.0.30 FO, custom validation added
+        /// </summary>
+        /// <returns>is valid</returns>
+        public boolean validate()
+        {
+            SysDictField    dictField;
+            boolean         ret;
+            Counter         maxLen = new SysDictType(Grid1_ItemRelation.extendedDataType()).stringLen();
+                    
+            ret = super();
+    
+            if(ret && this.text())
+            {
+                switch(SC_ItemVisibilityRules.ItemCode)
+                {
+                    case SC_TableGroupCategory::Table:
+                        ret = strLen(this.text()) <= maxLen && InventTable::exist(this.text());
+                        break;
+                    case SC_TableGroupCategory::Group:
+                        ret = strLen(this.text()) <= maxLen && InventItemGroup::exist(this.text());
+                        break;
+                    case SC_TableGroupCategory::Category:
+                        ret = EcoResCategory::exist(str2Int64(this.text()));
+                        break;
+                    case SC_TableGroupCategory::ItemField:
+                        dictField = new SysDictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), this.text()));
+                        ret = dictField ? true : false;
+                        break;
+                }
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SC_ItemVisibilityRules_Value</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SysDictField   dictField;
+            FormRun     formRun;
+            Args        args;
+            ;
+
+            dictField = new SysDictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), SC_ItemVisibilityRules.ItemRelation));
+
+            if(dictField && dictField.enumId())
+            {
+                this.performFormLookup(SysLookup::lookupEnum(dictField));
+            }
+            else if(dictField && (dictField.baseType() == Types::UtcDateTime || dictField.baseType() == Types::Date))
+            {
+                args        = new Args(formStr(SysDateLookup));
+                args.caller(element);
+                formRun     = classfactory.formRunClass(args);
+                formRun.init();
+                this.performFormLookup(formRun);
+            }
+            else
+            {
+                super();
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            #AOT
+            boolean         ret;
+            DictField       dictField;
+            DictRelation    dr;
+            Query           query = new Query();
+            QueryRun        queryRun;
+            ;
+            ret = super();
+
+            if(ret && this.text() && SC_ItemVisibilityRules.ItemRelation)
+            {
+                dictField = new DictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), SC_ItemVisibilityRules.ItemRelation));
+
+                if(dictField && dictField.relationObject())
+                {
+                    dr = dictField.relationObject();
+                    query.addDataSource(dr.externTable()).addRange(dr.lineExternTableValue(1)).value(queryValue(this.text()));
+                    queryRun = new QueryRun(query);
+                    if(!queryRun.next())
+                    {
+                        ret = checkFailed(strfmt("@SYS112224", this.text(), fieldid2name(dr.externTable(), dr.lineExternTableValue(1)), tableid2name(dr.externTable())));
+                    }
+                }
+                else if(dictField)
+                {
+                    switch(dictField.baseType())
+                    {
+                        case Types::Integer, Types::Int64:
+                            if(!Global::str2IntOk(this.text()))
+                            {
+                                ret = checkFailed("@SYS104733");
+                            }
+                            break;
+                        case Types::Real:
+                            if(!Global::str2NumOk(this.text()))
+                            {
+                                ret = checkFailed("@SCL505");
+                            }
+                            break;
+                        case Types::Date, Types::UtcDateTime:
+                            if(str2Date(this.text(), -1) == dateNull())
+                            {
+                                ret = checkFailed("@SYS58184");
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>GenerateRules</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            ;
+            super();
+        
+            SC_AXDataServiceClient::setValidationRulesDefaults();
+        
+            info("@SCL223");
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>SC_WebShopsTable</Name>
+			<Table>SC_WebShopsTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>B2BRegistrationType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>B2CRegistrationType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CalculateZeroSAPrice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CategoryHierarchy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompatibilityLevel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompleteRetailOrder</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustPaymJournalName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DayRange</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultItemSalesTaxGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultLocationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultPrice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultSiteId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableAlternativeItems</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableAttributes</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableAutoCharges</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableBOM</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableCreditLimit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableDataMapping</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableMultilineDiscounts</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableMultiThreading</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisablePriceDisc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableSanaDiscounts</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableSuppItems</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableTax</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableTieredCharges</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableTotalDiscounts</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisableUOM</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableB2BCustTemplate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableDocAttachments</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableInventoryStatuses</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableProdAttachments</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableProdCategories</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableQuoteForRetail</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableReports</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableRetail</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableRetailAssortments</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableSalesCategoryAsProduct</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExplodeBOMLines</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GuestNumberSequence</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GuestNumberSequenceRefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LookbackYears</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OffsetLedgerAccountType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OffsetLedgerCompany</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OffsetLedgerDimension</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OffsetLedgerTxt</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderNumberSequence</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderNumberSequenceRefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OverrideCustDim</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymentLedgerDimension</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymentReferenceSource</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PostAutoInvoicePayment</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PostAutoPrepayment</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QuoteNumberSequence</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QuoteNumberSequenceRefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QuotePromotableDefault</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailPaymMethod</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailStore</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailTerminalId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShippingLedgerDimension</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShowInvoicedOrders</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SortingOption</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StockCalculationType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SyncOrderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TemplateCustAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TemplatePaymentCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebShopId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_ParametersTable</Name>
+			<Table>SC_ParametersTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CacheRecycling</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Culture</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnableLog</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileLogPath</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IncludeProcessDuration</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Key</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UpdateThreshold</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_LanguageParametersTable</Name>
+			<Table>SC_LanguageParametersTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LanguageId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LocaleId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_ItemVisibilityRules</Name>
+			<Table>SC_ItemVisibilityRulesTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AccountCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AccountRelation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemRelation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Mode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebShopId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>LogisticsAddressCountryRegion</Name>
+			<Table>LogisticsAddressCountryRegion</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AddressUseZipPlus4</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AddrFormat</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BACENCode_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CurrencyCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsImmutable</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ISOcode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MCRIOR_Facility_ID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MemberOfCustomsUnion_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OKSMCode_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RPayParentCountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TimeZone</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>UnitOfMeasure</Name>
+			<Table>UnitOfMeasure</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DecimalPrecision</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsBaseUnit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsSystemUnit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_VisibleInWebShop</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Symbol</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SystemOfUnits</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UnitOfMeasureClass</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>UnitOfMeasureTranslation</Name>
+			<Table>UnitOfMeasureTranslation</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LanguageId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UnitOfMeasure</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>UnitOfMeasure</JoinSource>
+			<LinkType>OuterJoin</LinkType>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>Currency</Name>
+			<Table>Currency</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CurrencyCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CurrencyCodeISO</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DecimalsCount_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExchRateMaxVariationPercent_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsEuro</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundingPrecision</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffAssetDep_JP</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffPrice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffPurch</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffSales</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffTypeAssetDep_JP</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffTypePrice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffTypePurch</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RoundOffTypeSales</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_VisibleInWebShop</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Symbol</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Txt</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_AddressCountryRegionSetup</Name>
+			<Table>SC_AddressCountryRegionSetup</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>B2BTemplateCustomer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TemplateCustomer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VisibleInWebshop</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebShopId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>LogisticsAddressCountryRegion</JoinSource>
+			<LinkType>InnerJoin</LinkType>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL229</Caption>
+		<Pattern xmlns="">Wizard</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">Wizard</Style>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<WindowResize xmlns="">Fixed</WindowResize>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<ElementPosition>1073741823</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step1</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>429496728</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>WelcomeTextMain</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL212</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info1</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>FillText</Pattern>
+								<PatternVersion>UX7 1.0</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>WelcomeText</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<Visible>No</Visible>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SCL212</Text>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL211</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step2</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>644245092</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL209</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info2</Name>
+								<ElementPosition>858993458</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>ActionPaneControl1</Name>
+										<Type>ActionPane</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonGroupControl">
+												<Name>FormButtonGroupControl1</Name>
+												<Type>ButtonGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>NewButtonControl</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>New</Command>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>DeleteButtonControl</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>DeleteRecord</Command>
+														<NeedsRecord>Yes</NeedsRecord>
+													</AxFormControl>
+												</Controls>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>SC_WebShopsTable</DataSource>
+										<Style>Strip</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid</Name>
+										<ElementPosition>1717986916</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Identification</Name>
+												<ElementPosition>1073741822</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>Identification_WebShopId</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>WebShopId</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>Identification_displayFilterName</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>displayFilterName</DataMethod>
+														<DataSource>SC_WebShopsTable</DataSource>
+														<Label>@SCL8</Label>
+													</AxFormControl>
+												</Controls>
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataGroup>Identification</DataGroup>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>GLAccounts</Name>
+												<ElementPosition>1610612734</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>Identification_TemplateCustAccount</Name>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>TemplateCustAccount</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormSegmentedEntryControl">
+														<Name>PaymAccount</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ElementPosition>1717986916</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<Type>SegmentedEntry</Type>
+														<FormControlExtension>
+															<Name>SegmentedEntryControl</Name>
+															<ExtensionComponents />
+															<ExtensionProperties>
+																<AxFormControlExtensionProperty>
+																	<Name>parmControllerClassName</Name>
+																	<Type>String</Type>
+																	<Value>LedgerDimensionDefaultAccountController</Value>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmAccountTypeEnumName</Name>
+																	<Type>String</Type>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmIsDefaultAccount</Name>
+																	<Type>Enum</Type>
+																	<TypeName>boolean</TypeName>
+																	<Value>False</Value>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmValidateBlockedForManualEntry</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmLockMainAccountSegment</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmPostingType</Name>
+																	<Type>Enum</Type>
+																	<TypeName>LedgerPostingType</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmIncludeTotalAccounts</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmIncludeFinancialAccounts</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+															</ExtensionProperties>
+														</FormControlExtension>
+														<DataSource>SC_WebShopsTable</DataSource>
+														<ReferenceField>PaymentLedgerDimension</ReferenceField>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormSegmentedEntryControl">
+														<Name>ShipAccount</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ElementPosition>1717986916</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<Type>SegmentedEntry</Type>
+														<FormControlExtension>
+															<Name>SegmentedEntryControl</Name>
+															<ExtensionComponents />
+															<ExtensionProperties>
+																<AxFormControlExtensionProperty>
+																	<Name>parmControllerClassName</Name>
+																	<Type>String</Type>
+																	<Value>LedgerDimensionDefaultAccountController</Value>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmAccountTypeEnumName</Name>
+																	<Type>String</Type>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmIsDefaultAccount</Name>
+																	<Type>Enum</Type>
+																	<TypeName>boolean</TypeName>
+																	<Value>False</Value>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmValidateBlockedForManualEntry</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmLockMainAccountSegment</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmPostingType</Name>
+																	<Type>Enum</Type>
+																	<TypeName>LedgerPostingType</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmIncludeTotalAccounts</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+																<AxFormControlExtensionProperty>
+																	<Name>parmIncludeFinancialAccounts</Name>
+																	<Type>Enum</Type>
+																	<TypeName>NoYes</TypeName>
+																</AxFormControlExtensionProperty>
+															</ExtensionProperties>
+														</FormControlExtension>
+														<DataSource>SC_WebShopsTable</DataSource>
+														<ReferenceField>ShippingLedgerDimension</ReferenceField>
+													</AxFormControl>
+												</Controls>
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>DefaultTaxGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>DefaultTaxGroup_DefaultItemSalesTaxGroup</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DefaultItemSalesTaxGroup</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>DefaultTaxGroup</DataGroup>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>SC_WebShopsTable</DataSource>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL230</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step3</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>858993456</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText3</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL215</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Group3</Name>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>FieldsFieldGroups</Pattern>
+								<PatternVersion>1.1</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Group3_0</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Group</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SC_WebShopsTable_WebShopId</Name>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>WebShopId</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<Caption>@SCL19</Caption>
+										<DataSource>SC_WebShopsTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Group3_4</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Group</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Group3_4_OrderType</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>OrderType</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Group3_4_SyncOrderType</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>SyncOrderType</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Group3_4_QuotePromotableDefault</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>QuotePromotableDefault</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Group3_4_DisableAutoCharges</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>DisableAutoCharges</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Group3_4_ExplodeBOMLines</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ExplodeBOMLines</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataGroup>Order</DataGroup>
+										<DataSource>SC_WebShopsTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Group3_5</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Group</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Group3_5_StockCalculationType</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>StockCalculationType</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Group3_5_EnableInventoryStatuses</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>EnableInventoryStatuses</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Group3_5_DefaultPrice</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>DefaultPrice</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Group3_5_CalculateZeroSAPrice</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CalculateZeroSAPrice</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Group3_5_DefaultItemSalesTaxGroup</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>DefaultItemSalesTaxGroup</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Group3_5_EnableProdCategories</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>EnableProdCategories</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormReferenceGroupControl">
+												<Name>Group3_5_CategoryHierarchy</Name>
+												<Type>ReferenceGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+												<DataSource>SC_WebShopsTable</DataSource>
+												<ReferenceField>CategoryHierarchy</ReferenceField>
+											</AxFormControl>
+										</Controls>
+										<DataGroup>PIM</DataGroup>
+										<DataSource>SC_WebShopsTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Group3_1</Name>
+										<ElementPosition>1073741823</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Group</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Group3_1_OverrideCustDim</Name>
+												<FilterExpression>%1</FilterExpression>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>OverrideCustDim</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Group3_1_DefaultSiteId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>DefaultSiteId</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Group3_1_DefaultLocationId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>DefaultLocationId</DataField>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataGroup>Default_</DataGroup>
+										<DataSource>SC_WebShopsTable</DataSource>
+									</AxFormControl>
+								</Controls>
+								<ColumnsMode>Fill</ColumnsMode>
+								<TopMargin>30</TopMargin>
+								<TopMarginMode>Fixed</TopMarginMode>
+								<DataSource>SC_ParametersTable</DataSource>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL210</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step3_2</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>858993456</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText3_2</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL507</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Group3_2_1</Name>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>Custom</Pattern>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Warning</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Pattern>Custom</Pattern>
+										<Type>Group</Type>
+										<VerticalSpacing>20</VerticalSpacing>
+										<VerticalSpacingMode>Fixed</VerticalSpacingMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>WarningImage</Name>
+												<ElementPosition>1073741822</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormImageControl">
+														<Name>Window</Name>
+														<AlignControl>No</AlignControl>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Left>10</Left>
+														<LeftMode>Manual</LeftMode>
+														<Top>0</Top>
+														<TopMode>Manual</TopMode>
+														<Type>Image</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<BackStyle>Transparent</BackStyle>
+														<ImageLocation>EmbeddedResource</ImageLocation>
+														<ImageResource>931</ImageResource>
+														<NormalImage>931</NormalImage>
+														<ShowLabel>No</ShowLabel>
+													</AxFormControl>
+												</Controls>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>WarningText</Name>
+												<ElementPosition>1610612733</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStaticTextControl">
+														<Name>StaticText</Name>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Top>5</Top>
+														<TopMode>Manual</TopMode>
+														<Type>StaticText</Type>
+														<VerticalSpacingMode>Fixed</VerticalSpacingMode>
+														<Width>300</Width>
+														<WidthMode>Manual</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<BackgroundColorRGB>
+															<Red>255</Red>
+															<Green>255</Green>
+															<Blue>255</Blue>
+														</BackgroundColorRGB>
+														<Bold>Bold</Bold>
+														<ColorScheme>RGB</ColorScheme>
+														<ForegroundColorRGB>
+															<Red>255</Red>
+															<Green>0</Green>
+															<Blue>0</Blue>
+														</ForegroundColorRGB>
+														<Text>@SCL297</Text>
+													</AxFormControl>
+												</Controls>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+										</Controls>
+										<Columns>2</Columns>
+										<Style>DialogContent</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Options</Name>
+										<ElementPosition>1073741823</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Group</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Product3_2</Name>
+												<ElementPosition>1073741822</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Product_DisableAttributesCopy1</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableAttributes</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Product_DisableAlternativeItemsCopy1</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableAlternativeItems</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Product_DisableUOMCopy1</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableUOM</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Product_DisableBOMCopy1</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableBOM</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Product3_2_DisablePriceDisc</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisablePriceDisc</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Product3_2_DisableMultiThreading</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableMultiThreading</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Product3_2_EnableSalesCategoryAsProduct</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>EnableSalesCategoryAsProduct</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>ProductOptimization</DataGroup>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Compatibility</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
+														<Name>CompatibilityLevel</Name>
+														<Type>ComboBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>CompatibilityLevel</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+														<Items />
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Compatibility</DataGroup>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Order3_2</Name>
+												<ElementPosition>1610612733</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order3_2_DisableSanaDiscounts</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableSanaDiscounts</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order__DisableMultilineDiscountsCopy1</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableMultilineDiscounts</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order__DisableTotalDiscountsCopy1</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableTotalDiscounts</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order__DisableTieredChargesCopy1</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableTieredCharges</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order_DisableSuppItemsCopy1</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableSuppItems</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order_DisableTaxCopy1</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableTax</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order3_2_EnableQuoteForRetail</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>EnableQuoteForRetail</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order3_2_DisableDataMapping</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableDataMapping</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order3_2_ShowInvoicedOrders</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ShowInvoicedOrders</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Order3_2_DisableCreditLimit</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DisableCreditLimit</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>OrderOptimization</DataGroup>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Customer</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Customer_EnableB2BCustTemplate</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>EnableB2BCustTemplate</DataField>
+														<DataSource>SC_WebShopsTable</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>CustOptimization</DataGroup>
+												<DataSource>SC_WebShopsTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<Columns>2</Columns>
+										<Caption>@SCL289</Caption>
+										<DataSource>SC_WebShopsTable</DataSource>
+										<FrameType>None</FrameType>
+										<Style>DialogContent</Style>
+									</AxFormControl>
+								</Controls>
+								<ColumnsMode>Fill</ColumnsMode>
+								<TopMargin>30</TopMargin>
+								<TopMarginMode>Fixed</TopMarginMode>
+								<DataSource>SC_ParametersTable</DataSource>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL284</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step4</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1073741820</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText4</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL233</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Group4</Name>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>ActionPaneControl2</Name>
+										<Type>ActionPane</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonGroupControl">
+												<Name>FormButtonGroupControl2</Name>
+												<Type>ButtonGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>NewButtonControl2</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>New</Command>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>DeleteButtonControl2</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>DeleteRecord</Command>
+														<NeedsRecord>Yes</NeedsRecord>
+													</AxFormControl>
+												</Controls>
+												<DataSource>SC_LanguageParametersTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>SC_LanguageParametersTable</DataSource>
+										<Style>Strip</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid2</Name>
+										<ElementPosition>1717986916</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Grid2_LanguageId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LanguageId</DataField>
+												<DataSource>SC_LanguageParametersTable</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>Grid2_LocaleId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Integer</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LocaleId</DataField>
+												<DataSource>SC_LanguageParametersTable</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataGroup>Identification</DataGroup>
+										<DataSource>SC_LanguageParametersTable</DataSource>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL112</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step5</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1288490184</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText5</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL217</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Group5</Name>
+								<ElementPosition>858993458</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>ActionPaneControl3</Name>
+										<Type>ActionPane</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonGroupControl">
+												<Name>FormButtonGroupControl3</Name>
+												<Type>ButtonGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>NewButtonControl3</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>New</Command>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>DeleteButtonControl3</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>DeleteRecord</Command>
+														<NeedsRecord>Yes</NeedsRecord>
+													</AxFormControl>
+												</Controls>
+												<DataSource>SC_ItemVisibilityRules</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>SC_ItemVisibilityRules</DataSource>
+										<Style>Strip</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid1</Name>
+										<ElementPosition>1717986916</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Grid1_AccountCode</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ComboBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>AccountCode</DataField>
+												<DataSource>SC_ItemVisibilityRules</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Grid1_AccountRelation</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>AccountRelation</DataField>
+												<DataSource>SC_ItemVisibilityRules</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Grid1_ItemCode</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ComboBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemCode</DataField>
+												<DataSource>SC_ItemVisibilityRules</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Grid1_ItemRelation</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>editItemRelation</DataMethod>
+												<DataSource>SC_ItemVisibilityRules</DataSource>
+												<Label>@SYS8631</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SC_ItemVisibilityRules_Value</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>editFieldValue</DataMethod>
+												<DataSource>SC_ItemVisibilityRules</DataSource>
+												<Label>@SYS41043</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Grid1_Mode</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ComboBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Mode</DataField>
+												<DataSource>SC_ItemVisibilityRules</DataSource>
+												<Items />
+											</AxFormControl>
+										</Controls>
+										<DataSource>SC_ItemVisibilityRules</DataSource>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL181</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step6</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1460288876</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText6</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL249</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Group6</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid6</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>LogisticsAddressCountryRegion_CountryRegionId</Name>
+												<ElementPosition>715827882</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CountryRegionId</DataField>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>CountryName</Name>
+												<ElementPosition>1073741823</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>displayName</DataMethod>
+												<DataSource>LogisticsAddressCountryRegion</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>TemplateAccount</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>TemplateCustomer</DataField>
+												<DataSource>SC_AddressCountryRegionSetup</DataSource>
+												<Label>@SCL63</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SC_AddressCountryRegionSetup_B2BTemplateCustomer</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>B2BTemplateCustomer</DataField>
+												<DataSource>SC_AddressCountryRegionSetup</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>VisibleInWebshop</Name>
+												<ElementPosition>1789569705</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataField>VisibleInWebshop</DataField>
+												<DataSource>SC_AddressCountryRegionSetup</DataSource>
+												<Label>@SCL1</Label>
+											</AxFormControl>
+										</Controls>
+										<DataSource>LogisticsAddressCountryRegion</DataSource>
+									</AxFormControl>
+								</Controls>
+								<TopMargin>20</TopMargin>
+								<TopMarginMode>Fixed</TopMarginMode>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS101482</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step7</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1597727830</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText7</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL251</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info7_2</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid7</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>UnitOfMeasure_Symbol</Name>
+												<ElementPosition>858993458</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Symbol</DataField>
+												<DataSource>UnitOfMeasure</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>UnitOfMeasureTranslation_Description</Name>
+												<ElementPosition>1288490187</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Description</DataField>
+												<DataSource>UnitOfMeasureTranslation</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>UnitOfMeasure_SC_VisibleInWebShop</Name>
+												<ElementPosition>1717986916</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataField>SC_VisibleInWebShop</DataField>
+												<DataSource>UnitOfMeasure</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>UnitOfMeasure</DataSource>
+									</AxFormControl>
+								</Controls>
+								<TopMargin>20</TopMargin>
+								<TopMarginMode>Fixed</TopMarginMode>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL252</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step8</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1707678993</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText8</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL266</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info8_2</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid8</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Currency_CurrencyCode</Name>
+												<ElementPosition>715827882</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CurrencyCode</DataField>
+												<DataSource>Currency</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Currency_CurrencyCodeISO</Name>
+												<ElementPosition>1073741823</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CurrencyCodeISO</DataField>
+												<DataSource>Currency</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Currency_Txt</Name>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Txt</DataField>
+												<DataSource>Currency</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Currency_SC_VisibleInWebShop</Name>
+												<ElementPosition>1789569705</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataField>SC_VisibleInWebShop</DataField>
+												<DataSource>Currency</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>Currency</DataSource>
+									</AxFormControl>
+								</Controls>
+								<TopMargin>20</TopMargin>
+								<TopMarginMode>Fixed</TopMarginMode>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL267</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step9</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1817630156</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>InfoText9</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>600</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL219</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info9</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>Custom</Pattern>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>InfoText9_2</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<Width>600</Width>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL221</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>GenerateRules</Name>
+										<ElementPosition>1073741823</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL231</HelpText>
+										<Skip>Yes</Skip>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL222</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>InfoText9_3</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<Width>600</Width>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL220</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>MenuItemButton</Name>
+										<ElementPosition>1789569705</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Skip>Yes</Skip>
+										<Type>MenuFunctionButton</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<MenuItemName>sc_dataValidationRules</MenuItemName>
+									</AxFormControl>
+								</Controls>
+								<TopMargin>20</TopMargin>
+								<TopMarginMode>Fixed</TopMarginMode>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL185</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Step11</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>2037532482</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>FinishTextMain</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>StaticText</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Width>500</Width>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SCL228</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info11</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Pattern>FillText</Pattern>
+								<PatternVersion>UX7 1.0</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>FinishText</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<Visible>No</Visible>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SCL228</Text>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL227</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<ShowTabs>No</ShowTabs>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

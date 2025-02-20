@@ -1,0 +1,1984 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_DataManagement</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_DataManagement extends FormRun
+{
+    #SANA
+    FileUploadResultBase        file;
+    System.IO.Stream            stream;
+    System.IO.StreamReader      streamReader;
+    XmlDocument                 dataXml;
+    XmlNode                     dataNode;
+    XmlElement                  node;
+    str                         tmpStr;    
+    
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWebshopsData</Name>
+				<Source><![CDATA[
+    public void getWebshopsData()
+    {
+        SC_WebShopsTable webshopsTable;
+
+        if(WebshopsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'Webshops');
+
+            while select webshopsTable 
+            {            
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8;%9;%10;%11;%12;%13;%14;%15;%16;%17;%18;%19;%20;%21;%22;%23;%24;%25;%26;%27;%28;%29;%30;' +
+                            '%31;%32;%33;%34;%35;%36;%37;%38;%39;%40;%41;%42;%43;%44;%45;%46;%47;%48;%49;%50;%51;%52;%53;%54;%55;%56;%57;%58;%59;%60;%61;%62;%63;%64;%65;%66',
+                         webshopsTable.WebShopId,                               //1
+                         enum2int(webshopsTable.B2CRegistrationType),           //2
+                         enum2int(webshopsTable.CalculateZeroSAPrice),          //3
+                         webshopsTable.CategoryHierarchy,                       //4
+                         webshopsTable.CustPaymJournalName,                     //5
+                         webshopsTable.DayRange,                                //6
+                         webshopsTable.DefaultItemSalesTaxGroup,                //7
+                         webshopsTable.DefaultLocationId,                       //8
+                         webshopsTable.DefaultPrice,                            //9
+                         webshopsTable.DefaultSiteId,                           //10
+                         enum2int(webshopsTable.DisableAlternativeItems),       //11
+                         enum2int(webshopsTable.DisableAttributes),             //12
+                         enum2int(webshopsTable.DisableAutoCharges),            //13
+                         enum2int(webshopsTable.DisableBOM),                    //14
+                         enum2int(webshopsTable.DisableMultilineDiscounts),     //15
+                         enum2int(webshopsTable.DisablePriceDisc),              //16
+                         enum2int(webshopsTable.DisableSanaDiscounts),          //17
+                         enum2int(webshopsTable.DisableSuppItems),              //18
+                         enum2int(webshopsTable.DisableTax),                    //19
+                         enum2int(webshopsTable.DisableTieredCharges),          //20
+                         enum2int(webshopsTable.DisableTotalDiscounts),         //21
+                         enum2int(webshopsTable.DisableUOM),                    //22
+                         enum2int(webshopsTable.EnableDocAttachments),          //23
+                         enum2int(webshopsTable.EnableProdAttachments),         //24
+                         enum2int(webshopsTable.EnableProdCategories),          //25
+                         enum2int(webshopsTable.EnableReports),                 //26
+                         enum2int(webshopsTable.EnableRetail),                  //27
+                         enum2int(webshopsTable.EnableRetailAssortments),       //28
+                         webshopsTable.GuestNumberSequence,                     //29
+                         webshopsTable.LookbackYears,                           //30
+                         enum2int(webshopsTable.OffsetLedgerAccountType),       //31
+                         webshopsTable.OffsetLedgerCompany,                     //32
+                         webshopsTable.OffsetLedgerDimension,                   //33
+                         webshopsTable.OffsetLedgerTxt,                         //34
+                         webshopsTable.OrderNumberSequence,                     //35
+                         enum2int(webshopsTable.OrderType),                     //36
+                         enum2int(webshopsTable.OverrideCustDim),               //37
+                         webshopsTable.PaymentLedgerDimension,                  //38
+                         enum2int(webshopsTable.PostAutoInvoicePayment),        //39
+                         enum2int(webshopsTable.PostAutoPrepayment),            //40
+                         webshopsTable.QuoteNumberSequence,                     //41
+                         enum2int(webshopsTable.QuotePromotableDefault),        //42
+                         webshopsTable.RetailStore,                             //43
+                         webshopsTable.RetailTerminalId,                        //44
+                         webshopsTable.ShippingLedgerDimension,                 //45
+                         enum2int(webshopsTable.SortingOption),                 //46
+                         enum2int(webshopsTable.StockCalculationType),          //47
+                         enum2int(webshopsTable.SyncOrderType),                 //48
+                         webshopsTable.TemplateCustAccount,                     //49
+                         webshopsTable.TemplatePaymentCode,                     //50
+                         enum2int(webshopsTable.ExplodeBOMLines),               //51
+                         enum2int(webshopsTable.ShowInvoicedOrders),            //52
+                         enum2int(webshopsTable.PaymentReferenceSource),        //53
+                         enum2int(webshopsTable.EnableB2BCustTemplate),         //54
+                         enum2int(webshopsTable.DisableDataMapping),            //55
+                         enum2int(webshopsTable.CompatibilityLevel),            //56
+                         enum2int(webshopsTable.EnableSalesCategoryAsProduct),  //57
+                         enum2int(webshopsTable.EnableQuoteForRetail),          //58
+                         enum2int(webshopsTable.EnableInventoryStatuses),       //59
+                         enum2int(webshopsTable.B2BRegistrationType),           //60
+                         enum2int(webshopsTable.CompleteRetailOrder),           //61
+                         webshopsTable.RetailPaymMethod,                        //62
+                         enum2int(webshopsTable.DisableMultiThreading),         //63
+                         enum2int(webshopsTable.DisableCreditLimit),            //64
+                         enum2int(webshopsTable.CalcBOMlinesInventory),         //65
+                         webshopsTable.MaxMultiThreads                          //66
+                         );
+                     
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveWebshopsData</Name>
+				<Source><![CDATA[
+    public void saveWebshopsData(XmlNodeList _data)
+    {
+        SC_WebShopsTable webshopsTable;
+        RecordInsertList dataInsertList = new RecordInsertList(tableNum(SC_WebShopsTable));
+        container        dataCon;
+        Integer          i;   
+             
+        if(WebshopsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();            
+                dataCon = str2con(tmpStr,';',false);
+
+                select firstonly webshopsTable where webshopsTable.WebShopId == conPeek(dataCon, 1);
+
+                if(webshopsTable)
+                {
+                    continue;
+                }
+
+                webshopsTable.clear();                  
+                webshopsTable.WebShopId                    = conPeek(dataCon, 1);
+                webshopsTable.B2CRegistrationType          = conPeek(dataCon, 2);
+                webshopsTable.CalculateZeroSAPrice         = conPeek(dataCon, 3);
+                webshopsTable.CategoryHierarchy            = conPeek(dataCon, 4);
+                webshopsTable.CustPaymJournalName          = conPeek(dataCon, 5);
+                webshopsTable.DayRange                     = conPeek(dataCon, 6);
+                webshopsTable.DefaultItemSalesTaxGroup     = conPeek(dataCon, 7);
+                webshopsTable.DefaultLocationId            = conPeek(dataCon, 8);
+                webshopsTable.DefaultPrice                 = conPeek(dataCon, 9);
+                webshopsTable.DefaultSiteId                = conPeek(dataCon, 10);
+                webshopsTable.DisableAlternativeItems      = conPeek(dataCon, 11);
+                webshopsTable.DisableAttributes            = conPeek(dataCon, 12);
+                webshopsTable.DisableAutoCharges           = conPeek(dataCon, 13);
+                webshopsTable.DisableBOM                   = conPeek(dataCon, 14);
+                webshopsTable.DisableMultilineDiscounts    = conPeek(dataCon, 15);
+                webshopsTable.DisablePriceDisc             = conPeek(dataCon, 16);
+                webshopsTable.DisableSanaDiscounts         = conPeek(dataCon, 17);
+                webshopsTable.DisableSuppItems             = conPeek(dataCon, 18);
+                webshopsTable.DisableTax                   = conPeek(dataCon, 19);
+                webshopsTable.DisableTieredCharges         = conPeek(dataCon, 20);
+                webshopsTable.DisableTotalDiscounts        = conPeek(dataCon, 21);
+                webshopsTable.DisableUOM                   = conPeek(dataCon, 22);
+                webshopsTable.EnableDocAttachments         = conPeek(dataCon, 23);
+                webshopsTable.EnableProdAttachments        = conPeek(dataCon, 24);
+                webshopsTable.EnableProdCategories         = conPeek(dataCon, 25);
+                webshopsTable.EnableReports                = conPeek(dataCon, 26);
+                webshopsTable.EnableRetail                 = conPeek(dataCon, 27);
+                webshopsTable.EnableRetailAssortments      = conPeek(dataCon, 28);
+                webshopsTable.GuestNumberSequence          = conPeek(dataCon, 29);
+                webshopsTable.LookbackYears                = conPeek(dataCon, 30);
+                webshopsTable.OffsetLedgerAccountType      = conPeek(dataCon, 31);
+                webshopsTable.OffsetLedgerCompany          = conPeek(dataCon, 32);
+                webshopsTable.OffsetLedgerDimension        = DimensionAttributeValueCombination::find(conPeek(dataCon, 33)).RecId ? any2int64(conPeek(dataCon, 33)) : 0;
+                webshopsTable.OffsetLedgerTxt              = conPeek(dataCon, 34);
+                webshopsTable.OrderNumberSequence          = conPeek(dataCon, 35);
+                webshopsTable.OrderType                    = conPeek(dataCon, 36);
+                webshopsTable.OverrideCustDim              = conPeek(dataCon, 37);
+                webshopsTable.PaymentLedgerDimension       = DimensionAttributeValueCombination::find(conPeek(dataCon, 38)).RecId ? any2int64(conPeek(dataCon, 38)) : 0;
+                webshopsTable.PostAutoInvoicePayment       = conPeek(dataCon, 39);
+                webshopsTable.PostAutoPrepayment           = conPeek(dataCon, 40);
+                webshopsTable.QuoteNumberSequence          = conPeek(dataCon, 41);
+                webshopsTable.QuotePromotableDefault       = conPeek(dataCon, 42);
+                webshopsTable.RetailStore                  = conPeek(dataCon, 43);
+                webshopsTable.RetailTerminalId             = conPeek(dataCon, 44);
+                webshopsTable.ShippingLedgerDimension      = DimensionAttributeValueCombination::find(conPeek(dataCon, 45)).RecId ? any2int64(conPeek(dataCon, 45)) : 0;
+                webshopsTable.SortingOption                = conPeek(dataCon, 46);
+                webshopsTable.StockCalculationType         = conPeek(dataCon, 47);
+                webshopsTable.SyncOrderType                = conPeek(dataCon, 48);
+                webshopsTable.TemplateCustAccount          = conPeek(dataCon, 49);
+                webshopsTable.TemplatePaymentCode          = conPeek(dataCon, 50);
+                webshopsTable.ExplodeBOMLines              = conPeek(dataCon, 51);
+                webshopsTable.ShowInvoicedOrders           = conPeek(dataCon, 52);
+                webshopsTable.PaymentReferenceSource       = conPeek(dataCon, 53);
+                webshopsTable.EnableB2BCustTemplate        = conPeek(dataCon, 54);
+                webshopsTable.DisableDataMapping           = conPeek(dataCon, 55);
+                webshopsTable.CompatibilityLevel           = conPeek(dataCon, 56);
+                webshopsTable.EnableSalesCategoryAsProduct = conPeek(dataCon, 57);
+                webshopsTable.EnableQuoteForRetail         = conPeek(dataCon, 58);
+                webshopsTable.EnableInventoryStatuses      = conPeek(dataCon, 59);
+                webshopsTable.B2BRegistrationType          = conPeek(dataCon, 60);
+                webshopsTable.CompleteRetailOrder          = conPeek(dataCon, 61);
+                webshopsTable.RetailPaymMethod             = conPeek(dataCon, 62);
+                webshopsTable.DisableMultiThreading        = conPeek(dataCon, 63);
+                webshopsTable.DisableCreditLimit           = conPeek(dataCon, 64);
+                webshopsTable.CalcBOMlinesInventory        = conPeek(dataCon, 65);
+                webshopsTable.MaxMultiThreads              = conPeek(dataCon, 66);
+
+                dataInsertList.add(webshopsTable);
+            }
+            dataInsertList.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWebshopFiltersData</Name>
+				<Source><![CDATA[
+    public void getWebshopFiltersData()
+    {        
+        SC_FilterWebShopsTable filterWebShopsTable;
+
+        if(WebshopFiltersData.value())
+        {           
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'WebshopFilters');
+
+            while select filterWebShopsTable
+            {
+                tmpStr = strFmt('%1;%2;%3;%4', filterWebShopsTable.FieldName,filterWebShopsTable.FilterStr,
+                                               filterWebShopsTable.TableName,filterWebShopsTable.WebShopId);
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveWebshopFiltersData</Name>
+				<Source><![CDATA[
+    public void saveWebshopFiltersData(XmlNodeList _data)
+    {
+        SC_FilterWebShopsTable filterWebShopsTable;
+        RecordInsertList       dataInsertList = new RecordInsertList(tableNum(SC_FilterWebShopsTable));
+        container              dataCon;
+        Integer                i;
+             
+        if(WebshopFiltersData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                select firstonly filterWebShopsTable 
+                    where filterWebShopsTable.WebShopId == conPeek(dataCon, 4) &&
+                          filterWebShopsTable.TableName == conPeek(dataCon, 3) &&
+                          filterWebShopsTable.FieldName == conPeek(dataCon, 1);
+
+                if(filterWebShopsTable)
+                {
+                    continue;
+                }
+
+                filterWebShopsTable.clear();
+                filterWebShopsTable.FieldName = conPeek(dataCon, 1);
+                filterWebShopsTable.FilterStr = conPeek(dataCon, 2);
+                filterWebShopsTable.TableName = conPeek(dataCon, 3);
+                filterWebShopsTable.WebShopId = conPeek(dataCon, 4);            
+                dataInsertList.add(filterWebShopsTable);
+            }
+            dataInsertList.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCountriesSetupData</Name>
+				<Source><![CDATA[
+    public void getCountriesSetupData()
+    {
+        SC_AddressCountryRegionSetup addressCountryRegionSetup;        
+
+        if(CountriesSetupData.value())
+        {           
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'CountriesSetup');
+
+            while select addressCountryRegionSetup
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5', 
+                                addressCountryRegionSetup.CountryRegionId, 
+                                addressCountryRegionSetup.TemplateCustomer,
+                                enum2int(addressCountryRegionSetup.VisibleInWebshop), 
+                                addressCountryRegionSetup.WebShopId, 
+                                addressCountryRegionSetup.B2BTemplateCustomer
+                                );
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStatesSetupData</Name>
+				<Source><![CDATA[
+    public void getStatesSetupData()
+    {        
+        LogisticsAddressState        logisticsAddressState;
+
+        if(CountriesSetupData.value())
+        {            
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'StatesSetup');
+
+            while select logisticsAddressState
+                where logisticsAddressState. SC_VisibleInWebShop || logisticsAddressState.SC_TaxGroup
+            {
+                tmpStr = strFmt('%1;%2;%3;%4',
+                                logisticsAddressState.CountryRegionId,
+                                logisticsAddressState.StateId,
+                                enum2int(logisticsAddressState.SC_VisibleInWebShop),
+                                logisticsAddressState.SC_TaxGroup
+                                );
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveCountriesSetupData</Name>
+				<Source><![CDATA[
+    public void saveCountriesSetupData(XmlNodeList _data)
+    {
+        SC_AddressCountryRegionSetup addressCountryRegionSetup;        
+        RecordInsertList             dataInsertList = new RecordInsertList(tableNum(SC_AddressCountryRegionSetup));
+        container                    dataCon;
+        Integer                      i;
+             
+        if(CountriesSetupData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                select firstonly addressCountryRegionSetup
+                    where addressCountryRegionSetup.WebShopId == conPeek(dataCon, 4) &&
+                          addressCountryRegionSetup.CountryRegionId == conPeek(dataCon, 1);
+
+                if(addressCountryRegionSetup)
+                {
+                    continue;
+                }
+
+                addressCountryRegionSetup.clear();
+                addressCountryRegionSetup.CountryRegionId     = conPeek(dataCon, 1);
+                addressCountryRegionSetup.TemplateCustomer    = conPeek(dataCon, 2);
+                addressCountryRegionSetup.VisibleInWebshop    = conPeek(dataCon, 3);
+                addressCountryRegionSetup.WebShopId           = conPeek(dataCon, 4);
+                addressCountryRegionSetup.B2BTemplateCustomer = conPeek(dataCon, 5);
+                dataInsertList.add(addressCountryRegionSetup);
+            }
+            dataInsertList.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveStatesSetupData</Name>
+				<Source><![CDATA[
+    public void saveStatesSetupData(XmlNodeList _data)
+    {     
+        LogisticsAddressState        logisticsAddressState;        
+        container                    dataCon;
+        Integer                      i;
+             
+        if(CountriesSetupData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                select forupdate logisticsAddressState
+                    where logisticsAddressState.CountryRegionId == conPeek(dataCon, 1) &&
+                          logisticsAddressState.StateId == conPeek(dataCon, 2);
+
+                if(logisticsAddressState)
+                {   
+                    logisticsAddressState.SC_VisibleInWebShop   = conPeek(dataCon, 3);
+                    logisticsAddressState.SC_TaxGroup           = conPeek(dataCon, 4);
+                    logisticsAddressState.doUpdate();
+                }
+            }            
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataValidationRulesData</Name>
+				<Source><![CDATA[
+    public void getDataValidationRulesData()
+    {
+        SC_DataValidationRulesTable dataValidationRulesTable;
+        SC_DataValidationRulesLine  dataValidationRulesLine;
+
+        if(DataValidationRulesData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'DataValidationRules');
+
+            while select dataValidationRulesTable
+            {
+                tmpStr = strFmt('%1;%2;%3;;;', 1,dataValidationRulesTable.ValidationTableId,enum2int(dataValidationRulesTable.Active));
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+
+            while select dataValidationRulesLine
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6', 0,dataValidationRulesLine.ErrorTxt,enum2int(dataValidationRulesLine.Operator),
+                                                     dataValidationRulesLine.ValidationFieldId,dataValidationRulesLine.ValidationTableId,
+                                                     dataValidationRulesLine.Value);
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveDataValidationRulesData</Name>
+				<Source><![CDATA[
+    public void saveDataValidationRulesData(XmlNodeList _data)
+    {
+        SC_DataValidationRulesTable dataValidationRulesTable;
+        SC_DataValidationRulesLine  dataValidationRulesLine;
+        RecordInsertList            dataInsertList = new RecordInsertList(tableNum(SC_DataValidationRulesTable));
+        RecordInsertList            dataInsertListLine = new RecordInsertList(tableNum(SC_DataValidationRulesLine));
+        container                   dataCon;
+        Integer                     i;
+             
+        if(DataValidationRulesData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                if(conPeek(dataCon, 1) == '1')
+                {
+                    select firstonly dataValidationRulesTable where dataValidationRulesTable.ValidationTableId == conPeek(dataCon, 2);
+
+                    if(dataValidationRulesTable)
+                    {
+                        continue;
+                    }
+
+                    dataValidationRulesTable.clear();
+                    dataValidationRulesTable.ValidationTableId = conPeek(dataCon, 2);
+                    dataValidationRulesTable.Active            = conPeek(dataCon, 3);                
+                    dataInsertList.add(dataValidationRulesTable);
+                }
+                else
+                {
+                    select firstonly dataValidationRulesLine 
+                        where dataValidationRulesLine.ValidationTableId == conPeek(dataCon, 5) &&
+                              dataValidationRulesLine.ValidationFieldId == conPeek(dataCon, 4);
+
+                    if(dataValidationRulesLine)
+                    {
+                        continue;
+                    }
+
+                    dataValidationRulesLine.clear();
+                    dataValidationRulesLine.ErrorTxt          = conPeek(dataCon, 2);
+                    dataValidationRulesLine.Operator          = conPeek(dataCon, 3);
+                    dataValidationRulesLine.ValidationFieldId = conPeek(dataCon, 4);
+                    dataValidationRulesLine.ValidationTableId = conPeek(dataCon, 5);
+                    dataValidationRulesLine.Value             = conPeek(dataCon, 6);
+                    dataInsertListLine.add(dataValidationRulesLine);
+                }
+            }
+            dataInsertList.insertDatabase();
+            dataInsertListLine.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomerAssortmentsData</Name>
+				<Source><![CDATA[
+    public void getCustomerAssortmentsData()
+    {
+        SC_ItemVisibilityRulesTable itemVisibilityRulesTable;
+        EcoResCategoryName          categoryName, hierarchyName;
+        EcoResCategory              ecoResCategory;
+
+        if(CustomerAssortmentsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'CustomerAssortments');
+
+            while select itemVisibilityRulesTable
+            {
+                if(itemVisibilityRulesTable.ItemCode == SC_TableGroupCategory::Category)
+                {
+                    ecoResCategory = EcoResCategory::find(str2int64(itemVisibilityRulesTable.ItemRelation));
+                    categoryName = ecoResCategory.Name;
+                    hierarchyName = EcoResCategoryHierarchy::find(ecoResCategory.CategoryHierarchy).Name;
+                }
+                else
+                {
+                    categoryName  = '';
+                    hierarchyName = '';
+                }
+        
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8;%9', enum2int(itemVisibilityRulesTable.AccountCode),itemVisibilityRulesTable.AccountRelation,
+                                enum2int(itemVisibilityRulesTable.ItemCode),itemVisibilityRulesTable.ItemRelation,enum2int(itemVisibilityRulesTable.Mode),
+                                itemVisibilityRulesTable.WebShopId,itemVisibilityRulesTable.Value, categoryName, hierarchyName);    
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveCustomerAssortmentsData</Name>
+				<Source><![CDATA[
+    public void saveCustomerAssortmentsData(XmlNodeList _data)
+    {
+        SC_ItemVisibilityRulesTable itemVisibilityRulesTable;
+        RecordInsertList            dataInsertList = new RecordInsertList(tableNum(SC_ItemVisibilityRulesTable));
+        container                   dataCon;
+        Integer                     i;
+        boolean                     doUpdate;
+        String20                    categoryRelation;
+             
+        if(CustomerAssortmentsData.value())
+        {
+            if(Box::yesNo("@SCL519",DialogButton::Yes) == DialogButton::Yes)
+            {
+                doUpdate = true;
+            }
+
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                if(conPeek(dataCon, 3) == enum2int(SC_TableGroupCategory::Category))
+                {                
+                    categoryRelation = int642str(EcoResCategory::findByName(conPeek(dataCon, 8), EcoResCategoryHierarchy::findByName(conPeek(dataCon, 9)).RecId).RecId);
+                }
+                else
+                {
+                    categoryRelation = '';
+                }
+
+                select firstonly itemVisibilityRulesTable
+                    where itemVisibilityRulesTable.AccountCode     == conPeek(dataCon, 1) &&
+                          itemVisibilityRulesTable.AccountRelation == conPeek(dataCon, 2) &&
+                          itemVisibilityRulesTable.ItemCode        == conPeek(dataCon, 3) &&
+                          itemVisibilityRulesTable.ItemRelation    == (categoryRelation ? categoryRelation : conPeek(dataCon, 4)) &&
+                          itemVisibilityRulesTable.WebShopId       == conPeek(dataCon, 6);
+
+                if(itemVisibilityRulesTable || !SC_WebShopsTable::find(conPeek(dataCon, 6)))
+                {
+                    continue;
+                }
+
+                if(doUpdate)
+                {
+                    itemVisibilityRulesTable.updateLastModifiedDateOnProduct(conPeek(dataCon, 3), conPeek(dataCon, 4), conPeek(dataCon, 7));
+                }
+
+                itemVisibilityRulesTable.clear();
+                itemVisibilityRulesTable.AccountCode     = conPeek(dataCon, 1);
+                itemVisibilityRulesTable.AccountRelation = conPeek(dataCon, 2);
+                itemVisibilityRulesTable.ItemCode        = conPeek(dataCon, 3);
+                itemVisibilityRulesTable.ItemRelation    = categoryRelation ? categoryRelation : conPeek(dataCon, 4);
+                itemVisibilityRulesTable.Mode            = conPeek(dataCon, 5);
+                itemVisibilityRulesTable.WebShopId       = conPeek(dataCon, 6);
+                itemVisibilityRulesTable.Value           = conPeek(dataCon, 7);
+                dataInsertList.add(itemVisibilityRulesTable);
+            }
+            dataInsertList.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParametersData</Name>
+				<Source><![CDATA[
+    public void getParametersData()
+    {
+        SC_ParametersTable          parametersTable = SC_ParametersTable::find();
+        SC_LanguageParametersTable  languageParametersTable;
+
+        if(ParametersData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'Parameters');
+
+        
+            tmpStr = strFmt('%1;%2;%3;%4', 1,parametersTable.Culture,parametersTable.UpdateThreshold,enum2int(parametersTable.IncludeProcessDuration));
+
+            node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);        
+
+            while select languageParametersTable
+            {
+                tmpStr = strFmt('%1;%2;%3;', 0,languageParametersTable.LanguageId,languageParametersTable.LocaleId);
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveParametersData</Name>
+				<Source><![CDATA[
+    public void saveParametersData(XmlNodeList _data)
+    {
+        SC_ParametersTable          parametersTable = SC_ParametersTable::find();
+        SC_LanguageParametersTable  languageParametersTable;
+        RecordInsertList            dataInsertList = new RecordInsertList(tableNum(SC_LanguageParametersTable));
+        container                   dataCon;
+        Integer                     i;
+             
+        if(ParametersData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                if(conPeek(dataCon, 1) == '1')
+                {
+                    parametersTable.selectForUpdate(true);
+                    parametersTable.Culture                = conPeek(dataCon, 2);
+                    parametersTable.UpdateThreshold        = conPeek(dataCon, 3);
+                    parametersTable.IncludeProcessDuration = conPeek(dataCon, 4);
+                    parametersTable.doUpdate();
+                }
+                else
+                {
+                    select firstonly languageParametersTable where languageParametersTable.LocaleId == conPeek(dataCon, 3);
+
+                    if(languageParametersTable)
+                    {
+                        continue;
+                    }
+
+                    languageParametersTable.clear();
+                    languageParametersTable.LanguageId  = conPeek(dataCon, 2);
+                    languageParametersTable.LocaleId    = conPeek(dataCon, 3);                
+                    dataInsertList.add(languageParametersTable);
+                }
+            }
+            dataInsertList.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMixAndMatchData</Name>
+				<Source><![CDATA[
+    public void getMixAndMatchData()
+    {
+        SC_MixMatchDiscountTable mixMatchDiscountTable;
+        SC_MixMatchDiscountLine  mixMatchDiscountLine;
+
+        if(SanaDiscountsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'MixAndMatch');
+
+            while select mixMatchDiscountTable
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8;%9;%10;%11', 1,enum2int(mixMatchDiscountTable.Active),mixMatchDiscountTable.Currency,
+                                mixMatchDiscountTable.DiscGroupId,mixMatchDiscountTable.DiscountId,mixMatchDiscountTable.Name,mixMatchDiscountTable.WebShopId,
+                                mixMatchDiscountTable.PricingPriority,mixMatchDiscountTable.StartDate,mixMatchDiscountTable.EndDate,enum2int(mixMatchDiscountTable.DiscountConcurrencyMode));
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+
+            while select mixMatchDiscountLine
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8;%9;%10', 0,mixMatchDiscountLine.DiscPercent,mixMatchDiscountLine.DiscountId,
+                                mixMatchDiscountLine.NumberOfItemsNeeded,InventTable::findByProduct(mixMatchDiscountLine.Product).ItemId,mixMatchDiscountLine.SalesUnit,
+                                InventDimCombination::findByDistinctProductVariant(mixMatchDiscountLine.Variant).InventDimId,mixMatchDiscountLine.WebShopId,
+                                mixMatchDiscountLine.Category, enum2int(mixMatchDiscountLine.AutoAdd));
+
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveMixAndMatchData</Name>
+				<Source><![CDATA[
+    public void saveMixAndMatchData(XmlNodeList _data)
+    {
+        SC_MixMatchDiscountTable mixMatchDiscountTable;
+        SC_MixMatchDiscountLine  mixMatchDiscountLine;
+        RecordInsertList         dataInsertList = new RecordInsertList(tableNum(SC_MixMatchDiscountTable));
+        RecordInsertList         dataInsertListLine = new RecordInsertList(tableNum(SC_MixMatchDiscountLine));
+        container                dataCon;
+        Integer                  i;
+             
+        if(SanaDiscountsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                if(conPeek(dataCon, 1) == '1')
+                {
+                    select firstonly mixMatchDiscountTable 
+                        where mixMatchDiscountTable.DiscountId == conPeek(dataCon, 5) &&
+                              mixMatchDiscountTable.WebShopId  == conPeek(dataCon, 7);
+
+                    if(mixMatchDiscountTable || !SC_WebShopsTable::find(conPeek(dataCon, 7)))
+                    {
+                        continue;
+                    }
+
+                    mixMatchDiscountTable.clear();
+                    mixMatchDiscountTable.Active                    = conPeek(dataCon, 2);
+                    mixMatchDiscountTable.Currency                  = conPeek(dataCon, 3);
+                    mixMatchDiscountTable.DiscGroupId               = conPeek(dataCon, 4);
+                    mixMatchDiscountTable.DiscountId                = conPeek(dataCon, 5);
+                    mixMatchDiscountTable.Name                      = conPeek(dataCon, 6);
+                    mixMatchDiscountTable.WebShopId                 = conPeek(dataCon, 7);
+                    mixMatchDiscountTable.PricingPriority           = conPeek(dataCon, 8);
+                    mixMatchDiscountTable.StartDate                 = str2Date(conPeek(dataCon, 9), -1);
+                    mixMatchDiscountTable.EndDate                   = str2date(conPeek(dataCon, 10), -1);
+                    mixMatchDiscountTable.DiscountConcurrencyMode   = conPeek(dataCon, 11);
+                    dataInsertList.add(mixMatchDiscountTable);
+                }
+                else
+                {
+                    select firstonly mixMatchDiscountLine
+                        where mixMatchDiscountLine.DiscountId == conPeek(dataCon, 3) &&
+                              mixMatchDiscountLine.Product    == InventTable::find(conPeek(dataCon, 5)).Product &&
+                              mixMatchDiscountLine.Category   == conPeek(dataCon, 9) &&
+                              mixMatchDiscountLine.SalesUnit  == conPeek(dataCon, 6) &&
+                              mixMatchDiscountLine.Variant    == InventDimCombination::findByInventDim(conPeek(dataCon, 5), Inventdim::find(conPeek(dataCon, 7))).DistinctProductVariant &&
+                              mixMatchDiscountLine.WebShopId  == conPeek(dataCon, 8);
+
+                    if(mixMatchDiscountLine || !SC_WebShopsTable::find(conPeek(dataCon, 8)))
+                    {
+                        continue;
+                    }
+
+                    mixMatchDiscountLine.clear();
+                    mixMatchDiscountLine.DiscPercent         = conPeek(dataCon, 2);
+                    mixMatchDiscountLine.DiscountId          = conPeek(dataCon, 3);
+                    mixMatchDiscountLine.NumberOfItemsNeeded = conPeek(dataCon, 4);
+                    mixMatchDiscountLine.Product             = InventTable::find(conPeek(dataCon, 5)).Product;
+                    mixMatchDiscountLine.SalesUnit           = conPeek(dataCon, 6);
+                    mixMatchDiscountLine.Variant             = InventDimCombination::findByInventDim(conPeek(dataCon, 5), conPeek(dataCon, 7)).DistinctProductVariant;
+                    mixMatchDiscountLine.WebShopId           = conPeek(dataCon, 8);
+                    mixMatchDiscountLine.Category            = conPeek(dataCon, 9);
+                    mixMatchDiscountLine.AutoAdd             = conPeek(dataCon, 10);
+                    dataInsertListLine.add(mixMatchDiscountLine);
+                }
+            }
+            dataInsertList.insertDatabase();
+            dataInsertListLine.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrencyData</Name>
+				<Source><![CDATA[
+    public void getCurrencyData()
+    {
+        Currency currency;
+
+        if(CurrencyData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'Currency');
+
+            while select currency where currency.SC_VisibleInWebShop
+            {
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(currency.CurrencyCodeISO);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveCurrencyData</Name>
+				<Source><![CDATA[
+    public void saveCurrencyData(XmlNodeList _data)
+    {
+        Currency           currency;        
+        container          dataCon;
+        Integer            i;
+             
+        if(CurrencyData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                currency = Currency::findCurrencyCodeISO(conPeek(dataCon, 1), true);            
+
+                if(currency)
+                {
+                    currency.SC_VisibleInWebShop = NoYes::Yes;
+                    currency.doUpdate();
+                }
+            }        
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomersData</Name>
+				<Source><![CDATA[
+    public void getCustomersData()
+    {
+        CustTable custTable;
+
+        if(CustomersData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'Customers');
+
+            while select custTable where custTable.SC_B2cCustomer || custTable.SC_ImportCustNum || custTable.SC_IsGuest
+            {
+                tmpStr = strFmt('%1;%2;%3;%4', custTable.AccountNum,enum2int(custTable.SC_B2cCustomer),custTable.SC_ImportCustNum,enum2int(custTable.SC_IsGuest));
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveCustomersData</Name>
+				<Source><![CDATA[
+    public void saveCustomersData(XmlNodeList _data)
+    {
+        CustTable custTable;
+        container dataCon;
+        Integer   i;
+             
+        if(CustomersData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                custTable = CustTable::find(conPeek(dataCon, 1), true);
+
+                if(custTable)
+                {
+                    custTable.SC_B2cCustomer   = conPeek(dataCon, 2);
+                    custTable.SC_ImportCustNum = conPeek(dataCon, 3);
+                    custTable.SC_IsGuest       = conPeek(dataCon, 4);
+                    custTable.doUpdate();
+                }
+            }
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductCategoriesGroupsData</Name>
+				<Source><![CDATA[
+    public void getProductCategoriesGroupsData()
+    {
+        EcoResCategory  ecoResCategory;
+        InventItemGroup inventItemGroup;
+
+        if(ProductCategoriesGroupsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'ProductCategoriesGroups');
+
+            while select CategoryHierarchy, Name, SC_VisibleFrom, SC_VisibleTo, SC_SalesPrice from ecoResCategory where ecoResCategory.SC_VisibleInWebshop
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6',
+                            1,
+                            EcoResCategoryHierarchy::find(ecoResCategory.CategoryHierarchy).Name,
+                            ecoResCategory.Name,
+                            ecoResCategory.SC_VisibleFrom,
+                            ecoResCategory.SC_VisibleTo,
+                            ecoResCategory.SC_SalesPrice
+                            );
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+
+            while select ItemGroupId, SC_SortNum, SC_VisibleFrom, SC_VisibleTo from inventItemGroup where inventItemGroup.SC_VisibleInWebshop
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5',
+                            2,
+                            inventItemGroup.ItemGroupId,
+                            inventItemGroup.SC_SortNum,
+                            inventItemGroup.SC_VisibleFrom,
+                            inventItemGroup.SC_VisibleTo
+                            );
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveProductCategoriesGroupsData</Name>
+				<Source><![CDATA[
+    public void saveProductCategoriesGroupsData(XmlNodeList _data)
+    {
+        EcoResCategory  ecoResCategory;
+        InventItemGroup inventItemGroup;
+        container       dataCon;
+        Integer         i;
+             
+        if(ProductCategoriesGroupsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                if(conPeek(dataCon, 1) == '1')
+                {
+                    ecoResCategory = EcoResCategory::findByName(conPeek(dataCon, 3), EcoResCategoryHierarchy::findByName(conPeek(dataCon, 2)).RecId, true);
+
+                    if(ecoResCategory)
+                    {
+                        ecoResCategory.SC_VisibleInWebshop = NoYes::Yes;
+                        ecoResCategory.SC_VisibleFrom      = str2Date(conPeek(dataCon, 4), -1);
+                        ecoResCategory.SC_VisibleTo        = str2Date(conPeek(dataCon, 5), -1);
+                        ecoResCategory.SC_SalesPrice       = conPeek(dataCon, 6);
+                        ecoResCategory.doUpdate();
+                    }
+                }
+                else
+                {
+                    inventItemGroup = InventItemGroup::find(conPeek(dataCon, 2), true);
+
+                    if(inventItemGroup)
+                    {
+                        inventItemGroup.SC_VisibleInWebshop = NoYes::Yes;
+                        inventItemGroup.SC_SortNum          = conPeek(dataCon, 3);
+                        inventItemGroup.SC_VisibleFrom      = str2Date(conPeek(dataCon, 4), -1);
+                        inventItemGroup.SC_VisibleTo        = str2Date(conPeek(dataCon, 5), -1);
+                        inventItemGroup.doUpdate();
+                    }
+                }
+            }
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductDimensionSortingData</Name>
+				<Source><![CDATA[
+    public void getProductDimensionSortingData()
+    {
+        EcoResProductMasterColor         ecoResProductMasterColor;
+        EcoResProductMasterConfiguration ecoResProductMasterConfiguration;
+        EcoResProductMasterSize          ecoResProductMasterSize;
+        EcoResProductMasterStyle         ecoResProductMasterStyle;
+
+        if(ProductDimensionSortingData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'ProductDimensionSorting');
+
+            while select Color, SC_SortNumColor from ecoResProductMasterColor where ecoResProductMasterColor.SC_SortNumColor
+            {
+                tmpStr = strFmt('%1;%2;%3', 1,EcoResColor::find(ecoResProductMasterColor.Color).Name,ecoResProductMasterColor.SC_SortNumColor);
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+
+            while select Configuration, SC_SortNumConfig from ecoResProductMasterConfiguration where ecoResProductMasterConfiguration.SC_SortNumConfig
+            {
+                tmpStr = strFmt('%1;%2;%3', 2,EcoResConfiguration::find(ecoResProductMasterConfiguration.Configuration).Name,ecoResProductMasterConfiguration.SC_SortNumConfig);
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+
+            while select Size, SC_SortNumSize from ecoResProductMasterSize where ecoResProductMasterSize.SC_SortNumSize
+            {
+                tmpStr = strFmt('%1;%2;%3', 3,EcoResSize::find(ecoResProductMasterSize.Size).Name,ecoResProductMasterSize.SC_SortNumSize);
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+
+            while select Style, SC_SortNumStyle from ecoResProductMasterStyle where ecoResProductMasterStyle.SC_SortNumStyle
+            {
+                tmpStr = strFmt('%1;%2;%3', 4,EcoResStyle::find(ecoResProductMasterStyle.Style).Name,ecoResProductMasterStyle.SC_SortNumStyle);
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveProductDimensionSortingData</Name>
+				<Source><![CDATA[
+    public void saveProductDimensionSortingData(XmlNodeList _data)
+    {
+        EcoResProductMasterColor         ecoResProductMasterColor;
+        EcoResProductMasterConfiguration ecoResProductMasterConfiguration;
+        EcoResProductMasterSize          ecoResProductMasterSize;
+        EcoResProductMasterStyle         ecoResProductMasterStyle;
+        EcoResColor                      ecoResColor;
+        EcoResStyle                      ecoResStyle;
+        EcoResConfiguration              ecoResConfiguration;
+        EcoResSize                       ecoResSize;
+        container                        dataCon;
+        Integer                          i;
+             
+        if(ProductDimensionSortingData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                switch(conPeek(dataCon, 1))
+                {
+                    case '1':
+                        select firstonly forupdate ecoResProductMasterColor
+                            exists join ecoResColor
+                                where ecoResProductMasterColor.Color == ecoResColor.RecId &&
+                                      ecoResColor.Name == conPeek(dataCon, 2);
+                    
+                        if(ecoResProductMasterColor)
+                        {
+                            ecoResProductMasterColor.SC_SortNumColor = conPeek(dataCon, 3);
+                            ecoResProductMasterColor.doUpdate();
+                        }
+                        break;
+                    case '2':
+                        select firstonly forupdate ecoResProductMasterConfiguration
+                            exists join ecoResConfiguration
+                                where ecoResProductMasterConfiguration.Configuration == ecoResConfiguration.RecId &&
+                                      ecoResConfiguration.Name == conPeek(dataCon, 2);
+                    
+                        if(ecoResProductMasterConfiguration)
+                        {
+                            ecoResProductMasterConfiguration.SC_SortNumConfig = conPeek(dataCon, 3);
+                            ecoResProductMasterConfiguration.doUpdate();
+                        }
+                        break;
+                    case '3':
+                        select firstonly forupdate ecoResProductMasterSize
+                            exists join ecoResSize
+                                where ecoResProductMasterSize.Size == ecoResSize.RecId &&
+                                      ecoResSize.Name == conPeek(dataCon, 2);
+                    
+                        if(ecoResProductMasterSize)
+                        {
+                            ecoResProductMasterSize.SC_SortNumSize = conPeek(dataCon, 3);
+                            ecoResProductMasterSize.doUpdate();
+                        }
+                        break;
+                    case '4':
+                        select firstonly forupdate ecoResProductMasterStyle
+                            exists join ecoResStyle
+                                where ecoResProductMasterStyle.Style == ecoResStyle.RecId &&
+                                      ecoResStyle.Name == conPeek(dataCon, 2);
+                    
+                        if(ecoResProductMasterStyle)
+                        {
+                            ecoResProductMasterStyle.SC_SortNumStyle = conPeek(dataCon, 3);
+                            ecoResProductMasterStyle.doUpdate();
+                        }
+                        break;
+                }
+            }
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductsData</Name>
+				<Source><![CDATA[
+    public void getProductsData()
+    {
+        InventTable inventTable;
+
+        if(ProductsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'Products');
+
+            while select ItemId, SC_VisibleInWebShop, SC_ConfiguratorModel, SC_HideDescription, SC_VisibleFrom, SC_VisibleTo, SC_AllowForPreOrders, SC_GiftCard from inventTable
+                where inventTable.SC_VisibleInWebShop || inventTable.SC_ConfiguratorModel
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8',
+                            inventTable.ItemId,
+                            enum2int(inventTable.SC_VisibleInWebShop),
+                            inventTable.SC_ConfiguratorModel,
+                            enum2int(inventTable.SC_HideDescription),
+                            inventTable.SC_VisibleFrom,
+                            inventTable.SC_VisibleTo,
+                            enum2int(inventTable.SC_AllowForPreOrders),
+                            enum2int(inventTable.SC_GiftCard)
+                            );
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveProductsData</Name>
+				<Source><![CDATA[
+    public void saveProductsData(XmlNodeList _data)
+    {
+        InventTable inventTable;
+        container   dataCon;
+        Integer     i;
+             
+        if(ProductsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                inventTable = InventTable::find(conPeek(dataCon, 1), true);
+
+                if(inventTable)
+                {
+                    inventTable.SC_VisibleInWebShop  = conPeek(dataCon, 2);
+                    inventTable.SC_ConfiguratorModel = conPeek(dataCon, 3);
+                    inventTable.SC_HideDescription   = conPeek(dataCon, 4);
+                    inventTable.SC_VisibleFrom       = str2Date(conPeek(dataCon, 5), -1);
+                    inventTable.SC_VisibleTo         = str2Date(conPeek(dataCon, 6), -1);
+                    inventTable.SC_AllowForPreOrders = conPeek(dataCon, 7);
+                    inventTable.SC_GiftCard          = conPeek(dataCon, 8);
+                    inventTable.doUpdate();
+                }
+            }
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getUOMsData</Name>
+				<Source><![CDATA[
+    public void getUOMsData()
+    {
+        UnitOfMeasure unitOfMeasure;
+
+        if(UOMsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement(#dataEntity));
+            node.setAttribute(#bigName, 'UnitOfMeasure');
+
+            while select unitOfMeasure where unitOfMeasure.SC_VisibleInWebShop
+            {            
+                node.appendChild(dataXml.createElement(#dataRow)).innerText(unitOfMeasure.Symbol);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveUOMsData</Name>
+				<Source><![CDATA[
+    public void saveUOMsData(XmlNodeList _data)
+    {
+        UnitOfMeasure unitOfMeasure;
+        container     dataCon;
+        Integer       i;
+             
+        if(UOMsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';',false);
+
+                unitOfMeasure = UnitOfMeasure::findBySymbol(conPeek(dataCon, 1), true);
+
+                if(unitOfMeasure)
+                {
+                    unitOfMeasure.SC_VisibleInWebShop = NoYes::Yes;                
+                    unitOfMeasure.doUpdate();
+                }
+            }
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCouponDiscountData</Name>
+				<Source><![CDATA[
+    public void getCouponDiscountData()
+    {
+        SC_CouponDiscountTable couponDiscountTable;
+        SC_CouponDiscountLine  couponDiscountLine;
+
+        if(SanaDiscountsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement('DataEntity'));
+            node.setAttribute('Name', 'Coupons');
+
+            while select couponDiscountTable
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8;%9;%10;%11',
+                1,                                                                          //1
+                enum2int(couponDiscountTable.Active),                                       //2
+                couponDiscountTable.Currency,                                               //3
+                couponDiscountTable.DiscountId,                                             //4
+                couponDiscountTable.Name,                                                   //5
+                couponDiscountTable.WebShopId,                                              //6
+                couponDiscountTable.CouponCode,                                             //7
+                couponDiscountTable.DiscPercent,                                            //8
+                couponDiscountTable.StartDate,                                              //9
+                couponDiscountTable.EndDate,                                                //10
+                enum2int(couponDiscountTable.DiscountConcurrencyMode));                     //11
+
+                node.appendChild(dataXml.createElement('DataRow')).innerText(tmpStr);
+            }
+
+            while select couponDiscountLine
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8;%9;%10',
+                0,                                                                                              //1
+                couponDiscountLine.DiscPercent,                                                                 //2
+                couponDiscountLine.DiscountId,                                                                  //3
+                couponDiscountLine.NumberOfItemsNeeded,                                                         //4
+                InventTable::findByProduct(couponDiscountLine.Product).ItemId,                                  //5
+                couponDiscountLine.SalesUnit,                                                                   //6
+                InventDimCombination::findByDistinctProductVariant(couponDiscountLine.Variant).InventDimId,     //7
+                couponDiscountLine.WebShopId,                                                                   //8
+                couponDiscountLine.Category,                                                                    //9
+                couponDiscountLine.MaxQtyOfItems);                                                              //10
+
+                node.appendChild(dataXml.createElement('DataRow')).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveCouponDiscountData</Name>
+				<Source><![CDATA[
+    public void saveCouponDiscountData(XmlNodeList _data)
+    {
+        SC_CouponDiscountTable couponDiscountTable;
+        SC_CouponDiscountLine  couponDiscountLine;
+        RecordInsertList       dataInsertList = new RecordInsertList(tableNum(SC_CouponDiscountTable));
+        RecordInsertList       dataInsertListLine = new RecordInsertList(tableNum(SC_CouponDiscountLine));
+        container              dataCon;
+        Integer                i;
+
+        if(SanaDiscountsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';', false);
+
+                if(conPeek(dataCon, 1) == '1')
+                {
+                    select firstonly couponDiscountTable
+                        where (couponDiscountTable.DiscountId == conPeek(dataCon, 4) || couponDiscountTable.CouponCode == conPeek(dataCon, 7)) &&
+                              couponDiscountTable.WebShopId  == conPeek(dataCon, 6);
+
+                    if(couponDiscountTable || !SC_WebShopsTable::find(conPeek(dataCon, 6)))
+                    {
+                        continue;
+                    }
+
+                    couponDiscountTable.clear();
+                    couponDiscountTable.Active                    = conPeek(dataCon, 2);
+                    couponDiscountTable.Currency                  = conPeek(dataCon, 3);
+                    couponDiscountTable.DiscountId                = conPeek(dataCon, 4);
+                    couponDiscountTable.Name                      = conPeek(dataCon, 5);
+                    couponDiscountTable.WebShopId                 = conPeek(dataCon, 6);
+                    couponDiscountTable.CouponCode                = conPeek(dataCon, 7);
+                    couponDiscountTable.DiscPercent               = conPeek(dataCon, 8);
+                    couponDiscountTable.StartDate                 = str2Date(conPeek(dataCon, 9), -1);
+                    couponDiscountTable.EndDate                   = str2date(conPeek(dataCon, 10), -1);
+                    couponDiscountTable.DiscountConcurrencyMode   = conPeek(dataCon, 11);
+                    dataInsertList.add(couponDiscountTable);
+                }
+                else
+                {
+                    select firstonly couponDiscountLine
+                        where couponDiscountLine.DiscountId == conPeek(dataCon, 3) &&
+                              couponDiscountLine.Product    == InventTable::find(conPeek(dataCon, 5)).Product &&
+                              couponDiscountLine.Category   == conPeek(dataCon, 9) &&
+                              couponDiscountLine.SalesUnit  == conPeek(dataCon, 6) &&
+                              couponDiscountLine.Variant    == InventDimCombination::findByInventDim(conPeek(dataCon, 5), InventDim::find(conPeek(dataCon, 7))).DistinctProductVariant &&
+                              couponDiscountLine.WebShopId  == conPeek(dataCon, 8);
+
+                    if(couponDiscountLine || !SC_WebShopsTable::find(conPeek(dataCon, 8)))
+                    {
+                        continue;
+                    }
+
+                    couponDiscountLine.clear();
+                    couponDiscountLine.DiscPercent         = conPeek(dataCon, 2);
+                    couponDiscountLine.DiscountId          = conPeek(dataCon, 3);
+                    couponDiscountLine.NumberOfItemsNeeded = conPeek(dataCon, 4);
+                    couponDiscountLine.Product             = InventTable::find(conPeek(dataCon, 5)).Product;
+                    couponDiscountLine.SalesUnit           = conPeek(dataCon, 6);
+                    couponDiscountLine.Variant             = InventDimCombination::findByInventDim(conPeek(dataCon, 5), InventDim::find(conPeek(dataCon, 7))).DistinctProductVariant;
+                    couponDiscountLine.WebShopId           = conPeek(dataCon, 8);
+                    couponDiscountLine.Category            = conPeek(dataCon, 9);
+                    couponDiscountLine.MaxQtyOfItems       = conPeek(dataCon, 10);
+                    dataInsertListLine.add(couponDiscountLine);
+                }
+            }
+            dataInsertList.insertDatabase();
+            dataInsertListLine.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWebshopDiscountData</Name>
+				<Source><![CDATA[
+    public void getWebshopDiscountData()
+    {
+        SC_WebshopDiscountTable webshopDiscountTable;
+
+        if(SanaDiscountsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement('DataEntity'));
+            node.setAttribute('Name', 'WebshopDiscounts');
+
+            while select webshopDiscountTable
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7;%8;%9',
+                enum2int(webshopDiscountTable.Active),      //1
+                webshopDiscountTable.Currency,              //2
+                webshopDiscountTable.DiscGroupId,           //3
+                webshopDiscountTable.DiscountId,            //4
+                webshopDiscountTable.Name,                  //5
+                webshopDiscountTable.WebShopId,             //6
+                webshopDiscountTable.DiscPercent,           //7
+                webshopDiscountTable.StartDate,             //8
+                webshopDiscountTable.EndDate);              //9
+
+                node.appendChild(dataXml.createElement('DataRow')).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveWebshopDiscountData</Name>
+				<Source><![CDATA[
+    public void saveWebshopDiscountData(XmlNodeList _data)
+    {
+        SC_WebshopDiscountTable  webshopDiscountTable;
+        RecordInsertList         dataInsertList = new RecordInsertList(tableNum(SC_WebshopDiscountTable));
+        container                dataCon;
+        Integer                  i;
+
+        if(SanaDiscountsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';', false);
+
+                select firstonly webshopDiscountTable
+                    where webshopDiscountTable.DiscountId == conPeek(dataCon, 4) &&
+                            webshopDiscountTable.WebShopId  == conPeek(dataCon, 6);
+
+                if(webshopDiscountTable || !SC_WebShopsTable::find(conPeek(dataCon, 6)))
+                {
+                    continue;
+                }
+
+                webshopDiscountTable.clear();
+                webshopDiscountTable.Active      = conPeek(dataCon, 1);
+                webshopDiscountTable.Currency    = conPeek(dataCon, 2);
+                webshopDiscountTable.DiscGroupId = conPeek(dataCon, 3);
+                webshopDiscountTable.DiscountId  = conPeek(dataCon, 4);
+                webshopDiscountTable.Name        = conPeek(dataCon, 5);
+                webshopDiscountTable.WebShopId   = conPeek(dataCon, 6);
+                webshopDiscountTable.DiscPercent = conPeek(dataCon, 7);
+                webshopDiscountTable.StartDate   = str2Date(conPeek(dataCon, 8), -1);
+                webshopDiscountTable.EndDate     = str2Date(conPeek(dataCon, 9), -1);
+
+                dataInsertList.add(webshopDiscountTable);
+            }
+            dataInsertList.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveGiftCardsData</Name>
+				<Source><![CDATA[
+    public void saveGiftCardsData(XmlNodeList _data)
+    {
+        SC_GiftCardTable    giftCardTable;
+        RecordInsertList    dataInsertList = new RecordInsertList(tableNum(SC_GiftCardTable));
+        container           dataCon;
+        Integer             i;
+
+        if(SanaDiscountsData.value())
+        {
+            ttsbegin;
+            for(i=0;i<_data.length();i++)
+            {
+                tmpStr  = _data.item(i).innerText();
+                dataCon = str2con(tmpStr,';', false);                
+
+                if(!SC_GiftCardTable::find(conPeek(dataCon, 7), conPeek(dataCon, 4)))
+                {
+                    giftCardTable.clear();
+                    giftCardTable.Active        = conPeek(dataCon, 1);
+                    giftCardTable.Balance       = conPeek(dataCon, 2);
+                    giftCardTable.Currency      = conPeek(dataCon, 3);
+                    giftCardTable.GiftCardCode  = conPeek(dataCon, 4);
+                    giftCardTable.MaxDiscPct    = conPeek(dataCon, 5);
+                    giftCardTable.Name          = conPeek(dataCon, 6);
+                    giftCardTable.WebShopId     = conPeek(dataCon, 7);
+
+                    dataInsertList.add(giftCardTable);
+                }
+            }
+            dataInsertList.insertDatabase();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getGiftCardsData</Name>
+				<Source><![CDATA[
+    public void getGiftCardsData()
+    {
+        SC_GiftCardTable giftCardTable;
+
+        if(SanaDiscountsData.value())
+        {
+            node = dataNode.appendChild(dataXml.createElement('DataEntity'));
+            node.setAttribute('Name', 'GiftCards');
+
+            while select giftCardTable
+            {
+                tmpStr = strFmt('%1;%2;%3;%4;%5;%6;%7',
+                enum2int(giftCardTable.Active),      //1
+                giftCardTable.Balance,               //2
+                giftCardTable.Currency,              //3
+                giftCardTable.GiftCardCode,          //4
+                giftCardTable.MaxDiscPct,            //5
+                giftCardTable.Name,                  //6
+                giftCardTable.WebShopId);            //7
+
+                node.appendChild(dataXml.createElement('DataRow')).innerText(tmpStr);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>Import</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            XmlNodeList nodes;
+            Integer     i;   
+            boolean     isDifferentERPData;
+            
+            file = File::GetFileFromUser();
+
+            if (file && file.getUploadStatus())
+            {
+                stream = file.openResult();
+                streamReader = new System.IO.StreamReader(stream);
+            }
+            else
+            {
+                if(file)
+                {
+                    throw error(strfmt("@SYS19312", file.getFileName()));
+                }
+                else
+                {
+                    return;
+                }
+            }
+            
+            dataXml = XmlDocument::newXml(streamReader.ReadToEnd());
+            node    = dataXml.documentElement().selectSingleNode(#dataVersion);
+        
+            if(!node || node.innerText() != #axVersion)
+            {
+                isDifferentERPData = true;
+
+                if(Box::yesNo('You are uploading data from another ERP version. Do you want to continue?', DialogButton::Yes) == DialogButton::No)
+                {
+                    return;
+                }
+            }
+            nodes   = dataXml.documentElement().selectNodes(#dataEntity);
+
+            for(i=0;i<nodes.length();i++)
+            {
+                node = nodes.item(i);
+
+                switch(node.getAttribute(#bigName))
+                {
+                    case 'Webshops':
+                        element.saveWebshopsData(node.selectNodes(#dataRow));
+                        break;
+                    case 'WebshopFilters':
+                        element.saveWebshopFiltersData(node.selectNodes(#dataRow));
+                        break;
+                    case 'CountriesSetup':
+                        element.saveCountriesSetupData(node.selectNodes(#dataRow));
+                        break;
+                    case 'DataValidationRules':
+                        if(!isDifferentERPData)
+                        {
+                            element.saveDataValidationRulesData(node.selectNodes(#dataRow));
+                        }
+                        break;
+                    case 'CustomerAssortments':
+                        element.saveCustomerAssortmentsData(node.selectNodes(#dataRow));
+                        break;
+                    case 'Parameters':
+                        element.saveParametersData(node.selectNodes(#dataRow));
+                        break;
+                    case 'MixAndMatch':
+                        element.saveMixAndMatchData(node.selectNodes(#dataRow));
+                        break;
+                    case 'Currency':
+                        element.saveCurrencyData(node.selectNodes(#dataRow));
+                        break;
+                    case 'Customers':
+                        element.saveCustomersData(node.selectNodes(#dataRow));
+                        break;
+                    case 'ProductCategoriesGroups':
+                        element.saveProductCategoriesGroupsData(node.selectNodes(#dataRow));
+                        break;
+                    case 'ProductDimensionSorting':
+                        element.saveProductDimensionSortingData(node.selectNodes(#dataRow));
+                        break;
+                    case 'Products':
+                        element.saveProductsData(node.selectNodes(#dataRow));
+                        break;
+                    case 'UnitOfMeasure':
+                        element.saveUOMsData(node.selectNodes(#dataRow));
+                        break;
+                    case 'Coupons':
+                        element.saveCouponDiscountData(node.selectNodes(#dataRow));
+                        break;
+                    case 'WebshopDiscounts':
+                        element.saveWebshopDiscountData(node.selectNodes(#dataRow));
+                        break;
+                    case 'StatesSetup':
+                        element.saveStatesSetupData(node.selectNodes(#dataRow));
+                        break;
+                    case 'GiftCards':
+                        element.saveGiftCardsData(node.selectNodes(#dataRow));
+                        break;
+                }
+            }
+            info("@SYS70405");
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Export</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            dataXml  = XmlDocument::newBlank();
+            dataNode = dataXml.appendChild(dataXml.createElement(#sanaData));   
+            dataNode.appendChild(dataXml.createElement(#dataVersion)).innerText(#axVersion);
+
+            element.getWebshopsData();
+            element.getWebshopFiltersData();
+            element.getCountriesSetupData();
+            element.getDataValidationRulesData();
+            element.getCustomerAssortmentsData();
+            element.getParametersData();
+            element.getMixAndMatchData();
+            element.getCurrencyData();
+            element.getCustomersData();
+            element.getProductCategoriesGroupsData();
+            element.getProductDimensionSortingData();
+            element.getProductsData();
+            element.getUOMsData();
+            element.getCouponDiscountData();
+            element.getWebshopDiscountData();
+            element.getStatesSetupData();
+            element.getGiftCardsData();
+
+            tmpStr = strFmt('SanaDataExport_%1.xml', DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()));
+            File::SendStringAsFileToUser(dataXml.innerXml(), strRem(tmpStr,'//\\'));
+            info("@SYS70406");
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>EnableAll</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            WebshopsData.value(this.value());
+            WebshopFiltersData.value(this.value());
+            CountriesSetupData.value(this.value());
+            DataValidationRulesData.value(this.value());
+            CustomerAssortmentsData.value(this.value());
+            ParametersData.value(this.value());
+            SanaDiscountsData.value(this.value());
+            CurrencyData.value(this.value());
+            CustomersData.value(this.value());
+            ProductCategoriesGroupsData.value(this.value());
+            ProductDimensionSortingData.value(this.value());
+            ProductsData.value(this.value());
+            UOMsData.value(this.value());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@DMF:DMFStagingCleanupDataManagment</Caption>
+		<DefaultAction xmlns="">Export</DefaultAction>
+		<Pattern xmlns="">SimpleDetails-FastTabsContainer</Pattern>
+		<PatternVersion xmlns="">1.4</PatternVersion>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<WindowType xmlns="">Popup</WindowType>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>715827882</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>DataButtonGroup</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonSeparatorControl">
+								<Name>FormButtonSeparator</Name>
+								<Type>ButtonSeparator</Type>
+								<FormControlExtension
+									i:nil="true" />
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>Import</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NormalImage>Import</NormalImage>
+								<Text>@SYS115599</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>Export</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NormalImage>Export</NormalImage>
+								<Text>@SYS26056</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>General</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>DataGroup</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>EnableAll</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS95005</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>WebshopsData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL5</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>WebshopFiltersData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL6</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>CountriesSetupData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS101482</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>DataValidationRulesData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL185</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>CustomerAssortmentsData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL181</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>ParametersData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS7764</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>SanaDiscountsData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL532</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>CurrencyData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL267</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>CustomersData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS11307</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>ProductCategoriesGroupsData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS309449</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>ProductDimensionSortingData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL339</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>ProductsData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS59570</Label>
+										<Value>1</Value>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>UOMsData</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS336005</Label>
+										<Value>1</Value>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@DMF:DMFConfigureDataSource</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxDataEntityViewExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SalesQuotationHeaderV2Entity.Sana</Name>
+	<DataSources />
+	<FieldGroupExtensions />
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_AdminAccountCode</Name>
+			<DataField>SC_AdminAccountCode</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_AuthorizationStatus</Name>
+			<DataField>SC_AuthorizationStatus</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_BillToName</Name>
+			<DataField>SC_BillToName</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_Comments</Name>
+			<DataField>SC_Comments</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_DateReceived</Name>
+			<DataField>SC_DateReceived</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_IsPersistedBasket</Name>
+			<DataField>SC_IsPersistedBasket</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_IsPromotable</Name>
+			<DataField>SC_IsPromotable</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_OrderId</Name>
+			<DataField>SC_OrderId</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PaymentMethod</Name>
+			<DataField>SC_PaymentMethod</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PaymentStatus</Name>
+			<DataField>SC_PaymentStatus</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PaymentTransactionId</Name>
+			<DataField>SC_PaymentTransactionId</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PickupLocationId</Name>
+			<DataField>SC_PickupLocationId</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PromotionAmount</Name>
+			<DataField>SC_PromotionAmount</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PromotionCode</Name>
+			<DataField>SC_PromotionCode</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PromotionDiscPercent</Name>
+			<DataField>SC_PromotionDiscPercent</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PromotionTitle</Name>
+			<DataField>SC_PromotionTitle</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PromotionType</Name>
+			<DataField>SC_PromotionType</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_PromotionValue</Name>
+			<DataField>SC_PromotionValue</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_SanaOrder</Name>
+			<DataField>SC_SanaOrder</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_ShipmentMethodName</Name>
+			<DataField>SC_ShipmentMethodName</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_ShopAccountCode</Name>
+			<DataField>SC_ShopAccountCode</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_TimeReceived</Name>
+			<DataField>SC_TimeReceived</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_WebshopId</Name>
+			<DataField>SC_WebshopId</DataField>
+			<DataSource>SalesQuotationTable</DataSource>
+		</AxDataEntityViewField>
+	</Fields>
+	<Mappings />
+	<PropertyModifications />
+	<Relations />
+</AxDataEntityViewExtension>

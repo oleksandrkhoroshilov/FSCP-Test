@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SysAbout.Sana</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>Copy1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormMenuFunctionButtonControl">
+				<Name>AboutSana</Name>
+				<ElementPosition>1879048190</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>Auto</HeightMode>
+				<Skip>Yes</Skip>
+				<Type>MenuFunctionButton</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>Auto</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<BackStyle>Transparent</BackStyle>
+				<BackgroundColorRGB>
+					<Red>237</Red>
+					<Green>247</Green>
+					<Blue>255</Blue>
+				</BackgroundColorRGB>
+				<Border>None</Border>
+				<ColorScheme>RGB</ColorScheme>
+				<ForegroundColorRGB>
+					<Red>0</Red>
+					<Green>102</Green>
+					<Blue>204</Blue>
+				</ForegroundColorRGB>
+				<MenuItemName>SC_About</MenuItemName>
+				<Style>Link</Style>
+				<Text>@SCL156</Text>
+			</FormControl>
+			<Parent>Links</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

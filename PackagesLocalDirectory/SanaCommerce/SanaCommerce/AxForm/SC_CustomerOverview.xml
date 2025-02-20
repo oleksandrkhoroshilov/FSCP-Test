@@ -1,0 +1,2035 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_CustomerOverview</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_CustomerOverview extends FormRun
+{        
+    #SANA    
+    TmpDimTransExtract              tempTable;
+    int                             prevSelection, prevSelection2;
+    [FormObservable]
+    Integer                         numRecords;
+    [FormObservable]
+    ErrorMsg                        invalidMsg, nonIndexMsg;
+    [FormObservable]
+    Qty                             inventory;
+    [FormObservable]
+    boolean                         isValid, isIndexable;
+    SC_AXDataServiceClient_Product  AXDataServiceClient;
+    
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWebsite</Name>
+				<Source><![CDATA[
+    public SC_WebshopId getWebsite()
+    {
+        ;
+        return webShop.text();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {        
+        ;
+        super();
+
+        AXDataServiceClient = SC_AXDataServiceClient_Product::construct();
+
+        Webshop.text(SC_WebShopsTable::findFirst().WebShopId);
+        Webshop.modified();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isStringIndexable</Name>
+				<Source><![CDATA[
+    public boolean isStringIndexable(SC_LargeText _text)
+    {
+        return !System.Text.RegularExpressions.Regex::IsMatch(_text, @"[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u0084\u0086-\u009F\uD800-\uDFFF\uFDD0-\uFDEF\uFFFE-\uFFFF]");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countNumRecords</Name>
+				<Source><![CDATA[
+    public Counter countNumRecords(FieldId _fieldId = 0, str _fieldValue = '')
+    {
+        Map                     filters;
+        MapEnumerator           filtersEnum;
+        QueryRun                queryRun;
+        Query                   query = new Query();
+        QueryBuildDataSource    qbd;
+        ;
+    
+        filters     = SC_FilterWebShopsTable::getWebshopFilters(webshop.text(), tableStr(CustTable));
+        filtersEnum = filters.getEnumerator();
+
+        qbd =  query.addDataSource(tableNum(CustTable));    
+        
+        while(filtersEnum.moveNext())
+        {
+            qbd.addRange(fieldname2id(tablenum(CustTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+        }
+    
+        if(_fieldId)
+        {
+            qbd.addRange(_fieldId).value(_fieldValue);
+        }
+
+        queryRun = new QueryRun(query);
+
+        return SysQuery::countTotal(queryRun);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>CustTable</Name>
+				<Methods>
+					<Method>
+						<Name>checkIndexability</Name>
+						<Source><![CDATA[
+        private container checkIndexability(CustTable _custTable)
+        {
+            boolean                             ret;
+            LogisticsPostalAddress              address;
+            DirPartyLocation                    partyLocation;
+            DirPartyLocationRole                dirPartyLocationRole;
+            LogisticsLocationRole               logisticsLocationRole;
+            SC_LanguageParametersTable          languageParametersTable;
+            LogisticsAddressCountryRegionName   addressCountryName;
+            ;
+
+            nonIndexMsg = '';
+
+            ret = element.isStringIndexable(_custTable.AccountNum);
+            nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL476", "@SYS7149");
+
+            if(ret)
+            {
+                ret = element.isStringIndexable(_custTable.name());
+                nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL476", "@SYS27874");
+            }
+
+            //primary address check
+            address = DirParty::primaryPostalAddress(_custTable.Party);
+
+            if(address)
+            {
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(address.Street);
+                    nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL477", "@SYS323505");
+                }
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(address.City);
+                    nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL477", "@SYS22249");
+                }
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(address.ZipCode);
+                    nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL477", "@SYS12463");
+                }
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(address.State);
+                    nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL477", "@SYS21924");
+                }
+
+                if(ret)
+                {
+                    while select languageParametersTable
+                    {
+                        addressCountryName = LogisticsAddressCountryRegionTranslation::find(address.CountryRegionId, languageParametersTable.LanguageId).ShortName;
+                        addressCountryName = !addressCountryName || strContains(addressCountryName, '@') ? LogisticsAddressCountryRegion::find(address.CountryRegionId).displayName() : addressCountryName;
+                        ret = element.isStringIndexable(addressCountryName);
+                        nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL477", "@SYS314935");
+
+                        if(!ret)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if(ret)
+                {
+                    ret = element.isStringIndexable(LogisticsLocation::find(address.Location).Description);
+                    nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL477", "@SYS6303");
+                }
+            }
+
+            //shippping addresses check
+            if(ret)
+            {
+                while select Location, IsPrimary from partyLocation
+                    order by IsPrimary desc
+                    where partyLocation.Party == _custTable.Party
+                        exists join dirPartyLocationRole
+                            where dirPartyLocationRole.PartyLocation == partyLocation.RecId
+                                exists join logisticsLocationRole
+                                    where logisticsLocationRole.RecId == dirPartyLocationRole.LocationRole &&
+                                            (logisticsLocationRole.Type == LogisticsLocationRoleType::Delivery || partyLocation.IsPrimary)
+                {
+                    address = LogisticsPostalAddress::findByLocation(partyLocation.Location);
+
+                    if(address)
+                    {
+                        ret = element.isStringIndexable(address.Street);
+                        nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL478", "@SYS323505");
+
+                        if(ret)
+                        {
+                            ret = element.isStringIndexable(address.City);
+                            nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL478", "@SYS22249");
+                        }
+
+                        if(ret)
+                        {
+                            ret = element.isStringIndexable(address.ZipCode);
+                            nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL478", "@SYS12463");
+                        }
+
+                        if(ret)
+                        {
+                            ret = element.isStringIndexable(address.State);
+                            nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL478", "@SYS21924");
+                        }
+
+                        if(ret)
+                        {
+                            while select languageParametersTable
+                            {
+                                addressCountryName = LogisticsAddressCountryRegionTranslation::find(address.CountryRegionId, languageParametersTable.LanguageId).ShortName;
+                                addressCountryName = !addressCountryName || strContains(addressCountryName, '@') ? LogisticsAddressCountryRegion::find(address.CountryRegionId).displayName() : addressCountryName;
+                                ret = element.isStringIndexable(addressCountryName);
+                                nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL478", "@SYS314935");
+
+                                if(!ret)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(ret)
+                        {
+                            ret = element.isStringIndexable(LogisticsLocation::find(address.Location).Description);
+                            nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL478", "@SYS6303");
+                        }
+                    }
+
+                    if(!ret)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if(ret)
+            {
+                ret = element.isStringIndexable(ContactPerson::find(_custTable.ContactPersonId).personName());
+                nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL476", "@SYS325541");
+            }
+
+            if(ret)
+            {
+                ret = element.isStringIndexable(_custTable.email());
+                nonIndexMsg = ret ? nonIndexMsg : strFmt("@SCL476", "@SYS5845");
+            }
+
+            return [ret, nonIndexMsg];
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>checkCustomer</Name>
+						<Source><![CDATA[
+        public void checkCustomer(CustTable _custTable, boolean _onlyNonIndexable = false)
+        {
+            ;
+            select firstonly tempTable
+                where tempTable.AccountMain == _custTable.AccountNum &&
+                      tempTable.Voucher == Webshop.text();
+
+            if(tempTable)
+            {
+                isValid = tempTable.Active;
+                isIndexable = tempTable.Reversed;
+                invalidMsg = tempTable.MainFocus;
+                nonIndexMsg = tempTable.MainFocusDescription;
+            }
+            else
+            {
+                if(_onlyNonIndexable)
+                {
+                    tempTable.AccountMain = _custTable.AccountNum;
+                    tempTable.Voucher = Webshop.text();
+
+                    [isIndexable, nonIndexMsg] = this.checkIndexability(_custTable);
+                    tempTable.Reversed = isIndexable;
+                    tempTable.MainFocusDescription = nonIndexMsg;
+
+                    if(nonIndexMsg)
+                    {
+                        isValid = AXDataServiceClient.checkValidationRules(_custTable, false, true);
+                        isValid = isValid && AXDataServiceClient.checkValidationRules(DirParty::primaryPostalAddress(_custTable.Party), false, true);
+
+                        tempTable.Active = isValid;
+                        invalidMsg = AXDataServiceClient.setErrorMsg();
+                        tempTable.MainFocus = invalidMsg;
+                        tempTable.insert();
+                    }
+                }
+                else
+                {
+                    tempTable.AccountMain = _custTable.AccountNum;
+                    tempTable.Voucher = Webshop.text();
+
+                    [isIndexable, nonIndexMsg] = this.checkIndexability(_custTable);
+                    tempTable.Reversed = isIndexable;
+                    tempTable.MainFocusDescription = nonIndexMsg;
+
+                    isValid = AXDataServiceClient.checkValidationRules(_custTable, false, true);
+                    isValid = isValid && AXDataServiceClient.checkValidationRules(DirParty::primaryPostalAddress(_custTable.Party), false, true);
+
+                    tempTable.Active = isValid;
+                    invalidMsg = AXDataServiceClient.setErrorMsg();
+                    tempTable.MainFocus = invalidMsg;
+                    tempTable.insert();
+                }
+
+                AXDataServiceClient.setErrorMsg('');
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayLastMDateTime</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display ParmTxt displayLastMDateTime(CustTable _custTable)
+        {
+            System.DateTime                     dateTime;
+            System.Globalization.CultureInfo    cultInfo;
+            utcDateTime                         localDateTime;
+            ParmTxt                             ret;
+            ;
+            if(_custTable.SC_LastModified)
+            {
+                new InteropPermission(InteropKind::ClrInterop).assert();
+
+                dateTime      = System.DateTime::FromOADate(Global::real2double(_custTable.SC_LastModified));
+                cultInfo      = System.Globalization.CultureInfo::GetCultureInfo('en-us');
+                localDateTime = dateTime.ToDateTime(cultInfo);
+                localDateTime = DateTimeUtil::applyTimeZoneOffset(localDateTime, DateTimeUtil::getCompanyTimeZone());
+
+                ret = DateTimeUtil::toFormattedStr(localDateTime, -1, -1, -1, -1, -1, -1, -1, -1);
+            }
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayIsGuest</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display NoYes displayIsGuest(CustTable _custTable)
+        {
+            return _custTable.SC_IsGuest;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayCustSite</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display InventSiteId displayCustSite(CustTable _custTable)
+        {
+            SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshop.text());
+            ;
+
+            return webshopTable.OverrideCustDim || !_custTable.InventSiteId ? webshopTable.DefaultSiteId : _custTable.InventSiteId;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayCustWarehouse</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display InventLocationId displayCustWarehouse(CustTable _custTable)
+        {
+            SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshop.text());
+            ;
+            return webshopTable.OverrideCustDim || !_custTable.InventLocation ? webshopTable.DefaultLocationId : _custTable.InventLocation;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayOption</Name>
+						<Source><![CDATA[
+        public void displayOption(Common _record, FormRowDisplayOption _options)
+        {
+            ;
+            if(!CustTable_ds.displayIsValid(_record) || !CustTable_ds.displayIsIndexable(_record))
+            {
+                _options.backColor(WinAPI::RGB2int( 255,225,225 ));
+            }
+
+            super(_record, _options);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayIsValid</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display NoYes displayIsValid(CustTable _custTable)
+        {
+            ;
+            this.checkCustomer(_custTable);
+
+            return isValid;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayIsIndexable</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display NoYes displayIsIndexable(CustTable _custTable)
+        {
+            ;
+            this.checkCustomer(_custTable);
+
+            return isIndexable;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayNumOfProducts</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display Integer displayNumOfProducts()
+        {
+            return numRecords;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayInvalidReason</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display smmBusRelMemo displayInvalidReason(CustTable _custTable)
+        {
+            ;
+            this.checkCustomer(_custTable);
+
+            return strrem(invalidMsg, '\t');
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayNonIndexableReason</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display smmBusRelMemo displayNonIndexableReason(CustTable _custTable)
+        {
+            ;
+            this.checkCustomer(_custTable);
+
+            return strrem(nonIndexMsg, '\t');
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayCustName</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display CustAccount displayCustName(CustTable _custTable)
+        {
+            return _custTable.name();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>OnlyValidButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {            
+            SysOperationProgress    progress = new SysOperationProgress();
+            Map                     filters;
+            MapEnumerator           filtersEnum;
+            QueryBuildDataSource    qbd;
+            Query                   query = new Query();
+            QueryRun                queryRun;
+            CustTable               custTableLocal;
+            Counter                 i;
+            ;
+
+            if(Box::yesNo("@SCL492", DialogButton::Yes) == DialogButton::Yes)
+            {
+                super();
+
+                filters     = SC_FilterWebShopsTable::getWebshopFilters(webshop.text(), tableStr(CustTable));
+                filtersEnum = filters.getEnumerator();
+
+                qbd =  query.addDataSource(tableNum(CustTable));
+
+                while(filtersEnum.moveNext())
+                {
+                    qbd.addRange(fieldname2id(tablenum(CustTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+                }
+
+                queryRun = new QueryRun(query);
+
+                progress.setCaption("@SYS13894");
+            
+                progress.setTotal(SysQuery::countTotal(queryRun));
+
+                while(queryRun.next())
+                {
+                    progress.setCount(i, 1);
+                    custTableLocal = queryRun.get(tablenum(CustTable));
+                    CustTable_ds.checkCustomer(custTableLocal);
+                    i++;
+                }
+
+                CustTable_ds.query().dataSourceTable(tablenum(CustTable)).clearRanges();
+
+                while select tempTable
+                    where !tempTable.Active
+                {
+                    CustTable_ds.query().dataSourceTable(tablenum(CustTable)).addRange(fieldNum(CustTable, AccountNum)).value(tempTable.AccountMain);
+                }
+
+                select count(RecId) from tempTable where !tempTable.Active;
+                numRecords = int642int(tempTable.RecId);
+
+                if(numRecords > 0)
+                {
+                    CustTable_ds.executeQuery();
+                }
+                else
+                {
+                    Box::info("@SCL493");
+                    webshop.modified();
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OnlyNonIndexableButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {            
+            SysOperationProgress progress = new SysOperationProgress();
+            Map                     filters;
+            MapEnumerator           filtersEnum;
+            QueryBuildDataSource    qbd;
+            Query                   query = new Query();
+            QueryRun                queryRun;
+            CustTable               custTableLocal;
+            Counter                 i;
+            ;
+
+            if(Box::yesNo("@SCL492", DialogButton::Yes) == DialogButton::Yes)
+            {
+                super();
+
+                filters     = SC_FilterWebShopsTable::getWebshopFilters(webshop.text(), tableStr(CustTable));
+                filtersEnum = filters.getEnumerator();
+
+                qbd =  query.addDataSource(tableNum(CustTable));
+
+                while(filtersEnum.moveNext())
+                {
+                    qbd.addRange(fieldname2id(tablenum(CustTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+                }
+
+                queryRun = new QueryRun(query);
+
+                progress.setCaption("@SYS13894");
+                progress.setTotal(SysQuery::countTotal(queryRun));
+
+                while(queryRun.next())
+                {
+                    progress.setCount(i, 1);
+                    custTableLocal = queryRun.get(tablenum(CustTable));
+                    CustTable_ds.checkCustomer(custTableLocal, true);
+                    i++;
+                }
+
+                CustTable_ds.query().dataSourceTable(tablenum(CustTable)).clearRanges();
+                CustTable_ds.query().dataSourceTable(tablenum(CustTable)).addRange(fieldNum(CustTable, AccountNum)).value(SysQuery::valueEmptyString());
+
+                while select tempTable
+                    where !tempTable.Reversed
+                {
+                    CustTable_ds.query().dataSourceTable(tablenum(CustTable)).addRange(fieldNum(CustTable, AccountNum)).value(tempTable.AccountMain);
+                }
+
+                select count(RecId) from tempTable where !tempTable.Reversed;
+                numRecords = int642int(tempTable.RecId);
+
+                if(numRecords > 0)
+                {
+                    CustTable_ds.executeQuery();
+                }
+                else
+                {
+                    Box::info("@SCL486");
+                    webshop.modified();
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Refresh</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            delete_from tempTable;
+            CustTable_ds.research();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RemoveAllFilters</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Webshop.modified();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Webshop</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+        
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(SC_WebShopsTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebShopsTable::lookupWebshops(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            Map           filters;
+            MapEnumerator filtersEnum;
+            boolean       ret;            
+            ;
+            ret = super();
+
+            B2CCustomer.selection(0);
+            IsGuestFilter.selection(0);
+            prevSelection = 0;
+            prevSelection2 = 0;
+
+            filters     = SC_FilterWebShopsTable::getWebshopFilters(webshop.text(), tableStr(CustTable));
+            filtersEnum = filters.getEnumerator();
+
+            CustTable_ds.query().dataSourceTable(tableNum(CustTable)).clearRanges();
+
+            while(filtersEnum.moveNext())
+            {
+                CustTable_ds.query().dataSourceTable(tableNum(CustTable)).addRange(fieldname2id(tablenum(CustTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+            }
+
+            numRecords = element.countNumRecords();
+
+            CustTable_ds.executeQuery();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>B2CCustomer</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean     ret;
+            String50    expr;
+            ;
+            ret = super();
+        
+            if(this.selection() != prevSelection)
+            {
+                expr = this.selection() == NoneNoYes_IN::None ? '0..1' : this.selection() == NoneNoYes_IN::Yes ? '1' : '0';
+                SysQuery::findOrCreateRange(CustTable_ds.query().dataSourceTable(tablenum(CustTable)), fieldnum(CustTable, SC_B2CCustomer)).value(expr);
+                CustTable_ds.executeQuery();
+
+                numRecords    = element.countNumRecords(fieldnum(CustTable, SC_B2CCustomer), expr);
+                prevSelection = this.selection();
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>IsGuestFilter</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean     ret;
+            String50    expr;
+            ;
+            ret = super();
+    
+            if(this.selection() != prevSelection2)
+            {
+                expr = this.selection() == NoneNoYes_IN::None ? '0..1' : this.selection() == NoneNoYes_IN::Yes ? '1' : '0';
+                SysQuery::findOrCreateRange(CustTable_ds.query().dataSourceTable(tablenum(CustTable)), fieldnum(CustTable, SC_IsGuest)).value(expr);
+                CustTable_ds.executeQuery();
+
+                numRecords     = element.countNumRecords(fieldnum(CustTable, SC_IsGuest), expr);
+                prevSelection2 = this.selection();
+            }
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Currency</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+        
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(Currency::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(Currency), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>CustTable</Name>
+			<Table>CustTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AccountNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AccountStatement</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Affiliated_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AgencyLocationCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AuthorityOffice_IT</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BankAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BankCentralBankPurposeCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BankCentralBankPurposeText</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BankCustPaymIdTable</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BirthCountyCode_IT</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BirthDate_IT</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BirthPlace_IT</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Blocked</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CashDisc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CashDiscBaseDays</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CCMNum_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CFDIEnabled_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ClearingPeriod</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CNAE_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CNPJCPFNum_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CommercialRegister</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CommercialRegisterInsetNumber</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CommercialRegisterSection</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CommissionGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompanyChainId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompanyIdSiret</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompanyNAFCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompanyType_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ConsDay_JP</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ContactPersonId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreditCardAddressVerification</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreditCardAddressVerificationLevel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreditCardAddressVerificationVoid</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreditCardCVC</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreditMax</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreditRating</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Curp_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Currency</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustClassificationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustExcludeCollectionFee</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustExcludeInterestCharges</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustFinalUser_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustItemGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustTradingPartnerCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustWhtContributionType_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustWriteOffRefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultDimension</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultDirectDebitMandate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultInventStatusId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DestinationCodeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DlvMode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DlvReason</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DlvTerm</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EInvoice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EInvoiceAttachment</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EinvoiceEANNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EInvoiceRegister_IT</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EndDisc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnterpriseCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EnterpriseNumber</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EntryCertificateRequired_W</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExportSales_PL</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExpressBillOfLading</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FactoringAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FederalComments</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FedNonFedIndicator</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FineCode_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FiscalCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FiscalDocType_PL</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ForecastDMPInclude</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ForeignerId_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ForeignResident_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ForeignTaxRegistration_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ForeignTrade_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FreightZone</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GenerateIncomingFiscalDocument_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GiroType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GiroTypeAccountStatement</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GiroTypeCollectionletter</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GiroTypeFreeTextInvoice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GiroTypeInterestNote</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GiroTypeProjInvoice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ICMSContributor_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IdentificationNumber</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IENum_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InclTax</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>INSSCEI_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IntBank_LV</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InterCompanyAllowIndirectCreation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InterCompanyAutoCreateOrders</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InterCompanyDirectDelivery</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InterestCode_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventProfileId_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventProfileType_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventSiteId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InvoiceAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InvoiceAddress</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InvoicePostingType_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IRS1099CIndicator</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsExternallyMaintained</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsResident_LV</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IssueOwnEntryCertificate_W</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IssuerCountry_HU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LineDisc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LineOfBusinessId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LvPaymTransCodes</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MainContactWorker</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MandatoryCreditLimit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MandatoryVatDate_PL</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MarkupGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MCRMergedParent</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MCRMergedRoot</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Memo</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MultiLineDisc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NIT_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>numberSequenceGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OneTimeCustomer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderEntryDeadlineGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrgId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OurAccountNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PackageDepositExcempt_PL</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PackedExtensions</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PackMaterialFeeLicenseNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Party</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PartyCountry</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PartyState</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PassportNo_HU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymDayId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymentReference_EE</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymIdType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymMode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymSched</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymSpec</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PaymTermId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsCustRebateGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsFreightAccrued</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsRebateTMAGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PresenceType_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PriceGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RegNum_W</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ResidenceForeignCountryRegionId_IT</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Rfc_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RFIDCaseTagging</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RFIDItemTagging</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RFIDPalletTagging</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesCalendarId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesDistrictId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesPoolId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SATPaymMethod_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SATPurpose_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_B2cCustomer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_ImportCustNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_IsGuest</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_LastModified</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SegmentId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ServiceCodeOnDlvAddress_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShipCarrierAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShipCarrierAccountCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShipCarrierBlindShipment</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShipCarrierFuelSurcharge</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShipCarrierId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StateInscription_MX</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StatisticsGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SubsegmentId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Suframa_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SuframaNumber_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SuframaPISCOFINS_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SuppItemGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxBorderNumber_FI</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxGSTReliefGroupHeading_MY</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxLicenseNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxPeriodPaymentCode_PL</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxWithholdCalculate_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxWithholdCalculate_TH</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxWithholdGroup_TH</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UnitedVATInvoice_LT</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UseCashDisc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UseOriginalDocumentAsFacture_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>usePurchRequest</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VATNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VendAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebSalesOrderDisplay</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WorkflowState</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL484</Caption>
+		<Pattern xmlns="">SimpleDetails-FastTabsContainer</Pattern>
+		<PatternVersion xmlns="">1.4</PatternVersion>
+		<TitleDataSource xmlns="">CustTable</TitleDataSource>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>286331152</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormActionPaneTabControl">
+						<Name>GeneralTab</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ActionPaneTab</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>OrdersGroup</Name>
+								<ElementPosition>715827882</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ButtonGroup</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>SC_SalesQuotationListPageWebshop</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataSource>CustTable</DataSource>
+										<MenuItemName>SC_SalesQuotationListPageWebshop</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>SC_SalesTableListPageWebshop</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataSource>CustTable</DataSource>
+										<MenuItemName>SC_SalesTableListPageWebshop</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>SC_CustPackingSlipJournalWebshop</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataSource>CustTable</DataSource>
+										<MenuItemName>SC_CustPackingSlipJournalWebshop</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>SC_CustInvoiceJournalWebshop</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataSource>CustTable</DataSource>
+										<MenuItemName>SC_CustInvoiceJournalWebshop</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>SC_ReturnTableListPageWebshop</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataSource>CustTable</DataSource>
+										<MenuItemName>SC_ReturnTableListPageWebshop</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SCL278</Caption>
+								<DataSource>CustTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>AddressGroup</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ButtonGroup</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>CustDirPartyPostalAddressAdvanced</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataSource>CustTable</DataSource>
+										<MenuItemName>CustDirPartyPostalAddressAdvanced</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+										<Text>@SYS302360</Text>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SYS7566</Caption>
+								<DataSource>CustTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>CalculationsGroup</Name>
+								<Type>ButtonGroup</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>OnlyValidButton</Name>
+										<HelpText>@SYS35305</HelpText>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL479</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>OnlyNonIndexableButton</Name>
+										<HelpText>@SYS35305</HelpText>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL480</Text>
+									</AxFormControl>
+								</Controls>
+								<Caption>@SYS35062</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>RefreshGroup</Name>
+								<ElementPosition>1789569705</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ButtonGroup</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>Refresh</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SYS76741</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SYS29018</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>RemoveAllFilters</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL491</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL490</Text>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SYS6188</Caption>
+							</AxFormControl>
+						</Controls>
+						<AlignChild>No</AlignChild>
+						<AlignChildren>No</AlignChildren>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+						<Caption>@SYS302</Caption>
+						<DataSource>CustTable</DataSource>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>CustTable</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>572662304</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FilterPage</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Filters</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Webshop</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HelpText>@SCL173</HelpText>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+										<Label>@SCL161</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>B2CCustomer</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1073741823</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HelpText>@SCL34</HelpText>
+										<Type>ComboBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<EnumType>NoneNoYes_IN</EnumType>
+										<Label>@SCL18</Label>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>IsGuestFilter</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1073741823</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HelpText>@SCL348</HelpText>
+										<Type>ComboBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<EnumType>NoneNoYes_IN</EnumType>
+										<Label>@SYS59517</Label>
+										<Items />
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@SYS190436</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FooterPage</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Pattern>Custom</Pattern>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>CustomerInfo</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>CustSite</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1252698793</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustSite</DataMethod>
+										<DataSource>CustTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Warehouse</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustWarehouse</DataMethod>
+										<DataSource>CustTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>CustTable_DlvMode</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DlvMode</DataField>
+										<DataSource>CustTable</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Caption>@SYS29051</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>SalesInfo</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Currency</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Currency</DataField>
+										<DataSource>CustTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>PricesIncVAT</Name>
+										<ElementPosition>1288490187</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>CheckBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>InclTax</DataField>
+										<DataSource>CustTable</DataSource>
+										<Label>@SYS55608</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>CountRec</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1717986916</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Integer</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayNumOfProducts</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<Label>@SYS54695</Label>
+									</AxFormControl>
+								</Controls>
+								<Caption>@SCL168</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info</Name>
+								<ElementPosition>1879048189</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>InvalidReasonTxt</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayInvalidReason</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<Label>@SYS332054</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>NonIndexableReasonTxt</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayNonIndexableReason</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<Label>@SCL481</Label>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+								<Caption>@SYS2272</Caption>
+							</AxFormControl>
+						</Controls>
+						<Columns>3</Columns>
+						<Caption>@SYS325247</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>GridPage</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<ElementPosition>858993458</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>CustTable_AccountNum</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>AccountNum</DataField>
+										<DataSource>CustTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>AccountName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustName</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<Label>@SYS27874</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>CustTable_SC_B2cCustomer</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>SC_B2cCustomer</DataField>
+										<DataSource>CustTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>IsGuest</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayIsGuest</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<Label>@SYS59517</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>IsValid</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayIsValid</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<Label>@SYS8553</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>IsIndexable</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayIsIndexable</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<Label>@SCL482</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>InvalidityReason</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayInvalidReason</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<DisplayHeight>1</DisplayHeight>
+										<DisplayHeightMode>Fixed</DisplayHeightMode>
+										<Label>@SCL483</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>NonIndexableReason</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayNonIndexableReason</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<DisplayHeight>1</DisplayHeight>
+										<DisplayHeightMode>Fixed</DisplayHeightMode>
+										<Label>@SCL481</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>LastDateTimeModified</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1932735280</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SYS79784</HelpText>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayLastMDateTime</DataMethod>
+										<DataSource>CustTable</DataSource>
+										<DisplayLength>18</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
+										<Label>@SCL109</Label>
+									</AxFormControl>
+								</Controls>
+								<DataSource>CustTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS26263</Caption>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

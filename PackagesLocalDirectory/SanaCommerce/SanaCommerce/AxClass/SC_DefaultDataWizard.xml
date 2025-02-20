@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_DefaultDataWizard</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_DefaultDataWizard extends SysDefaultDataWizard
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>accessMenuFunction</Name>
+				<Source><![CDATA[
+    public MenuFunction accessMenuFunction()
+    {
+        return new MenuFunction(menuitemdisplaystr(SC_DefaultDataWizard),MenuItemType::Display);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formName</Name>
+				<Source><![CDATA[
+    FormName formName()
+    {
+        return formstr(SC_DefaultDataWizard);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    void run()
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setupNavigation</Name>
+				<Source><![CDATA[
+    /*
+    Use this method to setup the two arrays: nextEnabled[] and backEnabled[]
+    Call this.nextEnabled(boolean) and this.backEnabled(boolean) to enable/disable the buttons runtime.
+    */
+    void setupNavigation()
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validate</Name>
+				<Source><![CDATA[
+    boolean validate()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    static void main(args args)
+    {
+        SC_DefaultDataWizard wizard = new SC_DefaultDataWizard();
+    
+        wizard.init();
+        if (wizard.prompt())
+        {
+            wizard.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

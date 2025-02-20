@@ -1,0 +1,1184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMap xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DocPrintDestinationSettingsMap</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DocPrintDestinationSettingsMap extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setRecordFromPrintDestinationSettings</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the current record of the table buffer assigned to the current instance of the 
+    /// DocPrintDestinationSettingsMap map from the specified print destination settings.
+    /// </summary>
+    /// <param name = "_pds">An instance of the SRSPrintDestinationSettings object with print destination settings</param>
+    public void setRecordFromPrintDestinationSettings(SRSPrintDestinationSettings _pds)
+    {
+        DocPrintDestinationSettingsMap tmpPrintDestSettingsMap;
+
+        if (_pds == null)
+        {
+            return;
+        }
+
+        // -------------------------------------------
+        // Print destination
+        // -------------------------------------------
+        tmpPrintDestSettingsMap.PrintMediumType = _pds.printMediumType();
+
+        // -------------------------------------------
+        // Docentric generate DS
+        // -------------------------------------------
+        DocPrintDestSettingsGenerateDS docGenerateDSSettings = _pds.parmGenerateDSPrintDestSettings_DC();
+
+        tmpPrintDestSettingsMap.DestDocGenerateDsXmlFilename = docGenerateDSSettings.parmXmlDataSourceFilename();
+        tmpPrintDestSettingsMap.DestDocGenerateDsLanguage = docGenerateDSSettings.parmLanguageId();
+        tmpPrintDestSettingsMap.DestDocGenerateDsPreviewLanguages = docGenerateDSSettings.parmPreviewLanguages();
+        tmpPrintDestSettingsMap.DestDocGenerateDsDocentricEngine = docGenerateDSSettings.parmSelectedEngine();
+
+        // -------------------------------------------
+        // Docentric options
+        // -------------------------------------------
+        DocSrsPrintReportSettings docSrsPrintReportSettings = _pds.parmSrsPrintReportSettings_DC();
+
+        tmpPrintDestSettingsMap.DestDocSaveInPrintArchive = docSrsPrintReportSettings.parmSaveToArchive();
+        tmpPrintDestSettingsMap.DestDocSaveToArchiveNote = docSrsPrintReportSettings.parmSaveToArchiveNote();
+        tmpPrintDestSettingsMap.DestDocSaveToArchiveDocuType = docSrsPrintReportSettings.parmSaveToArchiveDocuTypeId();
+        tmpPrintDestSettingsMap.DestDocSaveProformaToArchive = docSrsPrintReportSettings.parmSaveProformaToArchive();
+        tmpPrintDestSettingsMap.DestDocPdfAConformanceLevel = docSrsPrintReportSettings.parmPdfAConformanceLevel();
+        tmpPrintDestSettingsMap.DestDocPreviewBeforePrint = docSrsPrintReportSettings.parmPreviewBeforePrint();
+                
+        // -------------------------------------------
+        // Template
+        // -------------------------------------------
+        tmpPrintDestSettingsMap.DestDocTemplateId = docSrsPrintReportSettings.parmTemplateId();
+        if (!tmpPrintDestSettingsMap.DestDocTemplateId)
+        {
+            tmpPrintDestSettingsMap.DestDocTemplateId = DocConstant::DefaultTemplatePlaceholder;
+        }
+                
+        // -------------------------------------------
+        // Docentric printer
+        // -------------------------------------------
+        DocPrintDestSettingsPrinter docPrinterSettings = _pds.parmPrinterPrintDestSettings_DC();
+                                              
+        tmpPrintDestSettingsMap.DestDocPrinterName = docPrinterSettings.parmSelectedPrinterName();
+        tmpPrintDestSettingsMap.DestDocPrinterOrientation = docPrinterSettings.parmOrientation();
+        tmpPrintDestSettingsMap.DestDocPrinterDuplexPrinting = docPrinterSettings.parmDuplexPrinting();
+        tmpPrintDestSettingsMap.DestDocPrinterCollated = docPrinterSettings.parmCollated();
+        tmpPrintDestSettingsMap.DestDocPrinterNumberOfCopies = docPrinterSettings.parmNumberOfCopies();
+        tmpPrintDestSettingsMap.DestDocPrinterPrintFromPage = docPrinterSettings.parmPrintFromPage();
+        tmpPrintDestSettingsMap.DestDocPrinterPrintToPage = docPrinterSettings.parmPrintToPage();
+        tmpPrintDestSettingsMap.DestDocPrinterPrintAllPages = docPrinterSettings.parmPrintAllPages();
+        tmpPrintDestSettingsMap.DestDocPrinterPrintAsPdf = docPrinterSettings.parmPrintAsPdf();
+        tmpPrintDestSettingsMap.DestDocPrinterPrintAsPdfFilename = docPrinterSettings.parmPrintAsPdfFilename();
+                
+        // -------------------------------------------
+        // Docentric file
+        // -------------------------------------------
+        DocPrintDestSettingsFile docFileSettings = _pds.parmFilePrintDestSettings_DC();
+                        
+        tmpPrintDestSettingsMap.DestDocFileName = docFileSettings.parmOutputFilename();
+        tmpPrintDestSettingsMap.DestDocFileFormat = docFileSettings.parmOutputFileFormat();
+        tmpPrintDestSettingsMap.DestDocFileFormatSrs = docFileSettings.parmOutputFileFormatSrs();
+        tmpPrintDestSettingsMap.DestDocFileDownloadOutputFile = docFileSettings.parmSendOutputFileToUser();
+
+        tmpPrintDestSettingsMap.DestDocFileUseDocIdInFilename = docFileSettings.parmUseDocIdInFilename();
+        tmpPrintDestSettingsMap.DestDocFileUseTimestampAsSuffix = docFileSettings.parmUseTimestampAsSuffix();
+        tmpPrintDestSettingsMap.DestDocFileUseGuidAsSuffix = docFileSettings.parmUseGuidAsSuffix();
+
+        tmpPrintDestSettingsMap.DestDocFileSaveToAzureBlob = docFileSettings.parmSaveToAzureBlobStorage();
+        tmpPrintDestSettingsMap.DestDocFileAzureBlobStorageAccountId = docFileSettings.parmAzureBsAccountId();
+        tmpPrintDestSettingsMap.DestDocFileAzureBlobContainer = docFileSettings.parmAzureBsContainerName();
+        tmpPrintDestSettingsMap.DestDocFileAzureBlobPath = docFileSettings.parmAzureBsBlobPath();
+        tmpPrintDestSettingsMap.DestDocFileAzureBlobOverrideFileIfExists = docFileSettings.parmAzureBsOverrideFileIfExists();
+
+        tmpPrintDestSettingsMap.DestDocFileSaveToAzureFiles = docFileSettings.parmSaveToAzureFiles();
+        tmpPrintDestSettingsMap.DestDocFileAzureFilesAccountId = docFileSettings.parmAzureFilesAccountId();
+        tmpPrintDestSettingsMap.DestDocFileAzureFilesFileShare = docFileSettings.parmAzureFilesFileShareName();
+        tmpPrintDestSettingsMap.DestDocFileAzureFilesFolderPath = docFileSettings.parmAzureFilesDirectoryPath();
+        tmpPrintDestSettingsMap.DestDocFileAzureFilesOverrideFileIfExists = docFileSettings.parmAzureFilesOverrideFileIfExists();
+        tmpPrintDestSettingsMap.DestDocFileAzureFilesCreateNonExistingFileShare = docFileSettings.parmAzureFilesCreateNonExistingFileShare();
+        tmpPrintDestSettingsMap.DestDocFileAzureFilesCreateNonExistingFolders = docFileSettings.parmAzureFilesCreateNonExistingFolders();
+
+        tmpPrintDestSettingsMap.DestDocFileSaveToSharePoint = docFileSettings.parmSaveToSharePoint();
+        tmpPrintDestSettingsMap.DestDocFileSharePointSiteUrl = docFileSettings.parmSharePointSiteUrl();
+        tmpPrintDestSettingsMap.DestDocFileSharePointFolderPath = docFileSettings.parmSharePointFolderPath();
+        tmpPrintDestSettingsMap.DestDocFileSharePointOverrideFileIfExists = docFileSettings.parmSharePointOverrideFileIfExists();
+        tmpPrintDestSettingsMap.DestDocFileSharePointCreateNonExistingFolders = docFileSettings.parmSharePointCreateNonExistingFolders();
+
+        tmpPrintDestSettingsMap.DestDocFileSaveToAttachments = docFileSettings.parmSaveToAttachments();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsDocuType = docFileSettings.parmSaveToAttachmentsDocuTypeId();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsRecordType = docFileSettings.parmSaveToAttachmentsRecordType();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsOverridingMode = docFileSettings.parmSaveToAttachmentsOverridingMode();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsDocumentRestriction = docFileSettings.parmSaveToAttachmentsDocumentRestriction();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsCategoryId = docFileSettings.parmSaveToAttachmentsCategory();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsTags = docFileSettings.parmSaveToAttachmentsTags();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsLanguageMode = docFileSettings.parmSaveToAttachmentsLanguageMode();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsActiveFrom = docFileSettings.parmSaveToAttachmentsActiveFrom();
+        tmpPrintDestSettingsMap.DestDocFileAttachmentsActiveTo = docFileSettings.parmSaveToAttachmentsActiveTo();
+
+        tmpPrintDestSettingsMap.DestDocFileSaveToFileSystem = docFileSettings.parmSaveToFileSystem();
+        tmpPrintDestSettingsMap.DestDocFileFileSystemSharedFolder = docFileSettings.parmFileSystemFilePath();
+        tmpPrintDestSettingsMap.DestDocFileFileSystemOverrideFileIfExists = docFileSettings.parmFileSystemOverrideFileIfExists();
+                
+        // -------------------------------------------
+        // Docentric email
+        // -------------------------------------------
+        DocPrintDestSettingsEmail docEmailSettings = _pds.parmEmailPrintDestSettings_DC();
+                        
+        tmpPrintDestSettingsMap.DestDocEmailTo = docEmailSettings.parmEmailTo();
+        tmpPrintDestSettingsMap.DestDocEmailSubject = docEmailSettings.parmEmailSubject();
+        tmpPrintDestSettingsMap.DestDocEmailOpenEmailBeforeSending = docEmailSettings.parmOpenEmailBeforeSending();
+                        
+        tmpPrintDestSettingsMap.DestDocEmailAttachmentName = docEmailSettings.parmEmailAttachmentName();
+        tmpPrintDestSettingsMap.DestDocEmailAttachmentFileFormat = docEmailSettings.parmEmailAttachmentFileFormat();
+        tmpPrintDestSettingsMap.DestDocEmailAttachmentFileFormatSrs = docEmailSettings.parmEmailAttachmentFileFormatSrs();
+
+        tmpPrintDestSettingsMap.DestDocEmailCc = docEmailSettings.parmEmailCc();
+        tmpPrintDestSettingsMap.DestDocEmailBcc = docEmailSettings.parmEmailBcc();
+        tmpPrintDestSettingsMap.DestDocEmailFrom = docEmailSettings.parmEmailFrom();
+
+        tmpPrintDestSettingsMap.DestDocEmailUseEmailTemplate = docEmailSettings.parmUseEmailTemplate();
+        tmpPrintDestSettingsMap.DestDocEmailTemplateId = docEmailSettings.parmEmailTemplateId();
+        tmpPrintDestSettingsMap.DestDocEmailBody = docEmailSettings.parmEmailBody();
+        
+        // -------------------------------------------
+        // SSRS options
+        // -------------------------------------------
+        tmpPrintDestSettingsMap.DestSSRSSaveInPrintArchive = _pds.parmPrintToArchive();
+
+        // -------------------------------------------
+        // SSRS printer
+        // -------------------------------------------
+        tmpPrintDestSettingsMap.DestSSRSPrinterName = _pds.printerName();
+        tmpPrintDestSettingsMap.DestSSRSPrinterOrientation = _pds.orientation();
+        tmpPrintDestSettingsMap.DestSSRSPrinterOverridePageSettings = _pds.overridePageSettings();
+        tmpPrintDestSettingsMap.DestSSRSPrinterDuplexPrinting = _pds.printOnBothSides();
+        tmpPrintDestSettingsMap.DestSSRSPrinterCollated = _pds.collate();
+        tmpPrintDestSettingsMap.DestSSRSPrinterNumberOfCopies = _pds.numberOfCopies();
+        tmpPrintDestSettingsMap.DestSSRSPrinterPrintAllPages = _pds.printAllPages();
+        tmpPrintDestSettingsMap.DestSSRSPrinterPrintFromPage = _pds.fromPage();
+        tmpPrintDestSettingsMap.DestSSRSPrinterPrintToPage = _pds.toPage();
+                
+        // -------------------------------------------
+        // SSRS file
+        // -------------------------------------------
+        tmpPrintDestSettingsMap.DestSSRSFileFormat = _pds.fileFormat();
+        tmpPrintDestSettingsMap.DestSSRSFileName = _pds.fileName();
+                
+        // -------------------------------------------
+        // SSRS email
+        // -------------------------------------------
+        tmpPrintDestSettingsMap.DestSSRSEmailTo = _pds.emailTo();
+        tmpPrintDestSettingsMap.DestSSRSEmailCc = _pds.emailCc();
+        tmpPrintDestSettingsMap.DestSSRSEmailSubject = _pds.emailSubject();
+        tmpPrintDestSettingsMap.DestSSRSEmailAttachmentFileFormat = _pds.emailAttachmentFileFormat();
+
+
+        // Copy data from the temporary map instance without an assigned table buffer to the current map instance
+        // with an assigned table buffer. Fields that are not mapped in the current map instance are skipped.
+        this.data(tmpPrintDestSettingsMap);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPrintDestinationSettingsFromRecord</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the print destination settings from the current record from the table buffer assigned
+    /// to the current instance of the DocPrintDestinationSettingsMap map.
+    /// </summary>
+    /// <returns>An instance of the SRSPrintDestinationSettings object</returns>
+    public SRSPrintDestinationSettings getPrintDestinationSettingsFromRecord()
+    {
+        DocPrintDestinationSettingsMap tmpPrintDestSettingsMap;
+
+        // Copy data from the current map instance with an assigned table buffer to the new temporary map instance
+        // without an assigned table buffer. Fields that are not mapped in the current map instance are skipped.
+        tmpPrintDestSettingsMap.data(this);
+
+        // Create a new instance of the SRSPrintDestinationSettings object
+        SRSPrintDestinationSettings pds = new SRSPrintDestinationSettings();
+
+        // -------------------------------------------
+        // Print destination
+        // -------------------------------------------
+        pds.printMediumType(tmpPrintDestSettingsMap.PrintMediumType);
+        
+        // -------------------------------------------
+        // Options
+        // -------------------------------------------
+        pds.parmSrsPrintReportSettings_DC().parmSaveToArchive(tmpPrintDestSettingsMap.DestDocSaveInPrintArchive);
+        pds.parmSrsPrintReportSettings_DC().parmSaveToArchiveNote(tmpPrintDestSettingsMap.DestDocSaveToArchiveNote);
+        pds.parmSrsPrintReportSettings_DC().parmSaveToArchiveDocuTypeId(tmpPrintDestSettingsMap.DestDocSaveToArchiveDocuType);
+        pds.parmSrsPrintReportSettings_DC().parmSaveProformaToArchive(tmpPrintDestSettingsMap.DestDocSaveProformaToArchive);
+        pds.parmSrsPrintReportSettings_DC().parmPdfAConformanceLevel(tmpPrintDestSettingsMap.DestDocPdfAConformanceLevel);
+        pds.parmSrsPrintReportSettings_DC().parmPreviewBeforePrint(tmpPrintDestSettingsMap.DestDocPreviewBeforePrint);
+        
+        // -------------------------------------------
+        // Template
+        // -------------------------------------------
+        pds.parmSrsPrintReportSettings_DC().parmTemplateId(tmpPrintDestSettingsMap.DestDocTemplateId == DocConstant::DefaultTemplatePlaceholder ? '' : tmpPrintDestSettingsMap.DestDocTemplateId);
+                
+        // -------------------------------------------
+        // Docentric printer
+        // -------------------------------------------
+        DocPrintDestSettingsPrinter docPrinterSettings = new DocPrintDestSettingsPrinter();
+
+        docPrinterSettings.parmSelectedPrinterName(tmpPrintDestSettingsMap.DestDocPrinterName);
+        docPrinterSettings.parmOrientation(tmpPrintDestSettingsMap.DestDocPrinterOrientation);
+        docPrinterSettings.parmDuplexPrinting(tmpPrintDestSettingsMap.DestDocPrinterDuplexPrinting);
+        docPrinterSettings.parmCollated(tmpPrintDestSettingsMap.DestDocPrinterCollated);
+        docPrinterSettings.parmNumberOfCopies(tmpPrintDestSettingsMap.DestDocPrinterNumberOfCopies);
+        docPrinterSettings.parmPrintFromPage(tmpPrintDestSettingsMap.DestDocPrinterPrintFromPage);
+        docPrinterSettings.parmPrintToPage(tmpPrintDestSettingsMap.DestDocPrinterPrintToPage);
+        docPrinterSettings.parmPrintAllPages(tmpPrintDestSettingsMap.DestDocPrinterPrintAllPages);
+        docPrinterSettings.parmPrintAsPdf(tmpPrintDestSettingsMap.DestDocPrinterPrintAsPdf);
+        docPrinterSettings.parmPrintAsPdfFilename(tmpPrintDestSettingsMap.DestDocPrinterPrintAsPdfFilename);
+
+        pds.parmPrinterPrintDestSettings_DC(docPrinterSettings);
+                
+        // -------------------------------------------
+        // Docentric file
+        // -------------------------------------------
+        DocPrintDestSettingsFile docFileSettings = new DocPrintDestSettingsFile();
+                        
+        docFileSettings.parmOutputFilename(tmpPrintDestSettingsMap.DestDocFileName);
+        docFileSettings.parmOutputFileFormat(tmpPrintDestSettingsMap.DestDocFileFormat);
+        docFileSettings.parmOutputFileFormatSrs(tmpPrintDestSettingsMap.DestDocFileFormatSrs);
+        docFileSettings.parmUseSsrsBuiltInDesign(tmpPrintDestSettingsMap.DestDocTemplateId == DocConstant::BuiltInSsrsDesignPlaceholder);
+        docFileSettings.parmSendOutputFileToUser(tmpPrintDestSettingsMap.DestDocFileDownloadOutputFile);
+
+        docFileSettings.parmUseDocIdInFilename(tmpPrintDestSettingsMap.DestDocFileUseDocIdInFilename);
+        docFileSettings.parmUseTimestampAsSuffix(tmpPrintDestSettingsMap.DestDocFileUseTimestampAsSuffix);
+        docFileSettings.parmUseGuidAsSuffix(tmpPrintDestSettingsMap.DestDocFileUseGuidAsSuffix);
+
+        docFileSettings.parmSaveToAzureBlobStorage(tmpPrintDestSettingsMap.DestDocFileSaveToAzureBlob);
+        docFileSettings.parmAzureBsAccountId(tmpPrintDestSettingsMap.DestDocFileAzureBlobStorageAccountId);
+        docFileSettings.parmAzureBsContainerName(tmpPrintDestSettingsMap.DestDocFileAzureBlobContainer);
+        docFileSettings.parmAzureBsBlobPath(tmpPrintDestSettingsMap.DestDocFileAzureBlobPath);
+        docFileSettings.parmAzureBsOverrideFileIfExists(tmpPrintDestSettingsMap.DestDocFileAzureBlobOverrideFileIfExists);
+
+        docFileSettings.parmSaveToAzureFiles(tmpPrintDestSettingsMap.DestDocFileSaveToAzureFiles);
+        docFileSettings.parmAzureFilesAccountId(tmpPrintDestSettingsMap.DestDocFileAzureFilesAccountId);
+        docFileSettings.parmAzureFilesFileShareName(tmpPrintDestSettingsMap.DestDocFileAzureFilesFileShare);
+        docFileSettings.parmAzureFilesDirectoryPath(tmpPrintDestSettingsMap.DestDocFileAzureFilesFolderPath);
+        docFileSettings.parmAzureFilesOverrideFileIfExists(tmpPrintDestSettingsMap.DestDocFileAzureFilesOverrideFileIfExists);
+        docFileSettings.parmAzureFilesCreateNonExistingFileShare(tmpPrintDestSettingsMap.DestDocFileAzureFilesCreateNonExistingFileShare);
+        docFileSettings.parmAzureFilesCreateNonExistingFolders(tmpPrintDestSettingsMap.DestDocFileAzureFilesCreateNonExistingFolders);
+
+        docFileSettings.parmSaveToSharePoint(tmpPrintDestSettingsMap.DestDocFileSaveToSharePoint);
+        docFileSettings.parmSharePointSiteUrl(tmpPrintDestSettingsMap.DestDocFileSharePointSiteUrl);
+        docFileSettings.parmSharePointFolderPath(tmpPrintDestSettingsMap.DestDocFileSharePointFolderPath);
+        docFileSettings.parmSharePointOverrideFileIfExists(tmpPrintDestSettingsMap.DestDocFileSharePointOverrideFileIfExists);
+        docFileSettings.parmSharePointCreateNonExistingFolders(tmpPrintDestSettingsMap.DestDocFileSharePointCreateNonExistingFolders);
+
+        docFileSettings.parmSaveToAttachments(tmpPrintDestSettingsMap.DestDocFileSaveToAttachments);
+        docFileSettings.parmSaveToAttachmentsDocuTypeId(tmpPrintDestSettingsMap.DestDocFileAttachmentsDocuType);
+        docFileSettings.parmSaveToAttachmentsRecordType(tmpPrintDestSettingsMap.DestDocFileAttachmentsRecordType);
+        docFileSettings.parmSaveToAttachmentsOverridingMode(tmpPrintDestSettingsMap.DestDocFileAttachmentsOverridingMode);
+        docFileSettings.parmSaveToAttachmentsDocumentRestriction(tmpPrintDestSettingsMap.DestDocFileAttachmentsDocumentRestriction);
+        docFileSettings.parmSaveToAttachmentsCategory(tmpPrintDestSettingsMap.DestDocFileAttachmentsCategoryId);
+        docFileSettings.parmSaveToAttachmentsTags(tmpPrintDestSettingsMap.DestDocFileAttachmentsTags);
+        docFileSettings.parmSaveToAttachmentsLanguageMode(tmpPrintDestSettingsMap.DestDocFileAttachmentsLanguageMode);
+        docFileSettings.parmSaveToAttachmentsActiveFrom(tmpPrintDestSettingsMap.DestDocFileAttachmentsActiveFrom);
+        docFileSettings.parmSaveToAttachmentsActiveTo(tmpPrintDestSettingsMap.DestDocFileAttachmentsActiveTo);
+
+        docFileSettings.parmSaveToFileSystem(tmpPrintDestSettingsMap.DestDocFileSaveToFileSystem);
+        docFileSettings.parmFileSystemFilePath(tmpPrintDestSettingsMap.DestDocFileFileSystemSharedFolder);
+        docFileSettings.parmFileSystemOverrideFileIfExists(tmpPrintDestSettingsMap.DestDocFileFileSystemOverrideFileIfExists);
+
+        pds.parmFilePrintDestSettings_DC(docFileSettings);
+                
+        // -------------------------------------------
+        // Docentric email
+        // -------------------------------------------
+        DocPrintDestSettingsEmail docEmailSettings = new DocPrintDestSettingsEmail();
+                
+        docEmailSettings.parmEmailTo(tmpPrintDestSettingsMap.DestDocEmailTo);
+        docEmailSettings.parmEmailSubject(tmpPrintDestSettingsMap.DestDocEmailSubject);
+        docEmailSettings.parmOpenEmailBeforeSending(tmpPrintDestSettingsMap.DestDocEmailOpenEmailBeforeSending);
+                
+        docEmailSettings.parmEmailAttachmentName(tmpPrintDestSettingsMap.DestDocEmailAttachmentName);
+        docEmailSettings.parmEmailAttachmentFileFormat(tmpPrintDestSettingsMap.DestDocEmailAttachmentFileFormat);
+        docEmailSettings.parmEmailAttachmentFileFormatSrs(tmpPrintDestSettingsMap.DestDocEmailAttachmentFileFormatSrs);
+        docEmailSettings.parmEmailAttachmentUseSsrsBuiltInDesign(tmpPrintDestSettingsMap.DestDocTemplateId == DocConstant::BuiltInSsrsDesignPlaceholder);
+
+        docEmailSettings.parmEmailCc(tmpPrintDestSettingsMap.DestDocEmailCc);
+        docEmailSettings.parmEmailBcc(tmpPrintDestSettingsMap.DestDocEmailBcc);
+        docEmailSettings.parmEmailFrom(tmpPrintDestSettingsMap.DestDocEmailFrom);
+
+        docEmailSettings.parmUseEmailTemplate(tmpPrintDestSettingsMap.DestDocEmailUseEmailTemplate);
+        docEmailSettings.parmEmailTemplateId(tmpPrintDestSettingsMap.DestDocEmailTemplateId);
+        docEmailSettings.parmEmailBody(tmpPrintDestSettingsMap.DestDocEmailBody);
+
+        pds.parmEmailPrintDestSettings_DC(docEmailSettings);
+        
+        // -------------------------------------------
+        // SSRS options
+        // -------------------------------------------
+        pds.parmPrintToArchive(tmpPrintDestSettingsMap.DestSSRSSaveInPrintArchive);
+
+        // -------------------------------------------
+        // SSRS printer
+        // -------------------------------------------
+        pds.printerName(tmpPrintDestSettingsMap.DestSSRSPrinterName);
+        pds.orientation(tmpPrintDestSettingsMap.DestSSRSPrinterOrientation);
+        pds.overridePageSettings(tmpPrintDestSettingsMap.DestSSRSPrinterOverridePageSettings);
+        pds.printOnBothSides(tmpPrintDestSettingsMap.DestSSRSPrinterDuplexPrinting);
+        pds.collate(tmpPrintDestSettingsMap.DestSSRSPrinterCollated);
+        pds.numberOfCopies(tmpPrintDestSettingsMap.DestSSRSPrinterNumberOfCopies);
+        pds.printAllPages(tmpPrintDestSettingsMap.DestSSRSPrinterPrintAllPages);
+        pds.fromPage(tmpPrintDestSettingsMap.DestSSRSPrinterPrintFromPage);
+        pds.toPage(tmpPrintDestSettingsMap.DestSSRSPrinterPrintToPage);
+                
+        // -------------------------------------------
+        // SSRS file
+        // -------------------------------------------
+        pds.fileFormat(tmpPrintDestSettingsMap.DestSSRSFileFormat);
+        pds.fileName(tmpPrintDestSettingsMap.DestSSRSFileName);
+                
+        // -------------------------------------------
+        // SSRS email
+        // -------------------------------------------
+        pds.emailTo(tmpPrintDestSettingsMap.DestSSRSEmailTo);
+        pds.emailCc(tmpPrintDestSettingsMap.DestSSRSEmailCc);
+        pds.emailSubject(tmpPrintDestSettingsMap.DestSSRSEmailSubject);
+        pds.emailAttachmentFileFormat(tmpPrintDestSettingsMap.DestSSRSEmailAttachmentFileFormat);
+        
+        return pds;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@DocentricAX5:PrintDestinationSettingsMapDD</DeveloperDocumentation>
+	<Label>@DocentricAX5:PrintDestinationSettingsMap</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>PrintMediumType</TitleField1>
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>DocentricGenerateDs</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocGenerateDsXmlFilename</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocGenerateDsLanguage</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocGenerateDsPreviewLanguages</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocGenerateDsDocentricEngine</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricOptions</Name>
+			<Label>@DocentricAX4:DocentricOptions</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocSaveInPrintArchive</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocSaveToArchiveNote</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocSaveToArchiveDocuType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocSaveProformaToArchive</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPdfAConformanceLevel</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPreviewBeforePrint</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricTemplate</Name>
+			<Label>@DocentricAX4:DocentricTemplate</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocTemplateId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricPrinter</Name>
+			<Label>@DocentricAX4:DocentricPrinter</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterOrientation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterDuplexPrinting</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterCollated</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterNumberOfCopies</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterPrintAllPages</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterPrintFromPage</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterPrintToPage</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterPrintAsPdf</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocPrinterPrintAsPdfFilename</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricFile</Name>
+			<Label>@DocentricAX4:DocentricFile</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileFormat</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileFormatSrs</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileDownloadOutputFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileUseDocIdInFilename</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileUseTimestampAsSuffix</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileUseGuidAsSuffix</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricFileAzureBlob</Name>
+			<Label>@DocentricAX4:DocentricFileAzureBlob</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSaveToAzureBlob</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureBlobStorageAccountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureBlobContainer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureBlobPath</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureBlobOverrideFileIfExists</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricFileAzureFiles</Name>
+			<Label>@DocentricAX4:DocentricFileAzureFiles</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSaveToAzureFiles</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureFilesAccountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureFilesFileShare</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureFilesFolderPath</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureFilesOverrideFileIfExists</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureFilesCreateNonExistingFileShare</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAzureFilesCreateNonExistingFolders</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricFileSharePoint</Name>
+			<Label>@DocentricAX4:DocentricFileSharePoint</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSaveToSharePoint</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSharePointSiteUrl</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSharePointFolderPath</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSharePointOverrideFileIfExists</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSharePointCreateNonExistingFolders</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricFileAttachments</Name>
+			<Label>@DocentricAX4:DocentricFileAttachments</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSaveToAttachments</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsDocuType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsRecordType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsOverridingMode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsDocumentRestriction</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsCategoryId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsTags</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsLanguageMode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsActiveFrom</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileAttachmentsActiveTo</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricFileFileSystem</Name>
+			<Label>@DocentricAX4:DocentricFileFilesystem</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileSaveToFileSystem</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileFileSystemSharedFolder</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocFileFileSystemOverrideFileIfExists</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocentricEmail</Name>
+			<Label>@DocentricAX4:DocentricEmail</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailUseEmailTemplate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailTemplateId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailFrom</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailTo</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailCc</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailBcc</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailSubject</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailBody</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailOpenEmailBeforeSending</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailAttachmentName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailAttachmentFileFormat</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestDocEmailAttachmentFileFormatSrs</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SrsOptions</Name>
+			<Label>@DocentricAX4:SrsOptions</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSSaveInPrintArchive</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SrsPrinter</Name>
+			<Label>@DocentricAX4:SrsPrinter</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterOrientation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterDuplexPrinting</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterCollated</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterOverridePageSettings</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterNumberOfCopies</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterPrintAllPages</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterPrintFromPage</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSPrinterPrintToPage</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SrsFile</Name>
+			<Label>@DocentricAX4:SrsFile</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSFileName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSFileFormat</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SrsEmail</Name>
+			<Label>@DocentricAX4:SrsEmail</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSEmailTo</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSEmailCc</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSEmailSubject</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestSSRSEmailAttachmentFileFormat</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>PrintMediumType</Name>
+			<EnumType>SRSPrintMediumType</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocGenerateDsXmlFilename</Name>
+			<ExtendedDataType>DocDdspFilename</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocGenerateDsLanguage</Name>
+			<ExtendedDataType>LanguageId</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocGenerateDsPreviewLanguages</Name>
+			<ExtendedDataType>DocPreviewLanguages</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocGenerateDsDocentricEngine</Name>
+			<EnumType>DocSelectedDocentricEngine</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocSaveInPrintArchive</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocSaveToArchiveNote</Name>
+			<ExtendedDataType>DocPrintArchiveNote</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocSaveToArchiveDocuType</Name>
+			<ExtendedDataType>DocuTypeId</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocSaveProformaToArchive</Name>
+			<ExtendedDataType>DocSaveProformaToArchive</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocPdfAConformanceLevel</Name>
+			<EnumType>DocPdfAConformanceLevel</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocPreviewBeforePrint</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocTemplateId</Name>
+			<ExtendedDataType>DocReportTemplateIdSelect</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocPrinterName</Name>
+			<ExtendedDataType>DocPrinterSelect</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocPrinterOrientation</Name>
+			<EnumType>DocReportPrintOrientation</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocPrinterDuplexPrinting</Name>
+			<EnumType>DocReportDuplexPrintingSetting</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocPrinterCollated</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldInt">
+			<Name>DestDocPrinterNumberOfCopies</Name>
+			<ExtendedDataType>DocPrinterNumberOfCopies</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocPrinterPrintAllPages</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldInt">
+			<Name>DestDocPrinterPrintFromPage</Name>
+			<ExtendedDataType>DocPrinterPrintFromPage</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldInt">
+			<Name>DestDocPrinterPrintToPage</Name>
+			<ExtendedDataType>DocPrinterPrintToPage</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocPrinterPrintAsPdf</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocPrinterPrintAsPdfFilename</Name>
+			<ExtendedDataType>DocOutputFilename</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileName</Name>
+			<ExtendedDataType>DocOutputFilename</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileFormat</Name>
+			<EnumType>DocOutputFileFormat</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileFormatSrs</Name>
+			<EnumType>SRSReportFileFormat</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileDownloadOutputFile</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileUseDocIdInFilename</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileUseTimestampAsSuffix</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileUseGuidAsSuffix</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileSaveToAzureBlob</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAzureBlobStorageAccountId</Name>
+			<ExtendedDataType>DocAzureStorageAccountIdSelect</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAzureBlobContainer</Name>
+			<ExtendedDataType>DocAzureContainerName</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAzureBlobPath</Name>
+			<ExtendedDataType>DocAzureBlobPath</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAzureBlobOverrideFileIfExists</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileSaveToAzureFiles</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAzureFilesAccountId</Name>
+			<ExtendedDataType>DocAzureStorageAccountIdSelect</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAzureFilesFileShare</Name>
+			<ExtendedDataType>DocAzureFileShareName</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAzureFilesFolderPath</Name>
+			<ExtendedDataType>DocAzureFileFolderPath</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAzureFilesOverrideFileIfExists</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAzureFilesCreateNonExistingFileShare</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAzureFilesCreateNonExistingFolders</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileSaveToSharePoint</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileSharePointSiteUrl</Name>
+			<ExtendedDataType>DocSharePointSiteUrl</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileSharePointFolderPath</Name>
+			<ExtendedDataType>DocSharePointFolderPath</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileSharePointOverrideFileIfExists</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileSharePointCreateNonExistingFolders</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileSaveToAttachments</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAttachmentsDocuType</Name>
+			<ExtendedDataType>DocuTypeId</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAttachmentsRecordType</Name>
+			<EnumType>DocSaveToAttachmentsRecordType</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAttachmentsOverridingMode</Name>
+			<EnumType>DocAttachmentsOverridingMode</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAttachmentsDocumentRestriction</Name>
+			<EnumType>DocDocumentRestriction</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAttachmentsCategoryId</Name>
+			<ExtendedDataType>DocAttachmentCategoryId</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileAttachmentsTags</Name>
+			<ExtendedDataType>DocAttachmentTags</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileAttachmentsLanguageMode</Name>
+			<EnumType>DocAttachmentLanguageMode</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldDate">
+			<Name>DestDocFileAttachmentsActiveFrom</Name>
+			<ExtendedDataType>DocReportAttachmentActiveFrom</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldDate">
+			<Name>DestDocFileAttachmentsActiveTo</Name>
+			<ExtendedDataType>DocReportAttachmentActiveTo</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileSaveToFileSystem</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocFileFileSystemSharedFolder</Name>
+			<ExtendedDataType>DocSharedFolderName</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocFileFileSystemOverrideFileIfExists</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocEmailUseEmailTemplate</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailTemplateId</Name>
+			<ExtendedDataType>DocReportEmailTemplateIdSelect</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailFrom</Name>
+			<ExtendedDataType>DocEmailFrom</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailTo</Name>
+			<ExtendedDataType>DocEmailTo</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailCc</Name>
+			<ExtendedDataType>DocEmailCc</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailBcc</Name>
+			<ExtendedDataType>DocEmailBcc</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailSubject</Name>
+			<ExtendedDataType>DocEmailSubject</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailBody</Name>
+			<ExtendedDataType>DocEmailBody</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocEmailOpenEmailBeforeSending</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestDocEmailAttachmentName</Name>
+			<ExtendedDataType>DocEmailAttachmentName</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocEmailAttachmentFileFormat</Name>
+			<ExtendedDataType>DocEmailAttachmentFileFormat</ExtendedDataType>
+			<EnumType>DocOutputFileFormat</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestDocEmailAttachmentFileFormatSrs</Name>
+			<EnumType>SRSReportFileFormat</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSSaveInPrintArchive</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestSSRSPrinterName</Name>
+			<ExtendedDataType>PrinterName</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSPrinterOrientation</Name>
+			<EnumType>SRSReportPrintOrientation</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSPrinterDuplexPrinting</Name>
+			<EnumType>SRSReportDuplexPrintingSetting</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSPrinterCollated</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSPrinterOverridePageSettings</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldInt">
+			<Name>DestSSRSPrinterNumberOfCopies</Name>
+			<ExtendedDataType>DocPrinterNumberOfCopies</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSPrinterPrintAllPages</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldInt">
+			<Name>DestSSRSPrinterPrintFromPage</Name>
+			<ExtendedDataType>DocPrinterPrintFromPage</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldInt">
+			<Name>DestSSRSPrinterPrintToPage</Name>
+			<ExtendedDataType>DocPrinterPrintToPage</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestSSRSFileName</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSFileFormat</Name>
+			<EnumType>SRSReportFileFormat</EnumType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestSSRSEmailTo</Name>
+			<ExtendedDataType>DocEmailTo</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestSSRSEmailCc</Name>
+			<ExtendedDataType>DocEmailCc</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldString">
+			<Name>DestSSRSEmailSubject</Name>
+			<ExtendedDataType>LongDescription</ExtendedDataType>
+		</AxMapBaseField>
+		<AxMapBaseField xmlns=""
+			i:type="AxMapFieldEnum">
+			<Name>DestSSRSEmailAttachmentFileFormat</Name>
+			<EnumType>SRSReportFileFormat</EnumType>
+		</AxMapBaseField>
+	</Fields>
+	<Mappings />
+</AxMap>

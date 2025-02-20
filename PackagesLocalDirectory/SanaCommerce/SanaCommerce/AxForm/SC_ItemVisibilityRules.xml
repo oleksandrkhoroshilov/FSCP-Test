@@ -1,0 +1,840 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_ItemVisibilityRules</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_ItemVisibilityRules extends FormRun
+{
+    DialogButton dialogButton;
+    boolean      dialogButtonInit;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {   
+        super();
+
+        SC_ItemVisibilityRulesTable::fillEmptyWebshopIds();
+        SC_ItemVisibilityRulesTable::fillEmptyCategoryIds();
+
+        WebShopId.text(SC_WebShopsTable::findFirst().WebShopId);
+        WebShopId.modified();
+        this.updateDesign();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDesign</Name>
+				<Source><![CDATA[
+    private void updateDesign()
+    {
+        DictField   dictField;
+        SysDictType sysDictType;
+
+        Grid_ItemRelation.lookupButton(FormLookupButton::Always);
+        SC_ItemVisibilityRules_Value.enabled(SC_ItemVisibilityRules.ItemCode == SC_TableGroupCategory::ItemField);
+
+        SC_ItemVisibilityRules_Value.visible((select firstonly SC_ItemVisibilityRulesTable where SC_ItemVisibilityRulesTable.ItemCode ==
+                                             SC_TableGroupCategory::ItemField && SC_ItemVisibilityRulesTable.WebShopId == WebShopId.text()).RecId != 0 ||
+                                             SC_ItemVisibilityRules.ItemCode == SC_TableGroupCategory::ItemField);
+        
+        switch(SC_ItemVisibilityRules.ItemCode)
+        {
+            case SC_TableGroupCategory::Table:
+                Grid_ItemRelation.extendedDataType(extendedTypeNum(ItemId));                
+                break;
+
+            case SC_TableGroupCategory::Group:
+                Grid_ItemRelation.extendedDataType(extendedTypeNum(ItemGroupId));
+                break;
+
+            case SC_TableGroupCategory::Category:
+                Grid_ItemRelation.extendedDataType(extendedTypeNum(EcoResCategoryId));
+                break;
+
+            case SC_TableGroupCategory::ItemField:
+                Grid_ItemRelation.extendedDataType(extendedTypeNum(FieldName));
+
+                dictField = new DictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), SC_ItemVisibilityRules.ItemRelation));
+
+                if(dictField)
+                {
+                    sysDictType = new SysDictType(dictField.typeId());
+
+                    if((sysDictType && sysDictType.getLookupRelation()) || dictField.baseType() == Types::UtcDateTime ||
+                    dictField.baseType() == Types::Date || dictField.enumId())
+                    {
+                        SC_ItemVisibilityRules_Value.lookupButton(FormLookupButton::Always);
+                    }
+                    else
+                    {
+                        SC_ItemVisibilityRules_Value.lookupButton(FormLookupButton::Hidden);
+                    }
+
+                    SC_ItemVisibilityRules_Value.extendedDataType(dictField.typeId());
+                }
+                break;            
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>SC_ItemVisibilityRules</Name>
+				<Methods>
+					<Method>
+						<Name>displayItemName</Name>
+						<Source><![CDATA[
+        [SysClientCacheDataMethodAttribute(true)]
+        public display Name displayItemName(SC_ItemVisibilityRulesTable _ItemVisibilityRules)
+        {
+            Name name;
+            ;
+            switch(_ItemVisibilityRules.ItemCode)
+            {
+                case SC_TableGroupCategory::Table:
+                    name = InventTable::find(_ItemVisibilityRules.ItemRelation).productName(CompanyInfo::find().LanguageId);
+                    break;
+
+                case SC_TableGroupCategory::Group:
+                    name = InventItemGroup::find(_ItemVisibilityRules.ItemRelation).Name;
+                    break;
+
+                case SC_TableGroupCategory::Category:
+                    name = EcoResCategory::find(str2int64(_ItemVisibilityRules.ItemRelation)).Name;
+                    break;
+            }
+        
+            return name;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayCustName</Name>
+						<Source><![CDATA[
+        [SysClientCacheDataMethodAttribute(true)]
+        public display Name displayCustName(SC_ItemVisibilityRulesTable _ItemVisibilityRules)
+        {
+            Name name;
+            ;
+            if(_ItemVisibilityRules.AccountCode == SC_TableGroup::Table)
+            {
+                name = CustTable::find(_ItemVisibilityRules.AccountRelation).name();
+            }
+        
+            if(_ItemVisibilityRules.AccountCode == SC_TableGroup::Group)
+            {
+                name = CustGroup::find(_ItemVisibilityRules.AccountRelation).Name;
+            }
+        
+            return name;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+
+            element.updateDesign();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void initValue()
+        {
+            super();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void write()
+        {
+            boolean doUpdate;
+
+            if(Box::yesNo("@SCL519",DialogButton::Yes) == DialogButton::Yes)
+            {
+                doUpdate = true;
+            }
+
+            if(doUpdate && (SC_ItemVisibilityRules.orig().ItemCode != SC_ItemVisibilityRules.ItemCode || SC_ItemVisibilityRules.orig().ItemRelation != SC_ItemVisibilityRules.ItemRelation))
+            {
+                SC_ItemVisibilityRules.updateLastModifiedDateOnProduct(SC_ItemVisibilityRules.orig().ItemCode, SC_ItemVisibilityRules.orig().ItemRelation, SC_ItemVisibilityRules.orig().Value);
+            }
+
+            super();
+
+            if(doUpdate)
+            {
+                SC_ItemVisibilityRules.updateLastModifiedDateOnProduct(SC_ItemVisibilityRules.ItemCode, SC_ItemVisibilityRules.ItemRelation, SC_ItemVisibilityRules.Value);
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void delete()
+        {
+            if(!dialogButtonInit && SC_ItemVisibilityRules_ds.cursor())
+            {
+                dialogButton     = Box::yesNo("@SCL519", DialogButton::Yes);
+                dialogButtonInit = true;
+            }
+
+            if(dialogButton == DialogButton::Yes)
+            {
+                SC_ItemVisibilityRules.updateLastModifiedDateOnProduct(SC_ItemVisibilityRules.ItemCode, SC_ItemVisibilityRules.ItemRelation, SC_ItemVisibilityRules.Value);
+            }
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>AccountCode</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                SC_ItemVisibilityRules.AccountRelation = '';
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ItemCode</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+
+                SC_ItemVisibilityRules.ItemRelation = '';
+                SC_ItemVisibilityRules.Value = '';
+
+                element.updateDesign();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>WebshopId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+    
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(SC_WebShopsTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebShopsTable::lookupWebshops(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;            
+            ;
+        
+            ret = super();
+        
+            SysQuery::findOrCreateRange(SC_ItemVisibilityRules_ds.query().dataSourceTable(tableNum(SC_ItemVisibilityRulesTable)), fieldNum(SC_ItemVisibilityRulesTable, WebshopId)).value(WebshopId.text());
+            SC_ItemVisibilityRules_ds.executeQuery();
+
+            element.updateDesign();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            boolean ret;
+
+            ret = super();
+
+            return ret && this.valueStr();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Grid_ItemRelation</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            Args                     args;
+            FormRun                  formRun;
+            EcoResCategoryHierarchy  categoryHierarchy;
+            EcoResCategoryLookupParameters lookupParameters;
+
+            switch(SC_ItemVisibilityRules.ItemCode)
+            {
+                case SC_TableGroupCategory::Category:
+                    select firstonly categoryHierarchy;                    
+                    lookupParameters = new EcoResCategoryLookupParameters();
+                    lookupParameters.parmMultiRoleSelectionSet([EcoResCategoryNamedHierarchyRole::Retail,
+                                                        EcoResCategoryNamedHierarchyRole::RetailSpecialGroup,
+                                                        EcoResCategoryNamedHierarchyRole::Sales,
+                                                        EcoResCategoryNamedHierarchyRole::RetailChannelNavigation,
+                                                        EcoResCategoryNamedHierarchyRole::Commodity,
+                                                        EcoResCategoryNamedHierarchyRole::Financials,
+                                                        EcoResCategoryNamedHierarchyRole::Procurement,
+                                                        EcoResCategoryNamedHierarchyRole::RetailVendorProductHierarchy]);
+                
+                    args = new Args();
+                    args.name(formStr(EcoResCategorySingleLookup));
+                    args.caller(this);
+                    args.record(categoryHierarchy);
+                    args.lookupField(fieldNum(EcoResCategory, RecId));
+                    args.lookupValue(SC_ItemVisibilityRules.ItemRelation);
+                    args.parmObject(lookupParameters);
+                        
+                    formRun = classfactory.formRunClass(args);
+                    formRun.init();
+
+                    this.performFormLookup(formRun);                   
+                    break;
+
+                case SC_TableGroupCategory::ItemField:
+                    SC_ItemVisibilityRulesTable::lookupTableFields(this);
+                    break;
+
+                case SC_TableGroupCategory::Table:
+                    SC_ItemVisibilityRulesTable::lookupItem(this);
+                    break;
+
+                default:
+                    super();
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+
+            ret = super();
+
+            SC_ItemVisibilityRules.Value = '';
+            
+            element.updateDesign();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// table relations validation doesnt work in 10.0.30 FO, custom validation added
+        /// </summary>
+        /// <returns>is valid</returns>
+        public boolean validate()
+        {
+            SysDictField    dictField;
+            boolean         ret;           
+            Counter         maxLen = new SysDictType(Grid_ItemRelation.extendedDataType()).stringLen();
+                    
+            ret = super();
+    
+            if(ret && this.text())
+            {
+                switch(SC_ItemVisibilityRules.ItemCode)
+                {
+                    case SC_TableGroupCategory::Table:                        
+                        ret = strLen(this.text()) <= maxLen && InventTable::exist(this.text());
+                        break;
+                    case SC_TableGroupCategory::Group:                        
+                        ret = strLen(this.text()) <= maxLen && InventItemGroup::exist(this.text());
+                        break;
+                    case SC_TableGroupCategory::Category:
+                        ret = EcoResCategory::exist(str2Int64(this.text()));
+                        break;
+                    case SC_TableGroupCategory::ItemField:            
+                        dictField = new SysDictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), this.text()));
+                        ret = dictField ? true : false;
+                        break;
+                }    
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SC_ItemVisibilityRules_Value</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SysDictField   dictField;
+            FormRun     formRun;
+            Args        args;
+            ;
+
+            dictField = new SysDictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), SC_ItemVisibilityRules.ItemRelation));
+
+            if(dictField && (dictField.baseType() == Types::UtcDateTime || dictField.baseType() == Types::Date))
+            {
+                args        = new Args(formStr(SysDateLookup));
+                args.caller(element);
+                formRun     = classfactory.formRunClass(args);
+                formRun.init();
+                this.performFormLookup(formRun);
+            }
+            else
+            {
+                super();
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            #AOT
+            boolean         ret;
+            DictField       dictField;
+            DictRelation    dr;
+            Query           query = new Query();
+            QueryRun        queryRun;
+            
+            ret = strFind(this.text(), ',..><!*', 1, strLen(this.text())) ? true : super();            
+
+            if(ret && this.text() && SC_ItemVisibilityRules.ItemRelation && !strFind(this.text(), ',..><!*', 1, strLen(this.text())))
+            {
+                dictField = new DictField(tableNum(InventTable), fieldName2id(tableNum(InventTable), SC_ItemVisibilityRules.ItemRelation));
+
+                if(dictField && dictField.relationObject())
+                {
+                    dr = dictField.relationObject();
+                    query.addDataSource(dr.externTable()).addRange(dr.lineExternTableValue(1)).value(queryValue(this.text()));
+                    queryRun = new QueryRun(query);
+                    if(!queryRun.next())
+                    {
+                        ret = checkFailed(strfmt("@SYS112224", this.text(), fieldid2name(dr.externTable(), dr.lineExternTableValue(1)), tableid2name(dr.externTable())));
+                    }
+                }
+                else if(dictField)
+                {
+                    switch(dictField.baseType())
+                    {
+                        case Types::Integer, Types::Int64:
+                            if(!Global::str2IntOk(this.text()))
+                            {
+                                ret = checkFailed("@SYS104733");
+                            }
+                            break;
+                        case Types::Real:
+                            if(!Global::str2NumOk(this.text()))
+                            {
+                                ret = checkFailed("@SCL505");
+                            }
+                            break;
+                        case Types::Date, Types::UtcDateTime:
+                            if(str2Date(this.text(), -1) == dateNull())
+                            {
+                                ret = checkFailed("@SYS58184");
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>SC_ItemVisibilityRules</Name>
+			<Table>SC_ItemVisibilityRulesTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AccountCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AccountRelation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemRelation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Mode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebShopId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL181</Caption>
+		<DataSource xmlns="">SC_ItemVisibilityRules</DataSource>
+		<HideIfEmpty xmlns="">No</HideIfEmpty>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<Style xmlns="">SimpleList</Style>
+		<TitleDataSource xmlns="">SC_ItemVisibilityRules</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>477218588</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormActionPaneTabControl">
+						<Name>ActionPaneTab</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ActionPaneTab</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls />
+						<AlignChild>No</AlignChild>
+						<AlignChildren>No</AlignChildren>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+						<Caption>@SCL181</Caption>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>SC_ItemVisibilityRules</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>Grid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>WebshopId</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+						<Label>@SCL161</Label>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>Grid</Name>
+				<ElementPosition>954437176</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Grid</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>Grid_AccountCode</Name>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ComboBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>AccountCode</DataField>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_AccountRelation</Name>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>String</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>AccountRelation</DataField>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>Grid_ItemCode</Name>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ComboBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ItemCode</DataField>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_ItemRelation</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>editItemRelation</DataMethod>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Label>@SYS8631</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>SC_ItemVisibilityRules_Value</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>@SYS55288</HelpText>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>editFieldValue</DataMethod>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Label>@SYS8815</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>Grid_Mode</Name>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ComboBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>Mode</DataField>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Items />
+					</AxFormControl>
+				</Controls>
+				<DataSource>SC_ItemVisibilityRules</DataSource>
+				<Style>Tabular</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>Identification</Name>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>Auto</HeightMode>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>CustName</Name>
+						<ElementPosition>858993458</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>String</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>displayCustName</DataMethod>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Label>@SYS27874</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>ItemName</Name>
+						<ElementPosition>1288490187</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>String</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>displayItemName</DataMethod>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Label>@SYS28926</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>SC_ItemVisibilityRules_Mode</Name>
+						<ElementPosition>1717986916</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>ComboBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>Mode</DataField>
+						<DataSource>SC_ItemVisibilityRules</DataSource>
+						<Items />
+					</AxFormControl>
+				</Controls>
+				<ColumnsMode>Fill</ColumnsMode>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

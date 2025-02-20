@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_LanguageParametersTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_LanguageParametersTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>exist</Name>
+				<Source><![CDATA[
+    static boolean exist(LanguageId _languageId)
+    {
+        return _languageId && (select RecId from SC_LanguageParametersTable
+                               index hint LanguageIdx
+                               where SC_LanguageParametersTable.languageId == _languageId).RecId != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>existLocale</Name>
+				<Source><![CDATA[
+    static boolean existLocale(Integer _localeId)
+    {
+        return _localeId && (select RecId from SC_LanguageParametersTable
+                             index hint LocaleIdx
+                             where SC_LanguageParametersTable.localeId == _localeId).RecId != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    static SC_LanguageParametersTable find(LanguageId _languageId,
+                                           boolean     update = false)
+    {
+        SC_LanguageParametersTable  languageParametersTable;
+        ;
+    
+        languageParametersTable.selectForUpdate(update);
+    
+        if (_languageId)
+        {
+            select firstonly languageParametersTable
+                where languageParametersTable.languageId == _languageId;
+        }
+    
+        return languageParametersTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findByLocale</Name>
+				<Source><![CDATA[
+    static SC_LanguageParametersTable findByLocale(int _localeId,
+                                                   boolean     update = false)
+    {
+        SC_LanguageParametersTable  languageParametersTable;
+        ;
+    
+        languageParametersTable.selectForUpdate(update);
+    
+        if (_localeId)
+        {
+            select firstonly languageParametersTable
+                where languageParametersTable.localeId == _localeId;
+        }
+    
+        return languageParametersTable;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL142</DeveloperDocumentation>
+	<FormRef>SC_Parameters</FormRef>
+	<Label>@SCL112</Label>
+	<TitleField1>LanguageId</TitleField1>
+	<TitleField2>LocaleId</TitleField2>
+	<CacheLookup>EntireTable</CacheLookup>
+	<ClusteredIndex>LanguageIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<PrimaryIndex>LanguageIdx</PrimaryIndex>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LocaleId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LanguageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LocaleId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LanguageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS5711</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LanguageId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LocaleId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LanguageId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>LanguageId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LocaleId</Name>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>@SCL111</HelpText>
+			<Label>@SCL110</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>LanguageIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>LanguageId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>LocaleIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>LocaleId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>LanguageTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>LanguageTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>LanguageId</Name>
+					<Field>LanguageId</Field>
+					<RelatedField>LanguageId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

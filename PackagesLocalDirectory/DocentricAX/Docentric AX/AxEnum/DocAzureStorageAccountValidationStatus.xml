@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DocAzureStorageAccountValidationStatus</Name>
+	<Help>@DocentricAX5:AzureStorageAccountValidationStatusHelp</Help>
+	<Label>@DocentricAX5:AzureStorageAccountValidationStatus</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Valid</Name>
+			<Label>@DocentricAX5:AzureStorageAccountValidationStatusValid</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Error</Name>
+			<Label>@DocentricAX5:AzureStorageAccountValidationStatusError</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Unknown</Name>
+			<Label>@DocentricAX5:AzureStorageAccountValidationStatusUnknown</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

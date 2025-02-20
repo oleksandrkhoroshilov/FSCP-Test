@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>EcoResProductMasterDimension.Sana</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControl1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormIntegerControl">
+				<Name>EcoResProductMasterConfiguration_SC_SortNumConfig</Name>
+				<Type>Integer</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_SortNumConfig</DataField>
+				<DataSource>EcoResProductMasterConfiguration</DataSource>
+			</FormControl>
+			<Parent>GridConfigurations</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControl2</Name>
+			<FormControl xmlns=""
+				i:type="AxFormIntegerControl">
+				<Name>EcoResProductMasterSize_SC_SortNumSize</Name>
+				<Type>Integer</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_SortNumSize</DataField>
+				<DataSource>EcoResProductMasterSize</DataSource>
+			</FormControl>
+			<Parent>GridSizes</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControl3</Name>
+			<FormControl xmlns=""
+				i:type="AxFormIntegerControl">
+				<Name>EcoResProductMasterColor_SC_SortNumColor</Name>
+				<Type>Integer</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_SortNumColor</DataField>
+				<DataSource>EcoResProductMasterColor</DataSource>
+			</FormControl>
+			<Parent>GridColors</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControl4</Name>
+			<FormControl xmlns=""
+				i:type="AxFormIntegerControl">
+				<Name>EcoResProductMasterStyle_SC_SortNumStyle</Name>
+				<Type>Integer</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_SortNumStyle</DataField>
+				<DataSource>EcoResProductMasterStyle</DataSource>
+			</FormControl>
+			<Parent>GridStyles</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

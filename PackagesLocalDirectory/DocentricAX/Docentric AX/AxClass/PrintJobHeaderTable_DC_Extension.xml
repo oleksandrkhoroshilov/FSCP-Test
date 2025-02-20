@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>PrintJobHeaderTable_DC_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The class PrintJobHeaderTable_DC_Extension is an extension of the PrintJobHeader table.
+/// </summary>
+[ExtensionOf(tableStr(PrintJobHeader))]
+final class PrintJobHeaderTable_DC_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>pdfReportFilename_DC</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Display method for the archived report filename in PDF format.
+    /// </summary>
+    /// <returns>PDF report filename</returns>
+    [SysClientCacheDataMethodAttribute(true)]
+    public display Filename pdfReportFilename_DC()
+    {
+        return DocPrintArchiveHelper::getReportDocuRef_InPDF(this).docuValue().OriginalFileName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nonPdfReportFilename_DC</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Display method for the archived report filename in non-PDF format.
+    /// </summary>
+    /// <returns>Non-PDF report filename</returns>
+    [SysClientCacheDataMethodAttribute(true)]
+    public display Filename nonPdfReportFilename_DC()
+    {
+        DocPrintJobHeader docPrintJobHeader = DocPrintJobHeader::findByPrintJobHeader(this.RecId);
+
+        return DocPrintArchiveHelper::getReportDocuRef_InNonPDF(this, docPrintJobHeader).docuValue().OriginalFileName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

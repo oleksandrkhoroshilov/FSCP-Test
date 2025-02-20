@@ -1,0 +1,1641 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_EventsHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class SC_EventsHandler
+{
+    #SANA    
+        
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initValue_BOM</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// New components always visible for BOM    
+    /// </summary>
+    [PostHandlerFor(tableStr(BOM), tableMethodStr(BOM, initValue))]    
+    public static void initValue_BOM(XppPrePostArgs _args)
+    {
+        BOM      that = _args.getThis();        
+        
+        that.SC_VisibleInWebShop = NoYes::Yes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromCustInvoiceJour_Sales</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Copy Sana order ID inoivce journal to SalesTable    
+    /// </summary>
+    [PostHandlerFor(tableStr(SalesTable), tableMethodStr(SalesTable, initFromCustInvoiceJour))]    
+    public static void initFromCustInvoiceJour_Sales(XppPrePostArgs _args)
+    {
+        salesTable      salesTable = _args.getThis();
+        CustInvoiceJour custInvoiceJour = _args.getArg('custInvoiceJour');
+        
+        salesTable.SC_SanaOrder = salesTable.SC_SanaOrder ?  salesTable.SC_SanaOrder : custInvoiceJour.SC_SanaOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromSalesQuotationLine_Sales</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Copy Sana fields to SalesLine from Quotation line    
+    /// </summary>
+    [PostHandlerFor(tableStr(SalesLine), tableMethodStr(SalesLine, initFromSalesQuotationLine))]    
+    public static void initFromSalesQuotationLine_Sales(XppPrePostArgs _args)
+    {
+        SalesLine           salesLine = _args.getThis();
+        SalesQuotationLine  salesQuotationLine = _args.getArg('_salesQuotationLine');
+        
+        salesLine.SC_SuppItem           = salesQuotationLine.SC_SuppItem;
+        salesLine.SC_MixMatchDiscountId = salesQuotationLine.SC_MixMatchDiscountId;
+        salesLine.SC_ConfigurationId    = salesQuotationLine.SC_ConfigurationId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromSalesQuotationTable_Sales</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Copy Sana fields to SalesTable from QuotationTable
+    /// </summary>
+    [PostHandlerFor(tableStr(SalesTable), tableMethodStr(SalesTable, initFromSalesQuotationTable))]    
+    public static void initFromSalesQuotationTable_Sales(XppPrePostArgs _args)
+    {
+        SalesTable          salesTable = _args.getThis();
+        SalesQuotationTable salesQuotationTable = _args.getArg('_salesQuotationTable');
+        
+        salesTable.SC_BillToName              = salesQuotationTable.SC_BillToName;
+        salesTable.SC_Comments                = salesQuotationTable.SC_Comments;        
+        salesTable.SC_OrderId                 = salesQuotationTable.SC_OrderId;
+        salesTable.SC_PromotionAmount         = salesQuotationTable.SC_PromotionAmount;
+        salesTable.SC_PromotionCode           = salesQuotationTable.SC_PromotionCode;
+        salesTable.SC_PromotionTitle          = salesQuotationTable.SC_PromotionTitle;
+        salesTable.SC_PromotionType           = salesQuotationTable.SC_PromotionType;
+        salesTable.SC_PromotionValue          = salesQuotationTable.SC_PromotionValue;
+        salesTable.SC_PromotionDiscPercent    = salesQuotationTable.SC_PromotionDiscPercent;
+        salesTable.SC_PaymentMethod           = salesQuotationTable.SC_PaymentMethod;
+        salesTable.SC_PaymentStatus           = salesQuotationTable.SC_PaymentStatus;
+        salesTable.SC_PaymentTransactionId    = salesQuotationTable.SC_PaymentTransactionId;
+        salesTable.SC_SanaOrder               = salesQuotationTable.SC_SanaOrder;
+        salesTable.SC_DateReceived            = salesQuotationTable.SC_DateReceived;
+        salesTable.SC_TimeReceived            = salesQuotationTable.SC_TimeReceived;
+        salesTable.SC_ShipmentMethodName      = salesQuotationTable.SC_ShipmentMethodName;
+        salesTable.SC_ShopAccountCode         = salesQuotationTable.SC_ShopAccountCode;
+        salesTable.SC_AdminAccountCode        = salesQuotationTable.SC_AdminAccountCode;
+        salesTable.SC_WebshopId               = salesQuotationTable.SC_WebshopId;
+        salesTable.SC_PickupLocationId        = salesQuotationTable.SC_PickupLocationId;
+        salesTable.SC_PickupLocationAddress   = salesQuotationTable.SC_PickupLocationAddress;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromSalesTable_Invoice</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Copy Sana fields to CustInvoiceJour from SalesTable
+    /// </summary>
+    [PostHandlerFor(tableStr(CustInvoiceJour), tableMethodStr(CustInvoiceJour, initFromSalesTable))]    
+    public static void initFromSalesTable_Invoice(XppPrePostArgs _args)
+    {
+        CustInvoiceJour custInvoiceJour = _args.getThis();
+        salesTable      salesTable = _args.getArg('salesTable');
+        
+        custInvoiceJour.SC_BillToName      = salesTable.SC_BillToName;
+        custInvoiceJour.SC_PaymentMethod   = salesTable.SC_PaymentMethod;
+        custInvoiceJour.SC_Comments        = salesTable.SC_Comments;
+        custInvoiceJour.SC_SanaOrder       = salesTable.SC_SanaOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromSalesTable_PackSlip</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Copy Sana fields to CustPackingSlipJour from SalesTable
+    /// </summary>
+    [PostHandlerFor(tableStr(CustPackingSlipJour), tableMethodStr(CustPackingSlipJour, initFromSalesTable))]    
+    public static void initFromSalesTable_PackSlip(XppPrePostArgs _args)
+    {
+        CustPackingSlipJour custPackingSlipJour = _args.getThis();
+        salesTable          salesTable = _args.getArg('_salesTable');
+        
+        custPackingSlipJour.SC_BillToName      = salesTable.SC_BillToName;
+        custPackingSlipJour.SC_PaymentMethod   = salesTable.SC_PaymentMethod;
+        custPackingSlipJour.SC_Comments        = salesTable.SC_Comments;
+        custPackingSlipJour.SC_SanaOrder       = salesTable.SC_SanaOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromSalesTable_SalesTableDelete</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Copy Sana fields to SalesTableDelete from SalesTable
+    /// </summary>
+    [PostHandlerFor(tableStr(SalesTableDelete), tableMethodStr(SalesTableDelete, initFromSalesTable))]    
+    public static void initFromSalesTable_SalesTableDelete(XppPrePostArgs _args)
+    {
+        SalesTableDelete salesTableDelete = _args.getThis();
+        SalesTable       salesTable = _args.getArg('_salesTable');
+        
+        salesTableDelete.SC_SanaOrder = salesTable.SC_SanaOrder;
+        salesTableDelete.SC_OrderId   = salesTable.SC_OrderId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromTmpSuppItem_Quote</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Mark all supplemental quotation lines with Sana custom field
+    /// </summary>
+    [PostHandlerFor(classStr(SalesQuotationLineType), methodStr(SalesQuotationLineType, initFromTmpSuppItem))]    
+    public static void initFromTmpSuppItem_Quote(XppPrePostArgs _args)
+    {
+        SalesQuotationLineType salesQuotationLineType = _args.getThis();
+                       
+        SalesQuotationLine salesQuotationLine = salesQuotationLineType.parmSalesQuotationLine();
+
+        salesQuotationLine.SC_SuppItem = NoYes::Yes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromTmpSuppItem_Sales</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Mark all supplemental sales lines with Sana custom field
+    /// </summary>
+    [PostHandlerFor(classStr(SalesLineType), methodStr(SalesLineType, initFromTmpSuppItem))]    
+    public static void initFromTmpSuppItem_Sales(XppPrePostArgs _args)
+    {
+        SalesLineType salesLineType = _args.getThis();
+                        
+        SalesLine salesLine = salesLineType.parmSalesLine();
+
+        salesLine.SC_SuppItem = NoYes::Yes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DirPersonName_onModifiedField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for worker if name was changed
+    /// </summary>
+    [DataEventHandler(tableStr(DirPersonName), DataEventType::ModifiedField)]    
+    public static void DirPersonName_onModifiedField(Common sender, DataEventArgs e)
+    {
+        ModifyFieldEventArgs eventArgs = e as ModifyFieldEventArgs;
+        DirPersonName dirPersonName = sender as DirPersonName;
+        FieldId fieldId = eventArgs.parmFieldId();
+
+        switch (fieldId)
+        {
+            case fieldnum(DirPersonName, FirstName):
+            case fieldnum(DirPersonName, MiddleName):
+            case fieldnum(DirPersonName, LastName):
+                SC_EventsHandler::updateLastModifiedDateWorker(dirPersonName.Person);
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResCategory_onModifiedField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set visibility for child/parent categories on modify
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [DataEventHandler(tableStr(EcoResCategory), DataEventType::ModifiedField)]
+    public static void EcoResCategory_onModifiedField(Common sender, DataEventArgs e)
+    {
+        ModifyFieldEventArgs eventArgs = e as ModifyFieldEventArgs;
+        FieldId              fieldId = eventArgs.parmFieldId();
+        EcoResCategory       ecoResCategory = sender as EcoResCategory;
+        boolean              updateProductsVisibility, isSalesCategory;
+        
+        switch (fieldId)
+        {
+            case fieldNum(EcoResCategory, SC_VisibleInWebshop),
+                 fieldNum(EcoResCategory, SC_VisibleFrom),
+                 fieldNum(EcoResCategory, SC_VisibleTo):
+                ttsBegin;
+                if(Box::yesNo("@SCL450",DialogButton::Yes))
+                {
+                    updateProductsVisibility = true;
+                }
+
+                if(updateProductsVisibility)
+                {
+                    SC_EventsHandler::updateProductsVisibility(ecoResCategory);
+                }
+
+                isSalesCategory = EcoResCategoryHierarchyRole::existRoleHierarchyPair(EcoResCategoryNamedHierarchyRole::Sales, ecoResCategory.CategoryHierarchy);
+
+                if(!isSalesCategory || (isSalesCategory && ecoResCategory.SC_VisibleInWebshop))
+                {
+                    SC_EventsHandler::updateChildsVisibility(ecoResCategory, updateProductsVisibility);                
+                }
+
+                if(ecoResCategory.SC_VisibleInWebshop && ecoResCategory.ParentCategory && !isSalesCategory)
+                {
+                    SC_EventsHandler::updateParentsVisibility(ecoResCategory, updateProductsVisibility);
+                }
+                ttscommit;
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateChildsVisibility</Name>
+				<Source><![CDATA[
+    private static void updateChildsVisibility(EcoResCategory _ecoResCategory, boolean _updateProductsVisibility)
+    {
+        EcoResCategory subCategories;        
+
+        while select forupdate subCategories
+            where subCategories.ParentCategory == _ecoResCategory.RecId
+        {
+            subCategories.SC_VisibleInWebshop = _ecoResCategory.SC_VisibleInWebshop;
+            subCategories.SC_VisibleFrom      = _ecoResCategory.SC_VisibleFrom;
+            subCategories.SC_VisibleTo        = _ecoResCategory.SC_VisibleTo;
+            subCategories.update();
+
+            SC_EventsHandler::updateChildsVisibility(subCategories, _updateProductsVisibility);
+
+            if(_updateProductsVisibility)
+            {
+                SC_EventsHandler::updateProductsVisibility(subCategories);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateParentsVisibility</Name>
+				<Source><![CDATA[
+    private static void updateParentsVisibility(EcoResCategory _ecoResCategory, boolean _updateProductsVisibility)
+    {
+        EcoResCategory parentCategories;        
+
+        while select forupdate parentCategories
+            where parentCategories.RecId == _ecoResCategory.ParentCategory
+        {
+            parentCategories.SC_VisibleInWebshop = _ecoResCategory.SC_VisibleInWebshop;
+            parentCategories.update();
+
+            SC_EventsHandler::updateParentsVisibility(parentCategories, _updateProductsVisibility);
+
+            if(_updateProductsVisibility)
+            {
+                SC_EventsHandler::updateProductsVisibility(parentCategories);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedField_SalesQuotationTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set bill to name on modify invoice account.
+    /// Calculate promotion if promotion type or value changed.
+    /// </summary>
+    [PostHandlerFor(tableStr(SalesQuotationTable), tableMethodStr(SalesQuotationTable, modifiedField))]    
+    public static void modifiedField_SalesQuotationTable(XppPrePostArgs _args)
+    {
+        FieldId                 fieldId   = _args.getArg('_fieldId');
+        SalesQuotationTable     salesQuotationTable = _args.getThis();
+        LogisticsPostalAddress  address;
+        
+        switch (fieldId)
+        {
+            case fieldnum(SalesQuotationTable, InvoiceAccount):
+                address = DirParty::postalAddress(CustTable::find(salesQuotationTable.InvoiceAccount).Party, LogisticsLocationRoleType::Invoice);
+                address = address ? address : DirParty::primaryPostalAddress(CustTable::find(salesQuotationTable.InvoiceAccount).Party);
+                salesQuotationTable.SC_BillToName = DirPartyPostalAddressView::find(CustTable::find(salesQuotationTable.InvoiceAccount).Party, address.Location).LocationName;
+                break;
+    
+            case fieldnum(SalesQuotationTable, SC_PromotionType):
+            case fieldnum(SalesQuotationTable, SC_PromotionValue):
+                if((salesQuotationTable.SC_PromotionCode && salesQuotationTable.SC_PromotionType && salesQuotationTable.SC_PromotionValue) || salesQuotationTable.SC_PromotionDiscPercent)
+                {
+                    salesQuotationTable.updateFinalDisc();
+                }
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedField_SalesTableType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set bill to name on modify invoice account.
+    /// Calculate promotion if promotion type or value changed.
+    /// </summary>
+    [PostHandlerFor(classStr(SalesTableType), methodStr(SalesTableType, modifiedField))]    
+    public static void modifiedField_SalesTableType(XppPrePostArgs _args)
+    {
+        FieldId                 fieldId   = _args.getArg('_fieldId');
+        SalesTableType          salesTableType = _args.getThis();
+        SalesTable              salesTable = salesTableType.parmSalesTable();
+        LogisticsPostalAddress  address;
+        
+        switch (fieldId)
+        {
+            case fieldNum(SalesTable, InvoiceAccount):
+                address = DirParty::postalAddress(CustTable::find(salesTable.InvoiceAccount).Party, LogisticsLocationRoleType::Invoice);
+                address = address ? address : DirParty::primaryPostalAddress(CustTable::find(salesTable.InvoiceAccount).Party);
+                salesTable.SC_BillToName = LogisticsLocation::find(address.Location).Description;
+                break;
+    
+            case fieldnum(SalesTable, SC_PromotionType):
+            case fieldnum(SalesTable, SC_PromotionValue):
+                if((salesTable.SC_PromotionCode && salesTable.SC_PromotionType && salesTable.SC_PromotionValue) || salesTable.SC_PromotionDiscPercent)
+                {
+                    salesTable.updateFinalDisc();
+                }
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedField_InventTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Ask to update LMD for all variants.
+    /// </summary>
+    [PostHandlerFor(tableStr(InventTable), tableMethodStr(InventTable, modifiedField))]    
+    public static void modifiedField_InventTable(XppPrePostArgs _args)
+    {
+        FieldId     fieldId     = _args.getArg('_fieldId');
+        InventTable inventtable = _args.getThis();
+        
+        switch (fieldId)
+        {
+            case fieldNum(InventTable, SC_VisibleInWebShop):
+                if(inventTable.hasProductDimensions())
+                {
+                    if(Box::yesNo("@SCL184",DialogButton::Yes) == DialogButton::Yes)
+                    {                        
+                        SC_AXDataServiceClient_Product::updateAllVariantsVisibility(inventTable.ItemId, inventTable.SC_VisibleInWebShop);
+                    }
+                }
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventItemGroup_onModifiedField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Ask to update LMD for all products in this group.
+    /// </summary>
+    [DataEventHandler(tableStr(InventItemGroup), DataEventType::ModifiedField)]
+    public static void InventItemGroup_onModifiedField(Common sender, DataEventArgs e)
+    {
+        ModifyFieldEventArgs eventArgs  = e as ModifyFieldEventArgs;
+        InventItemGroup      inventItemGroup = sender as InventItemGroup;
+        FieldId              fieldId = eventArgs.parmFieldId();
+        boolean              updateProductsVisibility;
+
+        switch (fieldId)
+        {
+            case fieldNum(InventItemGroup, SC_VisibleInWebshop),
+                 fieldNum(InventItemGroup, SC_VisibleFrom),
+                 fieldNum(InventItemGroup, SC_VisibleTo):
+                ttsBegin;
+                if(Box::yesNo("@SCL456",DialogButton::Yes))
+                {
+                    updateProductsVisibility = true;
+                }
+
+                if(updateProductsVisibility)
+                {
+                    SC_EventsHandler::updateProductsVisibility(inventItemGroup);
+                }
+                ttscommit;
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePre_CustTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for all workers of customer group if changed.
+    /// Update LMD for main worker if changed.
+    /// </summary>
+    [PreHandlerFor(tableStr(CustTable), tableMethodStr(CustTable, update)), PreHandlerFor(tableStr(CustTable), tableMethodStr(CustTable, insert))]    
+    public static void updatePre_CustTable(XppPrePostArgs _args)
+    {
+        CustTable           custTable = _args.getThis();
+        CommissionSalesRep  commissionSalesRep;
+        System.DateTime     dateTime;
+        real                dReal;
+        
+        new InteropPermission(InteropKind::ClrInterop).assert();
+
+        dateTime                  = DateTimeUtil::utcNow();
+        dReal                     = dateTime.ToOADate();
+        custTable.SC_LastModified = dReal;
+    
+        if(custTable.orig().SalesGroup != custTable.SalesGroup)
+        {
+            while select Person from commissionSalesRep
+                where (commissionSalesRep.GroupId == custTable.SalesGroup && custTable.SalesGroup) ||
+                      (commissionSalesRep.GroupId == custTable.orig().SalesGroup && custTable.orig().SalesGroup)
+            {
+                SC_EventsHandler::updateLastModifiedDateWorker(commissionSalesRep.Person);
+            }
+        }
+
+        if(custTable.orig().MainContactWorker != custTable.MainContactWorker)
+        {
+            //we need update SalesPerson last modified date when empoyee responsible was removed from CustTable
+            if(custTable.MainContactWorker)
+            {
+                SC_EventsHandler::updateLastModifiedDateWorker(HcmWorker::find(custTable.MainContactWorker).Person);
+            }
+
+            if(custTable.orig().MainContactWorker)
+            {
+                SC_EventsHandler::updateLastModifiedDateWorker(HcmWorker::find(custTable.orig().MainContactWorker).Person);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CommissionSalesRep_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for worker if added\removed from sales group
+    /// </summary>
+    [DataEventHandler(tableStr(CommissionSalesRep), DataEventType::Updated), DataEventHandler(tableStr(CommissionSalesRep), DataEventType::Inserted), DataEventHandler(tableStr(CommissionSalesRep), DataEventType::Deleting)]        
+    public static void CommissionSalesRep_onUpdated(Common sender, DataEventArgs e)
+    {    
+        CommissionSalesRep   commissionSalesRep = sender as CommissionSalesRep;
+        
+        SC_EventsHandler::updateLastModifiedDateWorker(commissionSalesRep.Person);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateLastModifiedDateContact</Name>
+				<Source><![CDATA[
+    //ContactPerson ---
+    static void updateLastModifiedDateContact(ContactPersonId _account)
+    {
+        System.DateTime dateTime;
+        real            dReal;
+        ContactPerson   contactPerson = ContactPerson::find(_account, true);
+
+        if(contactPerson)
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+
+            dateTime = DateTimeUtil::utcNow();
+            dReal    = dateTime.ToOADate();
+
+            ttsbegin;
+            contactPerson.sc_LastModified = dReal;
+            contactPerson.doUpdate();
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePre_ContactPerson</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for contact
+    /// </summary>
+    [PreHandlerFor(tableStr(ContactPerson), tableMethodStr(ContactPerson, insert)), PreHandlerFor(tableStr(ContactPerson), tableMethodStr(ContactPerson, update))]    
+    public static void updatePre_ContactPerson(XppPrePostArgs _args)
+    {
+        ContactPerson   contactPerson = _args.getThis();
+        System.DateTime dateTime;
+        real            dReal;
+        
+        new InteropPermission(InteropKind::ClrInterop).assert();
+
+        dateTime = DateTimeUtil::utcNow();
+        dReal    = dateTime.ToOADate();
+        contactPerson.SC_LastModified = dReal;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>NewAddress_OnClicked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for customer if address added/changed
+    /// </summary>
+    [FormControlEventHandler(formControlStr(LogisticsPostalAddressGrid, NewAddress), FormControlEventType::Clicked), FormControlEventHandler(formControlStr(LogisticsPostalAddressGrid, EditAddress), FormControlEventType::Clicked), FormControlEventHandler(formControlStr(LogisticsPostalAddressGrid, DeactivateAddress), FormControlEventType::Clicked)]
+    public static void NewAddress_OnClicked(FormControl sender, FormControlEventArgs e)
+    {
+        System.DateTime dateTime;
+        Real            dReal;
+        FormRun         form = sender.formRun() as FormRun;
+        
+        if(form.args().caller() && form.args().caller().name() == formStr(CustTable))
+        {
+            CustTable custTable = form.args().record() as CustTable;
+            
+            dateTime = DateTimeUtil::utcNow();
+            dReal    = dateTime.ToOADate();
+            custTable.SC_LastModified = dReal;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductCategory_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if category added\changed
+    /// </summary>
+    [DataEventHandler(tableStr(EcoResProductCategory), DataEventType::Updated), DataEventHandler(tableStr(EcoResProductCategory), DataEventType::Inserted), DataEventHandler(tableStr(EcoResProductCategory), DataEventType::Deleting)]        
+    public static void EcoResProductCategory_onUpdated(Common sender, DataEventArgs e)
+    {
+        EcoResProductCategory   ecoResProductCategory = sender as EcoResProductCategory;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductCategory.Product);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductMasterColor_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if color added\changed
+    /// </summary>
+    [DataEventHandler(tableStr(EcoResProductMasterColor), DataEventType::Updated), DataEventHandler(tableStr(EcoResProductMasterColor), DataEventType::Inserted), DataEventHandler(tableStr(EcoResProductMasterColor), DataEventType::Deleting)]
+    public static void EcoResProductMasterColor_onUpdated(Common sender, DataEventArgs e)
+    {
+        EcoResProductMasterColor ecoResProductMasterColor = sender as EcoResProductMasterColor;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductMasterColor.ColorProductMaster);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductMasterSize_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if size added\changed
+    /// </summary>
+    [DataEventHandler(tableStr(EcoResProductMasterSize), DataEventType::Updated), DataEventHandler(tableStr(EcoResProductMasterSize), DataEventType::Inserted), DataEventHandler(tableStr(EcoResProductMasterSize), DataEventType::Deleting)]
+    public static void EcoResProductMasterSize_onUpdated(Common sender, DataEventArgs e)
+    {
+        EcoResProductMasterSize ecoResProductMasterSize = sender as EcoResProductMasterSize;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductMasterSize.SizeProductMaster);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductMasterStyle_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if style added\changed
+    /// </summary>
+    [DataEventHandler(tableStr(EcoResProductMasterStyle), DataEventType::Updated), DataEventHandler(tableStr(EcoResProductMasterStyle), DataEventType::Inserted), DataEventHandler(tableStr(EcoResProductMasterStyle), DataEventType::Deleting)]
+    public static void EcoResProductMasterStyle_onUpdated(Common sender, DataEventArgs e)
+    {
+        EcoResProductMasterStyle ecoResProductMasterStyle = sender as EcoResProductMasterStyle;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductMasterStyle.StyleProductMaster);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductMasterConfiguration_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if configuration added\changed
+    /// </summary>
+    [DataEventHandler(tableStr(EcoResProductMasterConfiguration), DataEventType::Updated), DataEventHandler(tableStr(EcoResProductMasterConfiguration), DataEventType::Inserted), DataEventHandler(tableStr(EcoResProductMasterConfiguration), DataEventType::Deleting)]
+    public static void EcoResProductMasterConfiguration_onUpdated(Common sender, DataEventArgs e)
+    {
+        EcoResProductMasterConfiguration ecoResProductMasterConfiguration = sender as EcoResProductMasterConfiguration;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductMasterConfiguration.ConfigProductMaster);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductRelationTable_onDeleting</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD on product if related products changed
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [DataEventHandler(tableStr(EcoResProductRelationTable), DataEventType::Deleting), DataEventHandler(tableStr(EcoResProductRelationTable), DataEventType::Inserted), DataEventHandler(tableStr(EcoResProductRelationTable), DataEventType::Updated)]
+    public static void EcoResProductRelationTable_onDeleting(Common sender, DataEventArgs e)
+    {
+        EcoResProductRelationTable   ecoResProductRelationTable = sender as EcoResProductRelationTable;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductRelationTable.Product1);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductTranslation_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if translation added\changed
+    /// </summary>
+    [DataEventHandler(tableStr(EcoResProductTranslation), DataEventType::Updated), DataEventHandler(tableStr(EcoResProductTranslation), DataEventType::Inserted), DataEventHandler(tableStr(EcoResProductTranslation), DataEventType::Deleting)]        
+    public static void EcoResProductTranslation_onUpdated(Common sender, DataEventArgs e)
+    {
+        EcoResProductTranslation   ecoResProductTranslation = sender as EcoResProductTranslation;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductTranslation.Product);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update_DocuRef</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product or variant if attachmment added\changed
+    /// </summary>
+    [PostHandlerFor(tableStr(DocuRef), tableMethodStr(DocuRef, insert)), PostHandlerFor(tableStr(DocuRef), tableMethodStr(DocuRef, update)), PreHandlerFor(tableStr(DocuRef), tableMethodStr(DocuRef, delete))]    
+    public static void update_DocuRef(XppPrePostArgs _args)
+    {
+        DocuRef docuRef = _args.getThis();
+
+        if(docuRef.RefTableId == tableNum(InventTable))
+        {
+            SC_AXDataServiceClient_Product::updateLastModifiedDate(InventTable::findRecId(docuRef.RefRecId).ItemId);
+        }
+
+        if(docuRef.RefTableId == tableNum(InventDimCombination))
+        {
+            SC_AXDataServiceClient_Product::updateLastModifiedDate(InventDimCombination::findRecId(docuRef.RefRecId).ItemId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateLastModifiedDateWorker</Name>
+				<Source><![CDATA[
+    //HcmWorker -----
+    static void updateLastModifiedDateWorker(DirPartyRecId _person)
+    {
+        System.DateTime dateTime;
+        Real            dReal;
+        HcmWorker       hcmWorker = HcmWorker::findByPerson(_person, true);
+
+        if(hcmWorker)
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+
+            dateTime = DateTimeUtil::utcNow();
+            dReal    = dateTime.ToOADate();
+
+            ttsBegin;
+            hcmWorker.SC_LastModified = dReal;
+            hcmWorker.doUpdate();
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePre_HcmWorker</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for worker on update
+    /// </summary>
+    [PreHandlerFor(tableStr(HcmWorker), tableMethodStr(HcmWorker, insert)), PreHandlerFor(tableStr(HcmWorker), tableMethodStr(HcmWorker, update))]    
+    public static void updatePre_HcmWorker(XppPrePostArgs _args)
+    {
+        HcmWorker       hcmWorker = _args.getThis();
+        System.DateTime dateTime;
+        real            dReal;
+        
+        new InteropPermission(InteropKind::ClrInterop).assert();
+
+        dateTime = DateTimeUtil::utcNow();
+        dReal    = dateTime.ToOADate();
+        hcmWorker.SC_LastModified = dReal;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update_InventDimCombination</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product variant if added\changed
+    /// </summary>
+    [PreHandlerFor(tableStr(InventDimCombination), tableMethodStr(InventDimCombination, delete)), PostHandlerFor(tableStr(InventDimCombination), tableMethodStr(InventDimCombination, insert)), PostHandlerFor(tableStr(InventDimCombination), tableMethodStr(InventDimCombination, update))]    
+    public static void update_InventDimCombination(XppPrePostArgs _args)
+    {
+        InventDimCombination   inventDimCombination = _args.getThis();
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate(inventDimCombination.ItemId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventItemBarcode_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if bar code added\changed
+    /// </summary>
+    [DataEventHandler(tableStr(InventItemBarcode), DataEventType::Updated), DataEventHandler(tableStr(InventItemBarcode), DataEventType::Inserted), DataEventHandler(tableStr(InventItemBarcode), DataEventType::Deleting)]        
+    public static void InventItemBarcode_onUpdated(Common sender, DataEventArgs e)
+    {
+        InventItemBarcode   inventItemBarcode = sender as InventItemBarcode;
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate(inventItemBarcode.ItemId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update_InventItemSalesSetup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if sales setup added\changed
+    /// </summary>
+    [PreHandlerFor(tableStr(InventItemSalesSetup), tableMethodStr(InventItemSalesSetup, delete)), PostHandlerFor(tableStr(InventItemSalesSetup), tableMethodStr(InventItemSalesSetup, insert)), PostHandlerFor(tableStr(InventItemSalesSetup), tableMethodStr(InventItemSalesSetup, update))]    
+    public static void update_InventItemSalesSetup(XppPrePostArgs _args)
+    {
+        InventItemSalesSetup   inventItemSalesSetup = _args.getThis();
+        
+        SC_AXDataServiceClient_Product::updateLastModifiedDate(inventItemSalesSetup.ItemId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PriceDiscTable_onFinalUpdateValidation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Strange behaviour in D365 Update 7. Event needed only forworking PriceDiscTable update trigger (next in this class)
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [DataEventHandler(tableStr(PriceDiscTable), DataEventType::FinalUpdateValidation)]
+    public static void PriceDiscTable_onFinalUpdateValidation(Common sender, DataEventArgs e)
+    {
+        int a;
+        a=0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update_PriceDiscTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product if trade agreement added\changed
+    /// </summary>
+    [PreHandlerFor(tableStr(PriceDiscTable), tableMethodStr(PriceDiscTable, delete)), PostHandlerFor(tableStr(PriceDiscTable), tableMethodStr(PriceDiscTable, insert)), PostHandlerFor(tableStr(PriceDiscTable), tableMethodStr(PriceDiscTable, update)), PostHandlerFor(tableStr(PriceDiscTable), tableMethodStr(PriceDiscTable, initValue))]    
+    public static void update_PriceDiscTable(XppPrePostArgs _args)
+    {
+        PriceDiscTable   priceDiscTable = _args.getThis();
+        
+        if(priceDiscTable.ItemCode == PriceDiscProductCodeType::Table)
+        {
+            SC_AXDataServiceClient_Product::updateLastModifiedDate(priceDiscTable.ItemRelation);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateFinalDiscount_PriceDiscHeading</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Calculate Sana promotion on final discount calculation
+    /// </summary>
+    [PostHandlerFor(tableStr(PriceDiscHeading), tableMethodStr(PriceDiscHeading, updateFinalDiscount))]    
+    public static void updateFinalDiscount_PriceDiscHeading(XppPrePostArgs _args)
+    {
+        PriceDiscHeading    priceDiscHeading = _args.getThis();
+        
+        if(priceDiscHeading.TableId == tablenum(SalesTable))
+        {
+            SC_AXDataServiceClient_Order::calcSalesPromotion(priceDiscHeading);
+        }
+
+        if(priceDiscHeading.TableId == tablenum(SalesQuotationTable))
+        {
+            SC_AXDataServiceClient_Order::calcQuotePromotion(priceDiscHeading);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePre_InventTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD for product on update
+    /// </summary>
+    [PreHandlerFor(tableStr(InventTable), tableMethodStr(InventTable, update))]
+    public static void updatePre_InventTable(XppPrePostArgs _args)
+    {
+        System.DateTime dateTime;
+        RealBase        dReal;
+        InventTable     inventTable = _args.getThis();
+    
+        if(inventTable.orig().SC_VisibleInWebShop != inventTable.SC_VisibleInWebShop || inventTable.SC_VisibleInWebShop)
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+    
+            dateTime    = DateTimeUtil::utcNow();
+            dReal       = dateTime.ToOADate();
+    
+            inventTable.SC_LastModified = dReal;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateProductsVisibility</Name>
+				<Source><![CDATA[
+    private static void updateProductsVisibility(Common _categoryGroup)
+    {
+        EcoResCategory          ecoResCategoryLocal;
+        EcoResProductCategory   ecoResProductCategory;
+        InventTable             inventTable;
+        InventItemGroup         inventItemGroup, inventItemGroupLocal;
+        InventItemGroupItem     inventItemGroupItem;
+
+        if(_categoryGroup.TableId == tableNum(InventItemGroup))
+        {
+            inventItemGroupLocal = _categoryGroup as inventItemGroup;
+
+            while select forUpdate inventTable
+                join inventItemGroupItem
+                    where inventItemGroupItem.ItemDataAreaId == inventTable.dataAreaId &&
+                          inventItemGroupItem.ItemId == inventTable.ItemId
+                        join inventItemGroup
+                            where inventItemGroup.ItemGroupId == inventItemGroupLocal.ItemGroupId &&
+                                  inventItemGroup.ItemGroupId == inventItemGroupItem.ItemGroupId &&
+                                  inventItemGroup.dataAreaId  == inventItemGroupLocal.dataAreaId
+            {
+                inventTable.SC_VisibleInWebShop = inventItemGroupLocal.SC_VisibleInWebshop;
+                inventTable.SC_VisibleFrom      = inventItemGroupLocal.SC_VisibleFrom;
+                inventTable.SC_VisibleTo        = inventItemGroupLocal.SC_VisibleTo;
+                inventTable.update();
+
+                if(inventTable.hasProductDimensions())
+                {
+                    SC_AXDataServiceClient_Product::updateAllVariantsVisibility(inventTable.ItemId, inventTable.SC_VisibleInWebShop);
+                }
+            }
+        }
+
+        if(_categoryGroup.TableId == tableNum(EcoResCategory))
+        {
+            ecoResCategoryLocal = _categoryGroup as EcoResCategory;
+
+            while select forUpdate inventTable
+                exists join ecoResProductCategory
+                    where ecoResProductCategory.Product  == inventTable.Product &&
+                          ecoResProductCategory.Category == ecoResCategoryLocal.RecId
+            {
+                inventTable.SC_VisibleInWebShop = ecoResCategoryLocal.SC_VisibleInWebshop;
+                inventTable.SC_VisibleFrom      = ecoResCategoryLocal.SC_VisibleFrom;
+                inventTable.SC_VisibleTo        = ecoResCategoryLocal.SC_VisibleTo;
+                inventTable.update();
+
+                if(inventTable.hasProductDimensions())
+                {
+                    SC_AXDataServiceClient_Product::updateAllVariantsVisibility(inventTable.ItemId, inventTable.SC_VisibleInWebShop);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesFormLetter_Post_validate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Class:  SalesFormLetter
+    /// Method: validate
+    /// If Sana order is declined or pending ask for process to post.
+    /// </summary>
+    /// <param name="args"></param>
+    [PostHandlerFor(classStr(SalesFormLetter), methodStr(SalesFormLetter, validate))]
+    public static void SalesFormLetter_Post_validate(XppPrePostArgs args)
+    {    
+        SalesFormLetter  salesFormLetter = args.getThis();
+        SalesTable       salesTable = salesFormLetter.salesTable();
+        boolean          ret = args.getReturnValue();
+        
+        if(ret && (salesTable.SC_AuthorizationStatus == 'Declined' || salesTable.SC_AuthorizationStatus == 'Pending'))
+        {
+            if(Box::yesNo(strFmt("@SCL442",salesTable.SC_AuthorizationStatus), DialogButton::No) == DialogButton::Yes)
+            {
+                ret = true;
+            }
+            else
+            {
+                ret = false;
+            }
+        }
+
+        args.setReturnValue(ret);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite_SalesQuotationTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validate if Sana promotion fields are set for quotation.
+    /// </summary>
+    [PostHandlerFor(tableStr(SalesQuotationTable), tableMethodStr(SalesQuotationTable, validateWrite))]    
+    public static void validateWrite_SalesQuotationTable(XppPrePostArgs _args)
+    {
+        SalesQuotationTable   salesQuotationTable = _args.getThis();
+        boolean               ret = _args.getReturnValue();
+        
+        if(ret && ((salesQuotationTable.SC_PromotionTitle || salesQuotationTable.SC_PromotionType || salesQuotationTable.SC_PromotionValue) && !salesQuotationTable.SC_PromotionCode))
+        {
+            ret = checkFailed("@SCL98");
+        }
+        if(ret && salesQuotationTable.SC_PromotionCode && !salesQuotationTable.SC_PromotionType)
+        {
+            ret = checkFailed("@SCL176");
+        }
+    
+        _args.setReturnValue(ret);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite_SalesTableType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validate if Sana promotion fields are set for sales order.
+    /// </summary>
+    [PostHandlerFor(classStr(SalesTableType), methodStr(SalesTableType, validateWrite))]    
+    public static void validateWrite_SalesTableType(XppPrePostArgs _args)
+    {
+        SalesTableType   salesTableType = _args.getThis();
+        SalesTable       salesTable = salesTableType.parmSalesTable();
+        boolean          ret = _args.getReturnValue();
+        
+        if(ret && ((salesTable.SC_PromotionTitle || salesTable.SC_PromotionType || salesTable.SC_PromotionValue) && !salesTable.SC_PromotionCode))
+        {
+            ret = checkFailed("@SCL98");
+        }
+        if(ret && salesTable.SC_PromotionCode && !salesTable.SC_PromotionType)
+        {
+            ret = checkFailed("@SCL176");
+        }
+    
+        _args.setReturnValue(ret);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ContactPersonLookup_Post_init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Lookup only contacts with customers.
+    /// </summary>
+    [PostHandlerFor(formStr(ContactPersonLookup), formMethodStr(ContactPersonLookup, init))]
+    public static void ContactPersonLookup_Post_init(XppPrePostArgs args)
+    {
+        FormRun                 formRun = args.getThis();
+        FormDataSource          contactPerson_ds = formRun.dataSource(formdatasourcestr(ContactPersonLookup, ContactPerson)) as formDataSource;
+        QueryBuildDataSource    qbd;
+
+        if(formRun.args().parm() == #one)
+        {
+            qbd = contactPerson_ds.queryBuildDataSource().addDataSource(tableNum(CustTable));
+            qbd.addLink(fieldNum(ContactPerson, ContactForParty), fieldNum(CustTable, Party));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SC_VisibleInWebShop_OnModified</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Product variant handler to update LMD on product
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [FormDataFieldEventHandler(formDataFieldStr(EcoResProductVariantsPerCompany, InventDimCombination, SC_VisibleInWebShop), FormDataFieldEventType::Modified)]
+    public static void SC_VisibleInWebShop_OnModified(FormDataObject sender, FormDataFieldEventArgs e)
+    {
+        InventDimCombination inventDimCombination = sender.dataSource().cursor() as InventDimCombination;
+        FormDataSource       inventDimCombination_ds = sender.dataSource() as formDataSource;
+       
+        inventDimCombination.write();
+        inventDimCombination_ds.reread();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventTableInventoryDimensionGroups_Pre_closeOk</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Update LMD on changing product dimensions
+    /// </summary>
+    /// <param name="args"></param>
+    [PreHandlerFor(formStr(InventTableInventoryDimensionGroups), formMethodStr(InventTableInventoryDimensionGroups, closeOk))]
+    public static void InventTableInventoryDimensionGroups_Pre_closeOk(XppPrePostArgs args)
+    {
+        FormRun     formRun = args.getThis();
+        InventTable inventTable = formRun.args().record() as InventTable;
+
+        SC_AXDataServiceClient_Product::updateLastModifiedDate(inventTable.ItemId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResAttributeValue_Post_enumerationChanged</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// EnumerationCahnged on form EcoresAttributeValue. Set translated value for attribute enum.
+    /// </summary>
+    /// <param name="args"></param>
+    [PostHandlerFor(formStr(EcoResAttributeValue), formMethodStr(EcoResAttributeValue, enumerationChanged))]
+    public static void EcoResAttributeValue_Post_enumerationChanged(XppPrePostArgs args)
+    {
+        FormRun formRun = args.getThis();        
+        ;
+        EcoResAttributeType ecoResAttributeType = formRun.dataSource(formdatasourcestr(EcoResAttributeValue, EcoResAttributeType)).cursor() as EcoResAttributeType;
+        EcoResTextValue     ecoResTextValue = formRun.dataSource(formdatasourcestr(EcoResAttributeValue, ecoResValue_EcoResTextValue)).cursor() as EcoResTextValue;
+        FormDataSource      EcoResValue_ds = formRun.dataSource(formdatasourcestr(EcoResAttributeValue, EcoResValue)) as formDataSource;
+
+        SC_EventsHandler::setTranslatedValue(ecoResAttributeType, ecoResTextValue);
+        EcoResValue_ds.reread();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setTranslatedValue</Name>
+				<Source><![CDATA[
+    private static void setTranslatedValue(EcoResAttributeType _ecoResAttributeType, EcoResTextValue _ecoResTextValue)
+    {
+        EcoResEnumerationAttributeTypeValue enumerationAttributeTypeValue;
+        EcoResTextValue                     ecoResTextValueLocal;
+
+        select firstOnly Value from enumerationAttributeTypeValue
+            where enumerationAttributeTypeValue.AttributeType == _ecoResAttributeType.RecId
+            join TableId from ecoResTextValueLocal
+                where ecoResTextValueLocal.TextValue ==  _ecoResTextValue.TextValue &&
+                        ecoResTextValueLocal.RecId == enumerationAttributeTypeValue.Value;
+
+        ttsBegin;
+        _ecoResTextValue.selectForUpdate(true);
+        _ecoResTextValue.SC_TranslatedTextValue = enumerationAttributeTypeValue.Value;
+        _ecoResTextValue.update();        
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WHSInventStatus_OnActivated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Do not allow edit visibility for inventStatus on blocking
+    /// </summary>
+    [FormDataSourceEventHandler(formDataSourceStr(WHSInventStatus, WHSInventStatus), FormDataSourceEventType::Activated)]
+    public static void WHSInventStatus_OnActivated(FormDataSource sender, FormDataSourceEventArgs e)
+    {
+        WHSInventStatus WHSInventStatus = sender.cursor() as WHSInventStatus;
+
+        sender.object(fieldNum(WHSInventStatus, SC_VisibleInWebShop)).allowEdit(!WHSInventStatus.InventStatusBlocking);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WHSInventStatus_onModifiedField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Remove inventStatus visibility on blocking and do not allow to set visible 
+    /// </summary>
+    [DataEventHandler(tableStr(WHSInventStatus), DataEventType::ModifiedField)]
+    public static void WHSInventStatus_onModifiedField(Common sender, DataEventArgs e)
+    {
+        ModifyFieldEventArgs eventArgs  = e as ModifyFieldEventArgs;
+        WHSInventStatus      WHSInventStatus = sender as WHSInventStatus;
+        FieldId              fieldId = eventArgs.parmFieldId();
+
+        switch (fieldId)
+        {
+            case fieldnum(WHSInventStatus, InventStatusBlocking),
+                 fieldnum(WHSInventStatus, SC_VisibleInWebShop):
+                WHSInventStatus.SC_VisibleInWebShop = WHSInventStatus.InventStatusBlocking ? false : WHSInventStatus.SC_VisibleInWebShop;
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResProductImage_OnClosing</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Refresh released product form after closing product image or product details form to see latest data
+    /// </summary>
+    [FormEventHandler(formStr(EcoResProductImage), FormEventType::Closing), FormEventHandler(formStr(EcoResProductDetails), FormEventType::Closing), FormEventHandler(formStr(InventItemOrderSetup), FormEventType::Closing)]
+    public static void EcoResProductImage_OnClosing(xFormRun sender, FormEventArgs e)
+    {
+        FormRun callerForm;       
+        
+        if(sender.args() && sender.args().caller())
+        {
+            callerForm = sender.args().caller() as FormRun;
+
+            if(callerForm)
+            {                
+                callerForm.dataSource().refresh();
+                callerForm.dataSource().reread();                
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DocuRef_OnQueryExecuted</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Show/hide 'Change visibility' button on DocuView form
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [FormDataSourceEventHandler(formDataSourceStr(DocuView, DocuRef), FormDataSourceEventType::QueryExecuted)]
+    public static void DocuRef_OnQueryExecuted(FormDataSource sender, FormDataSourceEventArgs e)
+    {
+        DocuRef     docuRef = sender.cursor() as DocuRef;
+        FormControl changeVisibilityButton   = sender.formRun().design(0).controlName('ChangeVisibility');
+
+        changeVisibilityButton.visible(docuRef.RefTableId == tableNum(CustInvoiceJour));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ChangeVisibility_OnClicked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Change invoice attachment visibility for webshop
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [FormControlEventHandler(formControlStr(DocuView, ChangeVisibility), FormControlEventType::Clicked)]
+    public static void ChangeVisibility_OnClicked(FormControl sender, FormControlEventArgs e)
+    {
+        FormDataSource docuRef_ds = sender.formRun().dataSource(formdatasourcestr(DocuView, DocuRef));
+        DocuRef        docuRef = docuRef_ds.cursor() as DocuRef;
+
+        if(docuRef)
+        {
+            ttsbegin;
+            docuRef.selectForUpdate(true);
+            docuRef.SC_VisibleInWebShop = !docuRef.SC_VisibleInWebShop;
+            docuRef.update();
+            ttscommit;
+
+            docuRef_ds.reread();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventTable_Post_validateFieldValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validate From To dates
+    /// </summary>
+    /// <param name="args"></param>
+    [PostHandlerFor(tableStr(InventTable), tableMethodStr(InventTable, validateFieldValue))]
+    public static void InventTable_Post_validateFieldValue(XppPrePostArgs args)
+    {
+        FieldName   fieldName   = args.getArg('_fieldName');
+        InventTable inventTable = args.getThis();
+        boolean     ret = args.getReturnValue();
+    
+        if(ret)
+        {
+            switch (fieldName)
+            {
+                case fieldStr(InventTable, SC_VisibleFrom):
+                case fieldStr(InventTable, SC_VisibleTo):
+                    if(inventTable.SC_VisibleTo && inventTable.SC_VisibleFrom > inventTable.SC_VisibleTo)
+                    {
+                        ret = checkFailed("@SYS35812");
+                    }
+                    break;
+            }
+        }
+    
+        args.setReturnValue(ret);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventItemGroup_onValidatedFieldValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validate From To dates
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [DataEventHandler(tableStr(InventItemGroup), DataEventType::ValidatedFieldValue)]
+    public static void InventItemGroup_onValidatedFieldValue(Common sender, DataEventArgs e)
+    {
+        ValidateFieldValueEventArgs eventArgs = e as ValidateFieldValueEventArgs;
+        InventItemGroup inventItemGroup = sender as InventItemGroup;        
+        boolean ret = eventArgs.parmValidateResult();
+
+        if(ret)
+        {
+            switch (eventArgs.parmFieldName())
+            {
+                case fieldstr(EcoResCategory, SC_VisibleFrom):
+                case fieldstr(EcoResCategory, SC_VisibleTo):
+                    if(inventItemGroup.SC_VisibleTo && inventItemGroup.SC_VisibleFrom > inventItemGroup.SC_VisibleTo)
+                    {
+                        ret = checkFailed("@SYS35812");
+                    }
+                    break;
+            }
+        }
+
+        eventArgs.parmValidateResult(ret);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResCategory_Post_validateField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validate From To dates
+    /// </summary>
+    /// <param name="args"></param>
+    [PostHandlerFor(tableStr(EcoResCategory), tableMethodStr(EcoResCategory, validateField))]
+    public static void EcoResCategory_Post_validateField(XppPrePostArgs args)
+    {
+        FieldId         fieldId         = args.getArg('_fieldIdToCheck');
+        EcoResCategory  ecoResCategory  = args.getThis();
+        boolean         ret = args.getReturnValue();
+
+        if(ret)
+        {
+            switch (fieldId)
+            {
+                case fieldNum(EcoResCategory, SC_VisibleFrom):
+                case fieldNum(EcoResCategory, SC_VisibleTo):
+                    if(ecoResCategory.SC_VisibleTo && ecoResCategory.SC_VisibleFrom > ecoResCategory.SC_VisibleTo)
+                    {
+                        ret = checkFailed("@SYS35812");
+                    }
+                    break;
+            }
+        }
+    
+        args.setReturnValue(ret);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesTable_OnWritten</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Write event for Sana SalesTable extension table (SC_SalesTable) with extra fields
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [FormDataSourceEventHandler(formDataSourceStr(SalesTable, SalesTable), FormDataSourceEventType::Written)]
+    public static void SalesTable_OnWritten(FormDataSource sender, FormDataSourceEventArgs e)
+    {
+        FormDataSource salesTableExtDS = sender.formRun().dataSource(formDataSourceStr(SalesTable, SC_SalesTable));
+        
+        if (salesTableExtDS && SysExtensionSerializerExtensionMap::isExtensionEnabled(tableNum(SC_SalesTable)))
+        {
+            SalesTable salesTable = sender.cursor();
+            SC_SalesTable salesTableExt = salesTableExtDS.cursor();
+            
+            salesTableExt.SysExtensionSerializerExtensionMap::insertAfterBaseTable(salesTable);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesQuotationTable_OnWritten</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Write event for Sana SalesQuotationTable extension table (SC_SalesQuotationTable) with extra fields
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [FormDataSourceEventHandler(formDataSourceStr(SalesQuotationTable, SalesQuotationTable), FormDataSourceEventType::Written)]
+    public static void SalesQuotationTable_OnWritten(FormDataSource sender, FormDataSourceEventArgs e)
+    {
+        FormDataSource salesQuotationTableExtDS = sender.formRun().dataSource(formDataSourceStr(SalesQuotationTable, SC_SalesQuotationTable));
+        
+        if (salesQuotationTableExtDS && SysExtensionSerializerExtensionMap::isExtensionEnabled(tableNum(SC_SalesQuotationTable)))
+        {
+            SalesQuotationTable salesQuotationTable = sender.cursor();
+            SC_SalesQuotationTable salesQuotationTableExt = salesQuotationTableExtDS.cursor();
+            
+            salesQuotationTableExt.SysExtensionSerializerExtensionMap::insertAfterBaseTable(SalesQuotationTable);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesTable_Pre_insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set SC_BillToName with invoice address description for order
+    /// </summary>
+    /// <param name="args"></param>
+    [PreHandlerFor(tableStr(SalesTable), tableMethodStr(SalesTable, insert))]
+    public static void SalesTable_Pre_insert(XppPrePostArgs args)
+    {
+        SalesTable                  salesTable = args.getThis();
+        LogisticsPostalAddress      address;
+        
+        address = DirParty::postalAddress(CustTable::find(salesTable.InvoiceAccount).Party, LogisticsLocationRoleType::Invoice);
+
+        if(address)
+        {
+            salesTable.SC_BillToName = LogisticsLocation::find(address.Location).Description;
+        }
+        else
+        {
+            salesTable.SC_BillToName = CustTable::find(salesTable.InvoiceAccount).Name();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesQuotationTable_Pre_insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set SC_BillToName with invoice address description for quote
+    /// </summary>
+    /// <param name="args"></param>
+    [PreHandlerFor(tableStr(SalesQuotationTable), tableMethodStr(SalesQuotationTable, insert))]
+    public static void SalesQuotationTable_Pre_insert(XppPrePostArgs args)
+    {
+        SalesQuotationTable     salesQuotationTable = args.getThis();
+        LogisticsPostalAddress  address;
+        SmmBusRelTable          smmBusRelTable;
+    
+        if(salesQuotationTable.BusRelAccount)
+        {
+            smmBusRelTable = SmmBusRelTable::find(salesQuotationTable.BusRelAccount);
+        
+            address = DirParty::postalAddress(smmBusRelTable.Party, LogisticsLocationRoleType::Invoice);
+            address = address ? address : DirParty::primaryPostalAddress(smmBusRelTable.Party);
+        
+            if(address)
+            {
+                salesQuotationTable.SC_BillToName = LogisticsLocation::find(address.Location).Description;
+            }
+            else
+            {
+                salesQuotationTable.SC_BillToName = smmBusRelTable.name();
+            }
+        }
+        else
+        {
+            address = DirParty::postalAddress(CustTable::find(salesQuotationTable.InvoiceAccount).Party, LogisticsLocationRoleType::Invoice);
+
+            if(address)
+            {
+                salesQuotationTable.SC_BillToName = LogisticsLocation::find(address.Location).Description;
+            }
+            else
+            {
+                salesQuotationTable.SC_BillToName = CustTable::find(salesQuotationTable.InvoiceAccount).Name();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EcoResValue_onUpdated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set SC_BillToName with invoice address description for quote
+    /// </summary>   
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [DataEventHandler(tableStr(EcoResValue), DataEventType::Updated)]
+    public static void EcoResValue_onUpdated(Common sender, DataEventArgs e)
+    {
+        EcoResValue                     ecoResValue = sender as EcoResValue;
+        EcoResProductAttributeValue     ecoResProductAttributeValue;
+
+        if(ecoResValue)
+        {
+            //update product attributes
+            select firstOnly RecId,Product
+            from ecoResProductAttributeValue
+                where ecoResProductAttributeValue.Value == ecoResValue.RecId;
+
+            if(ecoResProductAttributeValue.Product)
+            {
+                SC_AXDataServiceClient_Product::updateLastModifiedDate('', ecoResProductAttributeValue.Product);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesQuotationEditLinesForm_Sales_Confir_Post_createSalesTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Init Sana fields on quote2order convertation
+    /// </summary>
+    /// <param name="args"></param>
+    [PostHandlerFor(classStr(SalesQuotationEditLinesForm_Sales_Confir), methodStr(SalesQuotationEditLinesForm_Sales_Confir, createSalesTable))]
+    public static void SalesQuotationEditLinesForm_Sales_Confir_Post_createSalesTable(XppPrePostArgs args)
+    {
+        SalesQuotationEditLinesForm_Sales_Confir    salesQuotationEditLinesForm_Sales_Confir    = args.getThis();
+        SalesTable                                  salesTable                                  = salesQuotationEditLinesForm_Sales_Confir.parmSalesTableCreated();
+        SalesQuotationTable                         salesQuotationTable                         = salesQuotationEditLinesForm_Sales_Confir.salesQuotationTable();
+        SC_SalesTable                               salesTableExt                               = SC_SalesTable::find(salesTable.RecId, true);
+        SC_SalesQuotationTable                      salesQuotationTableExt                      = SC_SalesQuotationTable::find(salesQuotationTable.RecId);
+
+        if(salesQuotationTableExt)
+        {
+            if(!salesTableExt && SysExtensionSerializerExtensionMap::isExtensionEnabled(tableNum(SC_SalesTable)))
+            {
+                salesTableExt.SysExtensionSerializerExtensionMap::insertAfterBaseTable(salesTable);
+            }
+        
+            salesTableExt.ExternalPaymentMethodType = salesQuotationTableExt.ExternalPaymentMethodType;
+            salesTableExt.SanaLocationId            = salesQuotationTableExt.SanaLocationId;
+            salesTableExt.StoreLocationCode         = salesQuotationTableExt.StoreLocationCode;
+            salesTableExt.update();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Info_onPostStartup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Check release of new Sana Commerce version
+    /// </summary>
+    /// <param name="startUpCommand"></param>
+    [SubscribesTo(classStr(Info), delegateStr(Info, onPostStartup))]
+    public static void Info_onPostStartup(str startUpCommand)
+    {
+        SysGlobalObjectCache globalCacheV2 = ClassFactory.globalObjectCache();
+        String10             newSanaVersion, currentSanaVersion;
+        TransDate            checkedDate, todayDate = DateTimeUtil::getToday(DateTimeUtil::getUserPreferredTimeZone()), lastMthDate = endmth(todayDate);
+        Array                adminList = new Array(Types::String);
+        SecurityUserRole     securityUserRole;
+        SecurityRole         securityRole;
+        Notes                appSource;
+        Integer              versionPos, a = 1;
+
+        lastMthDate   = lastMthDate - max(0, dayOfWk(lastMthDate) - 5); //skip weekends
+        [checkedDate] = globalCacheV2.find(ClassStr(SC_AXDataServiceClient_Settings), ['1', 'SanaVersionCheck']);
+        
+        if(todayDate == lastMthDate && checkedDate != lastMthDate)
+        {
+            System.Net.WebClient webClient = new System.Net.WebClient();
+
+            try
+            {
+                appSource = webClient.DownloadString('https://appsource.microsoft.com/en-us/product/dynamics-ax/sana-commerce.66bd2982-af0d-443e-90b7-e5e8f4bd038e');
+            }
+            catch
+            {
+                appSource = '';
+            }
+            versionPos = strscan(appSource, '\"AppVersion\"', 1, strLen(appSource));
+            newSanaVersion  = versionPos ? subStr(appSource, versionPos + 14, 7) : '';
+            currentSanaVersion = subStr("@SCL247", strLen("@SCL247") - 8, 7);
+
+            if(newSanaVersion && newSanaVersion != currentSanaVersion)
+            {
+                SystemNotificationDataContract notification = new SystemNotificationDataContract();
+
+                while Select User from securityUserRole
+                    join securityRole
+                    where securityUserRole.SecurityRole == securityRole.RecId &&
+                          securityUserRole.AssignmentStatus == RoleAssignmentStatus::Enabled &&
+                          securityRole.AotName == '-SYSADMIN-'
+                {
+                    adminList.value(a, securityUserRole.User);
+                    a++;
+                }
+                notification.Users(adminList);
+                notification.Title('New Sana Commerce Cloud version');
+                notification.RuleId('NewSanaVersion');
+                notification.Message(strFmt('A new version %1 of the Sana Commerce Cloud connector is available!', newSanaVersion));
+                notification.ExpirationDateTime(DateTimeUtil::addHours(DateTimeUtil::utcNow(), 696));
+                
+                SystemNotificationActionDataContract action = new SystemNotificationActionDataContract();
+                action.Message('Click to download');
+                action.Type(SystemNotificationActionType::AxActionMenuFunction);
+        
+                SystemNotificationMenuFunctionDataContract actionData = new SystemNotificationMenuFunctionDataContract();
+                actionData.MenuItemName(menuItemActionStr(SC_NavigateUrl));
+                actionData.Data('https://community.sana-commerce.com/Downloads/SanaCommerceCloud/D365Downloads.aspx');
+                action.Data(FormJsonSerializer::serializeClass(actionData));
+                notification.Actions().value(1, action);
+
+                SystemNotificationsManager::AddSystemNotification(notification);
+            }
+            globalCacheV2.insert(ClassStr(SC_AXDataServiceClient_Settings), ['1', 'SanaVersionCheck'], [lastMthDate]);
+        }
+        else if(todayDate != lastMthDate)
+        {
+            globalCacheV2.remove(ClassStr(SC_AXDataServiceClient_Settings), ['1', 'SanaVersionCheck']);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

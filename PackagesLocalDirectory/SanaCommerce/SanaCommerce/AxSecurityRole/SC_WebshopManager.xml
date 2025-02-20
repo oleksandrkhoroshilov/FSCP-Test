@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityRole xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_WebshopManager</Name>
+	<Description>@SCL155</Description>
+	<Label>@SCL154</Label>
+	<DirectAccessPermissions />
+	<Duties>
+		<AxSecurityDutyReference>
+			<Name>SC_SanaSetup</Name>
+		</AxSecurityDutyReference>
+		<AxSecurityDutyReference>
+			<Name>SC_Workflow</Name>
+		</AxSecurityDutyReference>
+		<AxSecurityDutyReference>
+			<Name>CollectionLetterCollectionsStatusInquir</Name>
+		</AxSecurityDutyReference>
+		<AxSecurityDutyReference>
+			<Name>CustCustomersMaintain</Name>
+		</AxSecurityDutyReference>
+		<AxSecurityDutyReference>
+			<Name>smmContactsMaintain</Name>
+		</AxSecurityDutyReference>
+		<AxSecurityDutyReference>
+			<Name>BankAccountTableTPFView</Name>
+		</AxSecurityDutyReference>
+	</Duties>
+	<Privileges />
+	<SubRoles />
+</AxSecurityRole>

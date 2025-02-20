@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>UnitOfMeasureStaging.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_VisibleInWebShop</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL35</HelpText>
+			<Label>@SCL1</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>

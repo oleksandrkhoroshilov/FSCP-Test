@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_AXDataServiceClient_WebTests</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class SC_AXDataServiceClient_WebTests extends SC_AXDataServiceClient
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createCountryRegionSetup</Name>
+				<Source><![CDATA[
+    protected void createCountryRegionSetup(CustAccount _templateCustomer)
+    {
+        SC_AddressCountryRegionSetup addressCountryRegionSetup;
+
+        ttsBegin;
+        addressCountryRegionSetup.selectForUpdate(true);
+        addressCountryRegionSetup.CountryRegionId = 'USA';
+        addressCountryRegionSetup.WebShopId = websiteId;
+        addressCountryRegionSetup.TemplateCustomer = _templateCustomer;
+        addressCountryRegionSetup.VisibleInWebshop = NoYes::Yes;
+
+        if(addressCountryRegionSetup.validateWrite())
+        {
+            addressCountryRegionSetup.insert();
+        }
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createWebshopFilter</Name>
+				<Source><![CDATA[
+    protected void createWebshopFilter(TableName _tableName, SC_FieldName _fieldName, Description _filterStr)
+    {
+        SC_FilterWebShopsTable filtersWebshopTable;
+
+        ttsBegin;
+        filtersWebshopTable.selectForUpdate(true);
+        filtersWebshopTable.WebShopId = websiteId;
+        filtersWebshopTable.TableName = _tableName;
+        filtersWebshopTable.FieldName = _fieldName;
+        filtersWebshopTable.FilterStr = _filterStr;
+
+        if(filtersWebshopTable.validateWrite())
+        {
+            filtersWebshopTable.insert();
+        }
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createWebshopTable</Name>
+				<Source><![CDATA[
+    protected void createWebshopTable()
+    {
+        LedgerJournalName ledgerJournalName;
+        BankAccountTable  bankAccountTable;
+
+        if(!webShopsTable)
+        {
+            ttsBegin;
+            webShopsTable.initValue();
+            webShopsTable.WebShopId = websiteId;
+            webShopsTable.TemplateCustAccount = conPeek(this.getValidCustomers(1), 1);
+            webShopsTable.PaymentLedgerDimension = (select firstOnly RecId from MainAccount).RecId;
+            webShopsTable.ShippingLedgerDimension = (select firstOnly RecId from MainAccount).RecId;
+            webShopsTable.EnableDocAttachments = true;
+            webShopsTable.EnableProdAttachments = true;
+            webShopsTable.EnableReports = true;
+            webShopsTable.QuotePromotableDefault = true;
+
+            webShopsTable.DefaultSiteId = (select firstOnly InventSite).SiteId;
+            webShopsTable.DefaultLocationId = (select firstOnly InventLocation where InventLocation.InventSiteId == webShopsTable.DefaultSiteId).InventLocationId;
+
+            if(!(select firstOnly TaxItemGroupHeading where TaxItemGroupHeading.TaxItemGroup == 'ALL').RecId)
+            {
+                throw error('No tax item group ALL in demo data.');
+            }
+            webShopsTable.DefaultItemSalesTaxGroup = 'ALL';
+
+            select firstOnly ledgerJournalName where ledgerJournalName.JournalType == LedgerJournalType::CustPayment;
+
+            if(!ledgerJournalName)
+            {
+                ledgerJournalName.initValue();
+                ledgerJournalName.JournalName = 'TSTJN';
+                ledgerJournalName.Name = 'Test data journal name';
+                ledgerJournalName.JournalType = LedgerJournalType::CustPayment;
+                ledgerJournalName.NumberSequenceTable = (select firstOnly RecId from NumberSequenceTable).RecId;
+                ledgerJournalName.insert();
+            }
+
+            webShopsTable.CustPaymJournalName = ledgerJournalName.JournalName;
+            webShopsTable.OffsetLedgerCompany = curext();
+            webShopsTable.OffsetLedgerAccountType = LedgerJournalACType::Bank;
+
+            select firstOnly AccountID from bankAccountTable;
+
+            webShopsTable.OffsetLedgerDimension = (select firstOnly RecId from DimensionAttributeValueCombination
+                                                    where DimensionAttributeValueCombination.DisplayValue == bankAccountTable.AccountID).RecId;
+
+            webShopsTable.insert();
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeleteWebshop</Name>
+				<Source><![CDATA[
+    public XmlDocument DeleteWebshop(XmlDocument _request)
+    {
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        if(webShopsTable)
+        {
+            ttsBegin;
+            webShopsTable.selectForUpdate(true);
+            if(webShopsTable.validateDelete())
+            {
+                webShopsTable.delete();
+            }
+            ttsCommit;
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValidContacts</Name>
+				<Source><![CDATA[
+    protected container getValidContacts(Integer _qtyRequired)
+    {
+        container       con;
+        ContactPerson   contactPersonLocal;
+
+        while select contactPersonLocal
+        where contactPersonLocal.Inactive == NoYes::No &&
+              contactPersonLocal.CustAccount
+        {
+            if(contactPersonLocal)
+            {
+                con += contactPersonLocal.ContactPersonId;
+            }
+
+            if(conLen(con) == _qtyRequired)
+            {
+                break;
+            }
+        }
+
+        return con;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValidCustomers</Name>
+				<Source><![CDATA[
+    protected container getValidCustomers(Integer _qtyRequired)
+    {
+        container con;
+
+        while select custTable
+        order by custTable.AccountNum
+        where custTable.AccountNum >= '1'
+        {
+            if(this.checkValidationRules(custTable) && this.checkValidationRules(DirParty::primaryPostalAddress(custTable.Party)))
+            {
+                con += custTable.AccountNum;
+            }
+
+            if(conLen(con) == _qtyRequired)
+            {
+                break;
+            }
+        }
+
+        return con;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValidItems</Name>
+				<Source><![CDATA[
+    protected container getValidItems(Integer _qtyRequired)
+    {
+        container   con;
+        InventTable inventTableLocal;
+
+        while select inventTableLocal
+        order by inventTableLocal.ItemId
+        where inventTableLocal.SC_VisibleInWebShop == NoYes::Yes &&
+              inventTableLocal.ItemId >= '>1'
+        {
+            if(this.checkValidationRules(inventTableLocal))
+            {
+                con += inventTableLocal.ItemId;
+            }
+
+            if(conLen(con) == _qtyRequired)
+            {
+                break;
+            }
+        }
+
+        return con;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValidSalesPersons</Name>
+				<Source><![CDATA[
+    protected container getValidSalesPersons(Integer _qtyRequired)
+    {
+        container       con;
+        HcmWorker       hcmWorkerLocal;
+        HcmEmployment   hcmEmploymentLocal;
+
+        while select PersonnelNumber from hcmWorkerLocal
+        exists join hcmEmploymentLocal
+        where hcmEmploymentLocal.Worker     == hcmWorkerLocal.RecId &&
+              hcmEmploymentLocal.ValidFrom  <= DateTimeUtil::utcNow() &&
+              hcmEmploymentLocal.ValidTo    >= DateTimeUtil::utcNow()
+        {
+            con += hcmWorkerLocal.PersonnelNumber;
+
+            if(conLen(con) == _qtyRequired)
+            {
+                break;
+            }
+        }
+
+        return con;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SaveCustomerAssortment</Name>
+				<Source><![CDATA[
+    public XmlDocument SaveCustomerAssortment(XmlDocument _request)
+    {
+        SC_ItemVisibilityRulesTable itemVisibilityRulesTable;
+
+        this.createHeaderXml();
+
+        this.getParameters(_request, false);
+
+        ttsBegin;
+        itemVisibilityRulesTable.selectForUpdate(true);
+        itemVisibilityRulesTable.AccountCode = SC_TableGroup::Table;
+        itemVisibilityRulesTable.AccountRelation = accountId;
+        itemVisibilityRulesTable.ItemCode = SC_TableGroupCategory::Table;
+        itemVisibilityRulesTable.ItemRelation = productId;
+        itemVisibilityRulesTable.Mode = SC_AllowDeny::Deny;
+        itemVisibilityRulesTable.WebShopId = websiteId;
+
+        if(itemVisibilityRulesTable.validateWrite())
+        {
+            itemVisibilityRulesTable.insert();
+        }
+        ttsCommit;
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SaveWebshop</Name>
+				<Source><![CDATA[
+    public XmlDocument SaveWebshop(XmlDocument _request)
+    {
+        this.createHeaderXml();
+
+        this.getParameters(_request, false);
+
+        this.createWebshopTable();
+        this.createCountryRegionSetup(webShopsTable.TemplateCustAccount);
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SaveWebshopFilters</Name>
+				<Source><![CDATA[
+    public XmlDocument SaveWebshopFilters(XmlDocument _request)
+    {
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        this.createWebshopFilter('InventTable', 'ItemId', con2Str(this.getValidItems(5)));
+        this.createWebshopFilter('CustTable', 'AccountNum', con2Str(this.getValidCustomers(5)));
+        this.createWebshopFilter('ContactPerson', 'ContactPersonId', con2Str(this.getValidContacts(5)));
+        this.createWebshopFilter('HcmWorker', 'PersonnelNumber', con2Str(this.getValidSalesPersons(5)));
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeleteWebshopFilters</Name>
+				<Source><![CDATA[
+    public XmlDocument DeleteWebshopFilters(XmlDocument _request)
+    {
+        SC_FilterWebShopsTable filtersWebshopTable;
+
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        ttsBegin;
+
+        delete_from filtersWebshopTable
+        where filtersWebshopTable.WebShopId == webShopsTable.WebShopId;
+
+        ttsCommit;
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static SC_AXDataServiceClient_WebTests construct()
+    {
+        return new SC_AXDataServiceClient_WebTests();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

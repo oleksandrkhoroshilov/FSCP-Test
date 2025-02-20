@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CustPackingSlipJour.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>SanaCommerce</Name>
+			<Label>@SCL2</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SC_SanaOrder</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_BillToName</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>CustName</ExtendedDataType>
+			<Label>@SCL79</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_Comments</Name>
+			<ExtendedDataType>SC_Comments</ExtendedDataType>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_SanaOrder</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL134</HelpText>
+			<Label>@SCL132</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_PaymentMethod</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>PaymId</ExtendedDataType>
+			<Label>@SCL84</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+	</Fields>
+	<Indexes />
+	<Mappings />
+	<PropertyModifications />
+	<Relations />
+</AxTableExtension>

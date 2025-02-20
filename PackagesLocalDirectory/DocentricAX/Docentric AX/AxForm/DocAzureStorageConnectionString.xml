@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DocAzureStorageConnectionString</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+using Docentric.AX.Storage.Azure;
+
+/// <summary>
+/// Class representing the dialog for Storage account connection string generation
+/// </summary>
+[Form]
+public class DocAzureStorageConnectionString extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getGeneratedConnectionString</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Generates role based access connection string.
+    /// </summary>
+    /// <returns>Role based access connection string.</returns>
+    private str getGeneratedConnectionString()
+    {
+        DocStorageAccountConnectionStringSettings connectionStringSettings = new DocStorageAccountConnectionStringSettings();
+
+        connectionStringSettings.StorageAccountName = AzureStorageAccountName.text();
+        connectionStringSettings.EndpointSuffix =  EndpointSuffix.text();
+        connectionStringSettings.TenantId = AzureTenantId.text();
+        connectionStringSettings.ApplicationId = AzureApplicationId.text();
+        connectionStringSettings.ApplicationSecret = AzureApplicationSecret.text();
+
+        return DocAzureHelper::generateStorageAccountConnectionString(connectionStringSettings, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Dialog initialization.
+    /// </summary>
+    public void init()
+    {
+        super();
+        
+        // On a form pattern is applied and sets buttonDisplay property to ImageOnly
+        // therefore, we have to change it back to Auto in order to show button caption text
+        GenerateConnectionString.buttonDisplay(ButtonDisplay::Auto);
+        GenerateConnectionString.extendedStyle('None');
+
+        // Set default value for endpoint suffix
+        EndpointSuffix.text(DocConstant::AzureStorageAccountEndpointSuffix);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>GenerateConnectionString</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Generates connection string from input settings.
+        /// </summary>
+        public void clicked()
+        {
+            GeneratedConnectionString.text(element.getGeneratedConnectionString());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AzurePortalUrl</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Navigate to Azure portal
+        /// </summary>
+        public void clicked()
+        {
+            DocGlobalHelper::navigateToUrl(DocConstant::AzurePortalUrl, true, false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@DocentricAX5:DocAzureStorageGenerateConnectionString</Caption>
+		<Pattern xmlns="">DialogFastTabs</Pattern>
+		<PatternVersion xmlns="">1.0</PatternVersion>
+		<Style xmlns="">Dialog</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormStaticTextControl">
+				<Name>StorageAccountConnectionStringTex</Name>
+				<ExtendedStyle>dialog_secondaryInstruction</ExtendedStyle>
+				<Type>StaticText</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Text>@DocentricAX5:DocAzureStorageGenerateConnectionStringHelp</Text>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>StorageAccountConnectionStringSection</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Pattern>Custom</Pattern>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>AzureStorageAccountName</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>@DocentricAX5:DocAzureStorageAccountNameHelp</HelpText>
+						<Type>String</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>DocAzureStorageAccountName</ExtendedDataType>
+						<Mandatory>Yes</Mandatory>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>EndpointSuffix</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>DocAzureEndPointSuffix</ExtendedDataType>
+						<Mandatory>Yes</Mandatory>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>AzureTenantId</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>DocAzureTenantId</ExtendedDataType>
+						<Mandatory>Yes</Mandatory>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>AzureApplicationId</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>DocAzureApplicationId</ExtendedDataType>
+						<Mandatory>Yes</Mandatory>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>AzureApplicationSecret</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>DocAzureApplicationSecret</ExtendedDataType>
+						<Mandatory>Yes</Mandatory>
+						<PasswordStyle>Yes</PasswordStyle>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>GenerateConnectionString</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ExtendedStyle>button_inlineImageOnly</ExtendedStyle>
+						<Type>CommandButton</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<ButtonDisplay>ImageOnly</ButtonDisplay>
+						<Text>@DocentricAX5:DocAzureStorageConnectionStringGenerate</Text>
+					</AxFormControl>
+				</Controls>
+				<Style>DialogContent</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>MainTab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>GeneratedConnectionStringTabPage</Name>
+						<Pattern>Custom</Pattern>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>AzurePortalFormActionPaneControl</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>AzurePortalFormButtonGroupControl</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormMenuFunctionButtonControl">
+												<Name>AzurePortalUrl</Name>
+												<Type>MenuFunctionButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Open Azure portal</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormMenuFunctionButtonControl">
+												<Name>KeyVaultParameters</Name>
+												<Type>MenuFunctionButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<MenuItemName>KeyVaultParameters</MenuItemName>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>GeneratedConnectionString</Name>
+								<AllowEdit>No</AllowEdit>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@DocentricAX5:DocAzureStorageGeneratedConnectionString</Label>
+								<MultiLine>Yes</MultiLine>
+							</AxFormControl>
+						</Controls>
+						<Caption>@DocentricAX5:DocAzureStorageGeneratedConnectionString</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>InstructionsTabPage</Name>
+						<Pattern>FillText</Pattern>
+						<PatternVersion>UX7 1.0</PatternVersion>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>StorageAccountConnectionStringHelpText</Name>
+								<ExtendedStyle>dialog_secondaryInstruction</ExtendedStyle>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>StaticText</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@DocentricAX5:DocAzureStorageGeneratedConnectionStringHelp</Text>
+							</AxFormControl>
+						</Controls>
+						<Caption>@DocentricAX5:DocAzureStorageConnectionStringInstructions</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormButtonGroupControl">
+				<Name>AzureStorageConnectionStringButtonGroup</Name>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<LeftMode>AutoLeft</LeftMode>
+				<Type>ButtonGroup</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>Cancel</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>CommandButton</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<Visible>No</Visible>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>OK</Command>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>Close</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>CommandButton</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>Cancel</Command>
+						<DefaultButton>Yes</DefaultButton>
+						<SaveRecord>No</SaveRecord>
+						<Text>@SYS15212</Text>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalRight</ArrangeMethod>
+				<Style>DialogCommitContainer</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

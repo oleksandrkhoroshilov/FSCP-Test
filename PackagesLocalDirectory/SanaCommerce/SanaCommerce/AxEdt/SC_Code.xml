@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>SC_Code</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DisplayLength>20</DisplayLength>
+	<HelpText>@SCL58</HelpText>
+	<Label>@SYS6908</Label>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+	<StringSize>200</StringSize>
+</AxEdt>

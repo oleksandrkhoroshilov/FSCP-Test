@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_WebshopDataMappingTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_WebshopDataMappingTable extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>editDefaultValue</Name>
+				<Source><![CDATA[
+    public edit SC_Code editDefaultValue(boolean _set, SC_Code _value)
+    {
+        ;
+        if(_set)
+        {
+            this.DefaultValue = _value;
+        }
+        else
+        {
+            _value = SC_WebshopDataMappingTable::find(this.DataTableId, this.DataFieldId, this.WebShopId, this.isMapped).DefaultValue;
+        }
+
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>editFieldName</Name>
+				<Source><![CDATA[
+    public edit FieldName editFieldName(boolean _set, FieldName _value)
+    {
+        if(_set)
+        {
+            this.DataFieldId = fieldName2id(this.DataTableId, _value);
+        }
+        else
+        {
+            _value = fieldId2name(this.DataTableId, this.DataFieldId);
+        }
+
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>editMappedFieldName</Name>
+				<Source><![CDATA[
+    public edit FieldName editMappedFieldName(boolean _set, FieldName _value)
+    {
+        if(_set)
+        {
+            this.MappedFieldId = fieldName2id(this.MappedTableId, _value);
+        }
+        else
+        {
+            _value = fieldId2name(this.MappedTableId, this.MappedFieldId);
+        }
+
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>editMappedTableName</Name>
+				<Source><![CDATA[
+    public edit TableName editMappedTableName(boolean _set, TableName _value)
+    {
+        if(_set)
+        {
+            this.MappedTableId = tableName2id(_value);
+        }
+        else
+        {
+            _value = tableId2name(this.MappedTableId);
+        }
+
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>editTableName</Name>
+				<Source><![CDATA[
+    public edit TableName editTableName(boolean _set, TableName _value)
+    {
+        if(_set)
+        {
+            this.DataTableId = tableName2id(_value);
+        }
+        else
+        {
+            _value = tableId2name(this.DataTableId);
+        }
+
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public boolean validateWrite()
+    {
+        DictField   dictField, mappedField;
+        boolean     ret;
+
+        ret = super();
+
+
+        if(ret && !fieldId2name(this.DataTableId, this.DataFieldId))
+        {
+            ret = checkFailed(strFmt("@SYS75684", '', tableId2Name(this.DataTableId)));
+        }
+
+        if(ret && this.isMapped && (!this.DataFieldId || !this.MappedFieldId))
+        {
+            ret = checkFailed("@SYS136548");
+        }
+
+        if(ret && this.isMapped)
+        {
+            dictField   = new DictField(this.DataTableId, this.DataFieldId);
+            mappedField = new DictField(this.MappedTableId, this.MappedFieldId);
+
+            if(dictField.baseType() != mappedField.baseType())
+            {
+                ret = checkFailed(strFmt("@SYS108459", "@SCL609", enum2str(dictField.baseType())));
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    static boolean exists(SC_WebshopId _webshopId)
+    {
+        ;
+        return (select firstOnly SC_WebshopDataMappingTable where SC_WebshopDataMappingTable.WebShopId == _webshopId).RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    static public SC_WebshopDataMappingTable find(RefTableId  _tableId, RefFieldId _fieldId, SC_WebshopId _webshopId, boolean _isMapped = false, boolean _forUpdate = false)
+    {
+        SC_WebshopDataMappingTable    webshopDataMappingTable;
+
+        webshopDataMappingTable.selectForUpdate(_forUpdate);
+
+        select firstonly webshopDataMappingTable
+        where webshopDataMappingTable.DataTableId == _tableId &&
+              webshopDataMappingTable.DataFieldId == _fieldId &&
+              webshopDataMappingTable.isMapped == _isMapped &&
+              webshopDataMappingTable.WebShopId == _webshopId;
+
+        return webshopDataMappingTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableFields</Name>
+				<Source><![CDATA[
+    public static void lookupTableFields(FormControl _formControl, TableId _tableId)
+    {
+        TmpSysQuery         tmpSysQuery;
+        SysTableLookUp      sysTableLookUp = SysTableLookUp::newParameters(tablenum(tmpSysQuery), _formControl);
+        TmpSysTableField    tmpSysTableField;
+        DictTable           dictTable       = new DictTable(_tableId);
+        DictField           dictField;
+
+        if(dictTable)
+        {
+            tmpSysTableField = TmpSysTableField::findTableFields(tmpSysTableField, dictTable.id());
+
+            while select tmpSysTableField
+            {
+                dictField = dictTable.fieldObject(tmpSysTableField.FieldId);
+
+                tmpSysQuery.Tablelabel = tmpSysTableField.FieldName;
+                tmpSysQuery.FieldLabel = tmpSysTableField.FieldLabel;
+                tmpSysQuery.insert();
+            }
+
+            //BP Deviation documented
+            sysTableLookUp.parmTmpBuffer(tmpSysQuery);
+            sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Tablelabel), true);
+            sysTableLookUp.setLabel("@SYS34979");
+            sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, FieldLabel));
+            sysTableLookUp.setLabel("@SYS104939");
+            sysTableLookUp.performFormLookup();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTables</Name>
+				<Source><![CDATA[
+    client static void lookupTables(FormControl _formControl)
+    {
+        TmpSysQuery     tmpSysQuery;
+        SqlDictionary   sqlDictionary;
+        SysTableLookup  sysTableLookup = SysTableLookup::newParameters(tablenum(TmpSysQuery), _formControl);           
+        
+        while select tabId from sqlDictionary
+            group by tabId
+            where sqlDictionary.tabId == tableNum(SalesTable) || sqlDictionary.tabId == tableNum(SalesLine) ||
+                  sqlDictionary.tabId == tableNum(SalesQuotationTable) || sqlDictionary.tabId == tableNum(SalesQuotationLine) ||
+                  sqlDictionary.tabId == tableNum(CustTable) ||sqlDictionary.tabId == tableNum(ContactPerson)
+        {            
+            tmpSysQuery.Tablelabel = tableId2name(sqlDictionary.tabId);
+            tmpSysQuery.insert();
+        }
+
+        //BP Deviation documented
+        sysTableLookUp.parmTmpBuffer(tmpSysQuery);        
+        sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Tablelabel), true);
+        sysTableLookUp.setLabel("@SYS92116");
+        sysTableLookUp.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyTo</Name>
+				<Source><![CDATA[
+    public void copyTo(SC_WebshopId _webshopId)
+    {
+        SC_WebshopDataMappingTable webshopDataMappingTable;
+
+        ttsBegin;
+        while select webshopDataMappingTable
+        where webshopDataMappingTable.WebShopId == this.WebShopId
+        {
+            if(!SC_WebshopDataMappingTable::find(webshopDataMappingTable.DataTableId, webshopDataMappingTable.DataFieldId, _webshopId, webshopDataMappingTable.isMapped))
+            {
+                webshopDataMappingTable.WebShopId = _webshopId;
+                webshopDataMappingTable.insert();
+            }
+        }
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        super();
+
+        this.Active = NoYes::Yes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>upgradeWebshopDataMappingData</Name>
+				<Source><![CDATA[
+    //remove in three releases
+    static void upgradeWebshopDataMappingData()
+    {
+        SC_WebshopDataMappingTable webshopDataMappingTable;
+
+        update_recordset webshopDataMappingTable
+            setting MappedTableId = webshopDataMappingTable.DataTableId, Move = NoYes::Yes
+        where webshopDataMappingTable.isMapped &&
+             !webshopDataMappingTable.MappedTableId;
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL608</DeveloperDocumentation>
+	<FormRef>SC_WebshopDataMapping</FormRef>
+	<Label>@SCL608</Label>
+	<TitleField1>WebShopId</TitleField1>
+	<TitleField2>DefaultValue</TitleField2>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>ShopIdx</ClusteredIndex>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Description</Name>
+			<Label>@SYS25589</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DefaultValue</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Override</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Move</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>isMapped</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Setup</Name>
+			<Label>@SYS12687</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DataFieldId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DataTableId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MappedTableId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MappedFieldId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Priority</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>DataFieldId</Name>
+			<ExtendedDataType>RefFieldId</ExtendedDataType>
+			<Label>@SYS93132</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>DataTableId</Name>
+			<ExtendedDataType>RefTableId</ExtendedDataType>
+			<Label>@SYS72616</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefaultValue</Name>
+			<ExtendedDataType>SC_Code</ExtendedDataType>
+			<Label>@SYS40175</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>isMapped</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<Label>@SYS111162</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MappedFieldId</Name>
+			<ExtendedDataType>RefFieldId</ExtendedDataType>
+			<Label>@SCL609</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WebShopId</Name>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Active</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL186</HelpText>
+			<Label>@SYS104284</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Priority</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>@SYS86153</HelpText>
+			<Label>@SYS40278</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Override</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL652</HelpText>
+			<Label>@SYS108909</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MappedTableId</Name>
+			<ExtendedDataType>RefTableId</ExtendedDataType>
+			<Label>@SYS184287</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Move</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL661</HelpText>
+			<Label>@SYS24586</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ShopIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WebShopId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DataFieldId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DataTableId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MappedFieldId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>SC_WebShopsTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>SC_WebShopsTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

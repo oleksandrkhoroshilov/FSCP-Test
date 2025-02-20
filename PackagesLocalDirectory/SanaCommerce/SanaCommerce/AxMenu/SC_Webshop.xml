@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenu xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SC_Webshop</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<Label>@SCL19</Label>
+	<SetCompany>Yes</SetCompany>
+	<Elements>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>Workspaces</Name>
+			<Label>@SYS:Platform_Menu_ColHeading_Workspaces</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementTile">
+					<Name>SC_WebshopManagementWorkspace</Name>
+					<Tile>SC_WebshopManagementWorkspace</Tile>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>Daily</Name>
+			<Label>@SYS333846</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_WebShops</Name>
+					<MenuItemName>SC_WebShops</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_InventItemInfoDetail</Name>
+					<MenuItemName>SC_InventItemInfoDetail</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_CustomerOverview</Name>
+					<MenuItemName>SC_CustomerOverview</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_ItemVisibilityRules</Name>
+					<MenuItemName>SC_ItemVisibilityRules</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementSubMenu">
+					<Name>Discounts</Name>
+					<Label>@SYS115268</Label>
+					<Elements>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_CouponDiscount</Name>
+							<MenuItemName>SC_CouponDiscount</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_MixMatchDiscount</Name>
+							<MenuItemName>SC_MixMatchDiscount</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_WebshopDiscount</Name>
+							<MenuItemName>SC_WebshopDiscount</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_GiftCard</Name>
+							<MenuItemName>SC_GiftCard</MenuItemName>
+						</AxMenuElement>
+					</Elements>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementSubMenu">
+					<Name>WebshopOrders</Name>
+					<Label>@SCL278</Label>
+					<Elements>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_SalesTableListPageWebshop</Name>
+							<DisplayInContentArea>Yes</DisplayInContentArea>
+							<MenuItemName>SC_SalesTableListPageWebshop</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_SalesQuotationListPageWebshop</Name>
+							<DisplayInContentArea>Yes</DisplayInContentArea>
+							<MenuItemName>SC_SalesQuotationListPageWebshop</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_ReturnTableListPageWebshop</Name>
+							<DisplayInContentArea>Yes</DisplayInContentArea>
+							<MenuItemName>SC_ReturnTableListPageWebshop</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_SalesTableListPagePersited</Name>
+							<DisplayInContentArea>Yes</DisplayInContentArea>
+							<MenuItemName>SC_SalesTableListPagePersited</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>SC_SalesQuotationListPagePersisted</Name>
+							<DisplayInContentArea>Yes</DisplayInContentArea>
+							<MenuItemName>SC_SalesQuotationListPagePersisted</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementSubMenu">
+							<Name>UnauthorizedOrders</Name>
+							<Label>@SCL449</Label>
+							<Elements>
+								<AxMenuElement xmlns=""
+									i:type="AxMenuElementMenuItem">
+									<Name>SC_SalesTableListPageDeclined</Name>
+									<DisplayInContentArea>Yes</DisplayInContentArea>
+									<MenuItemName>SC_SalesTableListPageDeclined</MenuItemName>
+								</AxMenuElement>
+								<AxMenuElement xmlns=""
+									i:type="AxMenuElementMenuItem">
+									<Name>SC_SalesQuotationListPageDeclined</Name>
+									<DisplayInContentArea>Yes</DisplayInContentArea>
+									<MenuItemName>SC_SalesQuotationListPageDeclined</MenuItemName>
+								</AxMenuElement>
+								<AxMenuElement xmlns=""
+									i:type="AxMenuElementMenuItem">
+									<Name>SC_SalesTableListPagePending</Name>
+									<DisplayInContentArea>Yes</DisplayInContentArea>
+									<MenuItemName>SC_SalesTableListPagePending</MenuItemName>
+								</AxMenuElement>
+								<AxMenuElement xmlns=""
+									i:type="AxMenuElementMenuItem">
+									<Name>SC_SalesQuotationListPagePending</Name>
+									<DisplayInContentArea>Yes</DisplayInContentArea>
+									<MenuItemName>SC_SalesQuotationListPagePending</MenuItemName>
+								</AxMenuElement>
+							</Elements>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementSubMenu">
+							<Name>Journals</Name>
+							<Label>@SYS2827</Label>
+							<Elements>
+								<AxMenuElement xmlns=""
+									i:type="AxMenuElementMenuItem">
+									<Name>SC_CustPackingSlipJournalWebshop</Name>
+									<MenuItemName>SC_CustPackingSlipJournalWebshop</MenuItemName>
+								</AxMenuElement>
+								<AxMenuElement xmlns=""
+									i:type="AxMenuElementMenuItem">
+									<Name>SC_CustInvoiceJournalWebshop</Name>
+									<MenuItemName>SC_CustInvoiceJournalWebshop</MenuItemName>
+								</AxMenuElement>
+							</Elements>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementSubMenu">
+							<Name>History</Name>
+							<Label>@SYS30351</Label>
+							<Elements>
+								<AxMenuElement xmlns=""
+									i:type="AxMenuElementMenuItem">
+									<Name>SC_SalesTableDeleteWebshop</Name>
+									<MenuItemName>SC_SalesTableDeleteWebshop</MenuItemName>
+								</AxMenuElement>
+							</Elements>
+						</AxMenuElement>
+					</Elements>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>SetupMenu</Name>
+			<Label>@SYS12687</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_DefaultDataWizard</Name>
+					<MenuItemName>SC_DefaultDataWizard</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_LogisticsAddressSetup</Name>
+					<MenuItemName>SC_LogisticsAddressSetup</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_WebshopDataMapping</Name>
+					<MenuItemName>SC_WebshopDataMapping</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_DataValidationRules</Name>
+					<MenuItemName>SC_DataValidationRules</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_IntegrityCheck</Name>
+					<MenuItemName>SC_IntegrityCheck</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_DataManagement</Name>
+					<MenuItemName>SC_DataManagement</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_Parameters</Name>
+					<MenuItemName>SC_Parameters</MenuItemName>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>Periodic</Name>
+			<Label>@SYS333865</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_OrdersCleanup</Name>
+					<MenuItemName>SC_OrdersCleanup</MenuItemName>
+					<MenuItemType>Action</MenuItemType>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_ProductCacheHelper</Name>
+					<MenuItemName>SC_ProductCacheHelper</MenuItemName>
+					<MenuItemType>Action</MenuItemType>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>Debug</Name>
+			<Label>@SYS9526</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>SC_ManualProcessRequests</Name>
+					<MenuItemName>SC_ManualProcessRequests</MenuItemName>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+	</Elements>
+</AxMenu>

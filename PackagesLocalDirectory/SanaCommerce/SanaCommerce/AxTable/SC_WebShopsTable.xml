@@ -1,0 +1,1603 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_WebShopsTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_WebShopsTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>displayFilterName</Name>
+				<Source><![CDATA[
+    //BP deviation documented
+    [SysClientCacheDataMethodAttribute(true)]
+    display Description displayFilterName()
+    {
+        SC_FilterWebShopsTable FilterWebShopsTable;
+        SC_LargeText           ret;
+        
+        while select FieldName from FilterWebShopsTable
+            where FilterWebShopsTable.WebShopId == this.WebShopId
+        {
+            ret = ret ? ret + ',' + FilterWebShopsTable.FieldName : FilterWebShopsTable.FieldName;
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedField</Name>
+				<Source><![CDATA[
+    public void modifiedField(FieldId _fieldId)
+    {
+        super(_fieldId);
+    
+        switch (_fieldId)
+        {
+            case fieldnum(SC_WebShopsTable, EnableProdCategories):
+                Box::yesNo("@SCL262", DialogButton::Yes);
+                break;
+
+            case fieldnum(SC_WebShopsTable, OrderType):
+                if(this.OrderType == SC_Salestype::Quotation)
+                {
+                    this.SyncOrderType = SC_SalesType::Quotation;
+                }
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateField</Name>
+				<Source><![CDATA[
+    public boolean validateField(FieldId _fieldIdToCheck)
+    {
+        boolean ret;
+
+        ret = super(_fieldIdToCheck);
+
+        switch (_fieldIdToCheck)
+        {
+            case fieldNum(SC_WebShopsTable, EnableRetail):
+                if(ret && this.EnableRetail && !RetailParameters::isRetailEnabledAndInUse())
+                {
+                    ret = checkFailed("@SCL310");
+                }
+
+                if(ret && this.EnableRetail && this.OrderType == SC_SalesType::Quotation && !this.EnableQuoteForRetail)
+                {
+                    ret = checkFailed("@SCL554");
+                }
+                break;
+
+            case fieldNum(SC_WebShopsTable, OrderType):
+                if(ret && this.EnableRetail && this.OrderType == SC_SalesType::Quotation && !this.EnableQuoteForRetail)
+                {
+                    ret = checkFailed("@SCL554");
+                }
+                break;
+
+            case fieldNum(SC_WebShopsTable, MaxMultiThreads):
+                if(ret && (this.MaxMultiThreads < 2 || this.MaxMultiThreads > 10))
+                {
+                    ret = checkFailed(strFmt("@SYS344093", fieldPName(SC_WebShopsTable, MaxMultiThreads), 2, 10));
+                }
+                break;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public boolean validateWrite()
+    {
+        boolean ret;
+    
+        ret = super();
+    
+        if(ret && this.EnableProdCategories && !this.CategoryHierarchy)
+        {
+            ret = checkFailed("@SCL260");
+        }
+    
+        if(ret && this.OverrideCustDim && (!this.DefaultLocationId || !this.DefaultSiteId))
+        {
+            ret = checkFailed("@SCL273");
+        }
+    
+        if(ret && (this.DefaultSiteId || this.DefaultLocationId))
+        {
+            if((select firstonly InventLocation
+                 where InventLocation.InventLocationId == this.DefaultLocationId &&
+                       InventLocation.InventSiteId == this.DefaultSiteId).RecId == 0)
+            {
+                ret = checkFailed(strfmt("@SCL101", this.DefaultLocationId, this.DefaultSiteId));
+            }
+        }
+    
+        if(ret && TaxParameters::find().CheckIntersection == CheckTaxGroups::Error && !this.DefaultItemSalesTaxGroup)
+        {
+            ret = checkFailed("@SCL268");
+        }
+
+        if(ret && this.OrderType == SC_SalesType::Quotation && this.SyncOrderType != SC_SalesType::Quotation)
+        {
+            ret = checkFailed(strFmt("@SCL311", fieldPName(SC_WebShopsTable, SyncOrderType)));
+        }
+
+        if(RetailSMB::IsRetailSMBEnabled() && !this.EnableRetail)
+        {
+            this.EnableRetail = true;
+        }
+    
+        if(ret && isConfigurationkeyEnabled(configurationKeyNum(Retail)) && this.EnableRetail)
+        {
+            if(!this.RetailStore)
+            {
+                ret = checkFailed(strFmt("@SYS117590", fieldpname(SC_WebshopsTable, RetailStore)));
+            }
+    
+            if(!this.RetailTerminalId)
+            {
+                ret = checkFailed(strFmt("@SYS117590", fieldpname(SC_WebshopsTable, RetailTerminalId)));
+            }
+        }
+    
+        if(ret && isConfigurationkeyEnabled(configurationKeyNum(MCRCallCenter)) && this.CompleteRetailOrder && !this.RetailPaymMethod)
+        {
+            warning("@SCL523");
+        }
+
+        if(ret && this.RetailPaymMethod && this.orig().RetailPaymMethod != this.RetailPaymMethod)
+        {
+            info("@SCL524");
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    static SC_WebShopsTable find(SC_WebShopId _webShopId, boolean _forUpdate = false)
+    {
+        SC_WebShopsTable  webShopsTable;        
+
+        webShopsTable.selectForUpdate(_forUpdate);
+
+        if (_webShopId)
+        {
+            select firstonly WebShopsTable
+            where WebShopsTable.webShopId == _webShopId;
+        }
+
+        return WebShopsTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findFirst</Name>
+				<Source><![CDATA[
+    static SC_WebShopsTable findFirst()
+    {
+        SC_WebShopsTable    SC_WebShopsTable;        
+    
+        select firstonly SC_WebShopsTable;
+    
+        return SC_WebShopsTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCompatibilityLevel</Name>
+				<Source><![CDATA[
+    public String15 getCompatibilityLevel()
+    {
+        #SANA
+        String15 compatibilityLevel;
+
+        switch(this.CompatibilityLevel)
+        {
+            case SC_CompatibilityLevel::SCC100:
+                compatibilityLevel = 'SCC 1.0.0';
+                break;
+            case SC_CompatibilityLevel::SC935:
+                compatibilityLevel = '9.3.5';
+                break;
+            case SC_CompatibilityLevel::SC934:
+                compatibilityLevel = '9.3.4';
+                break;
+            case SC_CompatibilityLevel::SC933:
+                compatibilityLevel = '9.3.3';
+                break;
+            case SC_CompatibilityLevel::SC930:
+                compatibilityLevel = '9.3.0';
+                break;
+            default:
+                compatibilityLevel = #compatibilityVersion;
+                break;
+        }
+
+        return compatibilityLevel;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupNSCode</Name>
+				<Source><![CDATA[
+    static public NumberSequenceTable lookupNSCode(FormReferenceControl _formReferenceControl)
+    {
+        SysReferenceTableLookup sysTableLookup = SysReferenceTableLookup::newParameters(tableNum(NumberSequenceTable), _formReferenceControl);
+        NumberSequenceTable     selection;
+
+        sysTableLookup.addLookupfield(fieldNum(NumberSequenceTable, NumberSequence));
+        sysTableLookup.addLookupfield(fieldNum(NumberSequenceTable, Txt));
+        sysTableLookup.addLookupfield(fieldNum(NumberSequenceTable, RecId));
+
+        selection = sysTableLookup.performFormLookup();
+
+        return selection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupMainAccount</Name>
+				<Source><![CDATA[
+    static public void lookupMainAccount(FormStringControl _formControl, MainAccountNum _accountNum)
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(MainAccount), _formControl);
+        RecId                   queryCOAValue;        
+    
+        queryCOAValue = LedgerChartOfAccounts::current();    
+    
+        sysTableLookup.addLookupfield(fieldnum(MainAccount,MainAccountId));
+        sysTableLookup.addLookupfield(fieldnum(MainAccount,Name));
+        sysTableLookup.addLookupfield(fieldnum(MainAccount,Type));
+    
+        queryBuildDataSource = query.addDataSource(tablenum(MainAccount));
+        //not all GL accounts are applicable for charges
+        //queryBuildDataSource.addRange(fieldnum(MainAccount,AccountCategoryRef)).value(Sysquery::valueNotEmptyString());
+    
+        MainAccount::addSecureRangeForChartOfAccounts(queryBuildDataSource, queryCOAValue);
+    
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTerminalId</Name>
+				<Source><![CDATA[
+    static void lookupTerminalId(FormStringControl _formControl, RetailStoreId _storeId)
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(RetailTerminalTable), _formControl);        
+    
+        sysTableLookup.addLookupfield(fieldnum(RetailTerminalTable, TerminalId));
+        sysTableLookup.addLookupfield(fieldnum(RetailTerminalTable, Name));
+    
+        queryBuildDataSource = query.addDataSource(tablenum(RetailTerminalTable));
+        queryBuildDataSource.addRange(fieldnum(RetailTerminalTable, StoreRecId)).value(queryValue(RetailStoreTable::find(_storeId).RecId));
+    
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupWebshops</Name>
+				<Source><![CDATA[
+    static public void lookupWebshops(FormStringControl _formControl)
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(SC_WebShopsTable), _formControl);        
+    
+        sysTableLookup.addLookupfield(fieldnum(SC_WebShopsTable,WebShopId));
+        sysTableLookup.addLookupfield(fieldnum(SC_WebShopsTable,TemplateCustAccount));
+    
+        queryBuildDataSource = query.addDataSource(tablenum(SC_WebShopsTable));
+    
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPaymentJournal</Name>
+				<Source><![CDATA[
+    static public void lookupPaymentJournal(FormStringControl _formControl)
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource = query.addDataSource(tableNum(LedgerJournalName));
+        SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tableNum(LedgerJournalName), _formControl);        
+
+        sysTableLookup.addLookupfield(fieldnum(LedgerJournalName,JournalName));
+        sysTableLookup.addLookupfield(fieldnum(LedgerJournalName,Name));
+        sysTableLookup.addLookupfield(fieldnum(LedgerJournalName,JournalType));
+
+        queryBuildDataSource.addRange(fieldNum(LedgerJournalName, JournalType)).value(enum2str(LedgerJournalType::CustPayment));
+
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupCallCenterPaymMethods</Name>
+				<Source><![CDATA[
+    static public void lookupCallCenterPaymMethods(FormStringControl _formControl)
+    {
+        SysTableLookup       sysTableLookup = SysTableLookup::newParameters(tablenum(RetailTenderTypeTable), _formControl);
+        Query                query = new Query();
+        QueryBuildDataSource queryBuildDataSource = query.addDataSource(tablenum(RetailTenderTypeTable));
+
+        sysTableLookup.addLookupfield(fieldnum(RetailTenderTypeTable, tenderTypeId), true);
+        sysTableLookup.addLookupfield(fieldnum(RetailTenderTypeTable, name));
+    
+        queryBuildDataSource.addRange(fieldnum(RetailTenderTypeTable, defaultFunction)).value(queryValue(RetailTenderFunction::Customer));
+        queryBuildDataSource.addRange(fieldnum(RetailTenderTypeTable, defaultFunction)).value(queryValue(RetailTenderFunction::Normal));
+
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        this.WebShopId = strLTrim(this.WebShopId);
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL149</DeveloperDocumentation>
+	<FormRef>SC_WebShops</FormRef>
+	<Label>@SCL5</Label>
+	<TitleField1>WebShopId</TitleField1>
+	<TitleField2>TemplateCustAccount</TitleField2>
+	<CacheLookup>EntireTable</CacheLookup>
+	<ClusteredIndex>ShopIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<PrimaryIndex>ShopIdx</PrimaryIndex>
+	<DeleteActions>
+		<AxTableDeleteAction>
+			<Name>DeleteAction1</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation>SC_WebShopsTable</Relation>
+			<Table>SC_FilterWebShopsTable</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+		<AxTableDeleteAction>
+			<Name>DeleteAction2</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation>SC_WebShopsTable</Relation>
+			<Table>SC_AddressCountryRegionSetup</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+		<AxTableDeleteAction>
+			<Name>DeleteAction3</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation>SC_WebShopsTable</Relation>
+			<Table>SC_MixMatchDiscountTable</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+		<AxTableDeleteAction>
+			<Name>DeleteAction4</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation>SC_WebShopsTable</Relation>
+			<Table>SC_ItemVisibilityRulesTable</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+	</DeleteActions>
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TemplatePaymentCode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TemplateCustAccount</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TemplatePaymentCode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TemplateCustAccount</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Default_</Name>
+			<Label>@SCL100</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>OverrideCustDim</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultSiteId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultLocationId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DefaultTaxGroup</Name>
+			<Label>@SYS113300</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DefaultItemSalesTaxGroup</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS104938</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>displayFilterName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Import</Name>
+			<Label>@SYS8343</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ShippingLedgerDimension</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PaymentLedgerDimension</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>NumberSequences</Name>
+			<Label>@SYS26442</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>OrderNumberSequenceRefRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>QuoteNumberSequenceRefRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>GuestNumberSequenceRefRecId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OnHand</Name>
+			<Label>@SYS438</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>StockCalculationType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OrderOptimization</Name>
+			<Label>@SCL290</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DisableSanaDiscounts</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableMultilineDiscounts</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableTotalDiscounts</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableTieredCharges</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableSuppItems</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableTax</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableQuoteForRetail</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableDataMapping</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ShowInvoicedOrders</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableCreditLimit</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>PIM</Name>
+			<Label>@SYS334117</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>StockCalculationType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableInventoryStatuses</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CalcBOMlinesInventory</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultPrice</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CalculateZeroSAPrice</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultItemSalesTaxGroup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableProdCategories</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CategoryHierarchy</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ProductOptimization</Name>
+			<Label>@SCL289</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DisableAttributes</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableAlternativeItems</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableUOM</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableBOM</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisablePriceDisc</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableMultiThreading</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxMultiThreads</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableSalesCategoryAsProduct</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Retail</Name>
+			<Label>@RET3014</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>EnableRetail</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableRetailAssortments</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RetailStore</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RetailTerminalId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompleteRetailOrder</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RetailPaymMethod</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>General</Name>
+			<Label>@SYS2952</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TemplateCustAccount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ShippingLedgerDimension</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PaymentLedgerDimension</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableReports</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableDocAttachments</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EnableProdAttachments</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>B2CRegistrationType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>B2BRegistrationType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Order</Name>
+			<Label>@SCL308</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>OrderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SyncOrderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>QuotePromotableDefault</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisableAutoCharges</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExplodeBOMLines</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ProdSuggestions</Name>
+			<Label>@SCL309</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LookbackYears</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DayRange</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SortingOption</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OffsetLedger</Name>
+			<Label>@SCL346</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CustPaymJournalName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OffsetLedgerCompany</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OffsetLedgerAccountType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OffsetLedgerDimension</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OffsetLedgerTxt</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TemplatePaymentCode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PaymentReferenceSource</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PostAutoPrepayment</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PostAutoInvoicePayment</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Compatibility</Name>
+			<Label>@SCL568</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CompatibilityLevel</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>CustOptimization</Name>
+			<Label>@SCL630</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>EnableB2BCustTemplate</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>CategoryHierarchy</Name>
+			<ExtendedDataType>EcoResCategoryHierarchyId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefaultItemSalesTaxGroup</Name>
+			<ExtendedDataType>TaxItemGroup</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS113300</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefaultLocationId</Name>
+			<ExtendedDataType>InventLocationId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefaultSiteId</Name>
+			<ExtendedDataType>InventSiteId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableAttributes</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL293</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableBOM</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL292</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableSuppItems</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL285</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableTax</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL294</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableUOM</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL291</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableProdCategories</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL257</HelpText>
+			<Label>@SCL256</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableRetail</Name>
+			<ConfigurationKey>Retail</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL263</HelpText>
+			<Label>@RET6016</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderNumberSequence</Name>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS7443</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OverrideCustDim</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL270</HelpText>
+			<Label>@SCL269</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>PaymentLedgerDimension</Name>
+			<ExtendedDataType>DimensionDynamicDefaultAccount</ExtendedDataType>
+			<GroupPrompt>@SYS24500</GroupPrompt>
+			<HelpText>@SYS10268</HelpText>
+			<Label>@SCL15</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>QuoteNumberSequence</Name>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS5864</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RetailStore</Name>
+			<ExtendedDataType>RetailStoreId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RetailTerminalId</Name>
+			<ExtendedDataType>RetailTerminalId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>ShippingLedgerDimension</Name>
+			<ExtendedDataType>DimensionDynamicDefaultAccount</ExtendedDataType>
+			<GroupPrompt>@SYS24500</GroupPrompt>
+			<HelpText>@SYS10268</HelpText>
+			<Label>@SCL13</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>StockCalculationType</Name>
+			<HelpText>@SCL272</HelpText>
+			<Label>@SCL271</Label>
+			<EnumType>SC_InventCalcType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TemplateCustAccount</Name>
+			<ExtendedDataType>CustAccount</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL9</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TemplatePaymentCode</Name>
+			<ExtendedDataType>CustPaymMode</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL11</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WebShopId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>DayRange</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<Label>@SCL302</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LookbackYears</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<Label>@SCL303</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OrderType</Name>
+			<EnumType>SC_SalesType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>QuotePromotableDefault</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL305</HelpText>
+			<Label>@SCL304</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SortingOption</Name>
+			<EnumType>SC_SortingOption</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SyncOrderType</Name>
+			<Label>@SCL307</Label>
+			<EnumType>SC_SalesType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableAlternativeItems</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL314</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableMultilineDiscounts</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL315</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableTieredCharges</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL316</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableTotalDiscounts</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL317</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableReports</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL327</HelpText>
+			<Label>@SCL326</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableDocAttachments</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL329</HelpText>
+			<Label>@SCL328</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableProdAttachments</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL331</HelpText>
+			<Label>@SCL330</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableRetailAssortments</Name>
+			<ConfigurationKey>Retail</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL332</HelpText>
+			<Label>@RET5970</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisablePriceDisc</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL341</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GuestNumberSequence</Name>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL342</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OffsetLedgerAccountType</Name>
+			<Label>@SYS23950</Label>
+			<EnumType>LedgerJournalACType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OffsetLedgerCompany</Name>
+			<ConfigurationKey>LedgerAdvIntercompanyAccounting</ConfigurationKey>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<Label>@GeneralLedger:OffsetCompany</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>OffsetLedgerDimension</Name>
+			<ExtendedDataType>DimensionDynamicAccount</ExtendedDataType>
+			<Label>@SYS11162</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OffsetLedgerTxt</Name>
+			<ExtendedDataType>LedgerJournalTransTxt</ExtendedDataType>
+			<Label>@SYS24282</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DefaultPrice</Name>
+			<EnumType>SC_DefaultPrice</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>B2CRegistrationType</Name>
+			<EnumType>SC_B2CRegistrationType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CustPaymJournalName</Name>
+			<ExtendedDataType>LedgerJournalNameId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS96171</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PostAutoInvoicePayment</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL458</HelpText>
+			<Label>@SCL457</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PostAutoPrepayment</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL460</HelpText>
+			<Label>@SCL459</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableAutoCharges</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL467</HelpText>
+			<Label>@SCL466</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CalculateZeroSAPrice</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL496</HelpText>
+			<Label>@SCL495</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableSanaDiscounts</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL506</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CompleteRetailOrder</Name>
+			<ConfigurationKey>MCRCallCenter</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL263</HelpText>
+			<Label>@SCL521</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RetailPaymMethod</Name>
+			<ConfigurationKey>MCRCallCenter</ConfigurationKey>
+			<ExtendedDataType>MCRRetailStoreTenderTypeId</ExtendedDataType>
+			<HelpText>@SYS84040</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL522</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>GuestNumberSequenceRefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Label>@SCL342</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>OrderNumberSequenceRefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Label>@SYS7443</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>QuoteNumberSequenceRefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Label>@SYS5864</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CompatibilityLevel</Name>
+			<EnumType>SC_CompatibilityLevel</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ExplodeBOMLines</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SYS68930</HelpText>
+			<Label>@SYS12988</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableInventoryStatuses</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL607</HelpText>
+			<Label>@SCL606</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableMultiThreading</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL617</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableQuoteForRetail</Name>
+			<ConfigurationKey>Retail</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL619</HelpText>
+			<Label>@SCL618</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableDataMapping</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL620</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ShowInvoicedOrders</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL625</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PaymentReferenceSource</Name>
+			<EnumType>SC_PaymentReferenceSource</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableB2BCustTemplate</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL631</HelpText>
+			<Label>@SCL632</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>B2BRegistrationType</Name>
+			<Label>@SCL637</Label>
+			<EnumType>SC_B2CRegistrationType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableSalesCategoryAsProduct</Name>
+			<ConfigurationKey>Retail</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL641</HelpText>
+			<Label>@SCL640</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableCreditLimit</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL643</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CalcBOMlinesInventory</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL650</HelpText>
+			<Label>@SCL649</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxMultiThreads</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>@SYS314331</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL669</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ShopIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WebShopId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>CustPaymModeTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>CustPaymModeTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>TemplatePaymentCode</Name>
+					<Field>TemplatePaymentCode</Field>
+					<RelatedField>PaymMode</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>CustTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>CustTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>TemplateCustAccount</Name>
+					<Field>TemplateCustAccount</Field>
+					<RelatedField>AccountNum</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>EcoResCategoryHierarchy</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>EcoResCategoryHierarchy</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CategoryHierarchy</Name>
+					<Field>CategoryHierarchy</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>InventLocation</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>InventLocation</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DefaultLocationId</Name>
+					<Field>DefaultLocationId</Field>
+					<RelatedField>InventLocationId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>InventSite</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>InventSite</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DefaultSiteId</Name>
+					<Field>DefaultSiteId</Field>
+					<RelatedField>SiteId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>PaymentLedgerDimension</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>DimensionAttributeValueCombination</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>DimensionAttributeValueCombination</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Role>DimensionAttributeValueCombination_WebshopsTable</Role>
+			<UseDefaultRoleNames>No</UseDefaultRoleNames>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PaymentLedgerDimension</Name>
+					<Field>PaymentLedgerDimension</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>QuoteNumberSequenceTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>NumberSequenceTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>QuoteNumberSequenceTable</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>QuoteNumberSequenceRefRecId</Name>
+					<Field>QuoteNumberSequenceRefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>RetailStoreTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>RetailStoreTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>RetailStore</Name>
+					<Field>RetailStore</Field>
+					<RelatedField>StoreNumber</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>RetailTerminalTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>RetailTerminalTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>RetailTerminalId</Name>
+					<Field>RetailTerminalId</Field>
+					<RelatedField>terminalId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>SalesNumberSequenceTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>NumberSequenceTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>SalesNumberSequenceTable</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OrderNumberSequenceRefRecId</Name>
+					<Field>OrderNumberSequenceRefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>SC_WebShopsTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>SC_WebShopsTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>ShippingLedgerDimension</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>DimensionAttributeValueCombination</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>DimensionAttributeValueCombination_1</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Role>DimensionAttributeValueCombination_WebshopsTable_1</Role>
+			<UseDefaultRoleNames>No</UseDefaultRoleNames>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ShippingLedgerDimension</Name>
+					<Field>ShippingLedgerDimension</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>TaxItemGroupHeading</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>TaxItemGroupHeading</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DefaultItemSalesTaxGroup</Name>
+					<Field>DefaultItemSalesTaxGroup</Field>
+					<RelatedField>TaxItemGroup</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>GuestNumberSequenceTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>NumberSequenceTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>SalesNumberSequenceTable</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>GuestNumberSequenceRefRecId</Name>
+					<Field>GuestNumberSequenceRefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>OffsetLedgerDimension</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DimensionAttributeValueCombination</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>OffsetLedgerDimension</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Role>LedgerJournalTrans</Role>
+			<UseDefaultRoleNames>No</UseDefaultRoleNames>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OffsetLedgerDimension</Name>
+					<Field>OffsetLedgerDimension</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>LedgerJournalTxtOffset</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<EntityRelationshipRole>@SYS125965</EntityRelationshipRole>
+			<RelatedTable>LedgerJournalTxt</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>LedgerJournalTxtOffset</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Role>LedgerJournalTrans</Role>
+			<UseDefaultRoleNames>No</UseDefaultRoleNames>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OffsetLedgerCompany</Name>
+					<Field>OffsetLedgerCompany</Field>
+					<RelatedField>dataAreaId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OffsetLedgerTxt</Name>
+					<Field>OffsetLedgerTxt</Field>
+					<RelatedField>Txt</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>DataArea_OffsetCompany</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<EDTRelation>Yes</EDTRelation>
+			<RelatedTable>DataArea</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>DataArea_OffsetCompany</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OffsetLedgerCompany</Name>
+					<SourceEDT>SelectableDataArea</SourceEDT>
+					<Field>OffsetLedgerCompany</Field>
+					<RelatedField>id</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>isVirtual_Extern</Name>
+					<SourceEDT>SelectableDataArea</SourceEDT>
+					<RelatedField>isVirtual</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>LedgerJournalName</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>LedgerJournalName</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CustPaymJournalName</Name>
+					<Field>CustPaymJournalName</Field>
+					<RelatedField>JournalName</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

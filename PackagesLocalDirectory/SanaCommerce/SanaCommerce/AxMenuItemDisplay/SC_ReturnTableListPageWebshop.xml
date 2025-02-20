@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SC_ReturnTableListPageWebshop</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DisabledResource>0</DisabledResource>
+	<HelpText>@SYS337407</HelpText>
+	<Label>@SYS104918</Label>
+	<MaintainUserLicense>Universal</MaintainUserLicense>
+	<NormalResource>0</NormalResource>
+	<Object>ReturnTableListPage</Object>
+	<Query>SC_ReturnTableListPageWebshop</Query>
+	<ViewUserLicense>Universal</ViewUserLicense>
+</AxMenuItemDisplay>

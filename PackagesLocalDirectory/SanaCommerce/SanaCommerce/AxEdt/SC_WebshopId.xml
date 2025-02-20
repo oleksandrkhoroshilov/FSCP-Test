@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>SC_WebshopId</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DisplayLength>15</DisplayLength>
+	<HelpText>@SCL26</HelpText>
+	<Label>@SYS31438</Label>
+	<ReferenceTable>SC_WebshopsTable</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>WebShopId</RelatedField>
+			<Table>SC_WebshopsTable</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+	<StringSize>50</StringSize>
+</AxEdt>

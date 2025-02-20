@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_ProductCacheHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Collections;
+using System.Threading.Tasks;
+using System.Threading;
+
+class SC_ProductCacheHelper extends RunBaseBatch
+{
+    DialogField         customer, webshop;    
+    SC_WebshopId        webshopId;
+    CustAccount         custAccount;    
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList 
+        webshopId,
+        custAccount
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>caption</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Retrieves the description from the current class by calling the static description method of the
+    /// class.
+    /// </summary>
+    /// <returns>
+    /// The description of the current class.
+    /// </returns>
+    /// <remarks>
+    /// The static <c>RunBase::description</c> method is typically used to obtain the description of a
+    /// class because a class does not have to be initialized to call it.
+    /// </remarks>
+    public ClassDescription caption()
+    {
+        return "@SCL615";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a class that contains the methods that are described by the <c>RunBaseDialogable</c>
+    /// interface.
+    /// </summary>
+    /// <returns>
+    /// A class that contains the methods that are described by the <c>RunBaseDialogable</c> interface.
+    /// </returns>
+    /// <remarks>
+    /// A dialog box can be either built by using the <c>Dialog</c> class or by using a class that is
+    /// created in the Application Object Tree (AOT).
+    /// </remarks>
+    public Object dialog()
+    {
+        DialogRunbase   dialog = super();
+        
+        // Webshop
+        dialog.addGroup("@SCL19");
+        webshop = dialog.addField(extendedTypeStr(SC_WebshopId));
+        webshop.lookupButton(FormLookupButton::Always);
+        webshop.value((select firstOnly SC_WebShopsTable).WebshopId);
+
+        // Customer
+        dialog.addGroup("@SYS11307");
+        customer = dialog.addField(extendedTypeStr(CustAccount));        
+        customer.value((select firstOnly SC_WebShopsTable).TemplateCustAccount);
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialogPostRun</Name>
+				<Source><![CDATA[
+    public void dialogPostRun(DialogRunbase dialog)
+    {
+        super(dialog);
+        dialog.dialogForm().formRun().controlMethodOverload(true);
+        dialog.dialogForm().formRun().controlMethodOverloadObject(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Fld1_1_lookup</Name>
+				<Source><![CDATA[
+    public void Fld1_1_lookup()
+    {
+        SC_WebShopsTable::lookupWebshops(webshop.control());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Fld1_1_modified</Name>
+				<Source><![CDATA[
+    public boolean Fld1_1_modified()
+    {
+        customer.value(SC_WebShopsTable::find(webshop.value()).TemplateCustAccount);
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        boolean ret;        
+            
+        ret = super();
+
+        custAccount = customer.value();
+        webshopId   = webshop.value();
+
+        return ret; 
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion,#CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCacheKey</Name>
+				<Source><![CDATA[
+    public SC_LargeText getCacheKey(InventTable _inventTable, InventDimId _inventDimId = InventDim::findOrCreateBlank().inventDimId)
+    {
+        CustTable           custTable = CustTable::find(custAccount);
+        SC_WebShopsTable    webShopsTable = SC_WebShopsTable::find(webshopId);
+        RetailChannelTable  retailChannelTable;
+        RefRecId            retailChannelId;
+        SC_LargeText        cacheKey;
+
+        if(webShopsTable.EnableRetail || MCRChannelUser::find())
+        {
+            retailChannelId  = MCRChannelUser::find().Channel;
+
+            if(retailChannelId)
+            {
+                retailChannelTable = RetailChannelTable::findByRecId(retailChannelId);
+            }
+            else
+            {
+                retailChannelTable = RetailChannelTable::findByRecId(RetailStoreTable::find(webShopsTable.RetailStore).RecId);
+            }
+
+            cacheKey = retailChannelTable.RetailChannelId + custTable.AccountNum + _inventTable.ItemId + custTable.Currency + _inventTable.salesUnitId() + int2Str(1);
+        }
+        else
+        {
+            cacheKey = strFmt('%1%2%3%4%5%6%7', webShopsTable.WebshopId, custTable.AccountNum, _inventTable.ItemId, custTable.Currency, _inventDimId, DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()), _inventTable.salesUnitId());
+        }
+
+        return cacheKey;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()    
+    {                
+        InventTable             inventTable;
+        InventDimCombination    inventDimCombination;
+        InventDimId             inventDimId = InventDim::findOrCreateBlank().inventDimId;
+        SC_DataCacheTable       dataCacheTable;        
+        SC_LargeText            cacheKey;
+        Counter                 totalProd, totalVar;
+        Generic.List<Task>      taskList = new Generic.List<Task>();
+        Task[]                  allTasks;        
+        int                     arrayLength, i;
+        Price                   unitPrice, listPrice, discValue;
+
+        ttsbegin;
+        while select inventTable
+            where inventTable.SC_VisibleInWebShop
+        {
+            cacheKey = this.getCacheKey(inventTable);
+            
+            taskList.add(Global::runAsync(classNum(SC_ProductCacheHelper), staticMethodStr(SC_ProductCacheHelper, calcProductCache), [webshopId, custAccount, inventTable.itemId, inventDimId, cacheKey]));
+
+            if(inventTable.hasProductDimensions())
+            {
+                while select inventDimCombination
+                    where inventDimCombination.ItemId == inventTable.itemId &&
+                            inventDimCombination.SC_VisibleInWebShop
+                {
+                    cacheKey = this.getCacheKey(inventTable, inventDimCombination.InventDimId);
+                    
+                    taskList.add(Global::runAsync(classNum(SC_ProductCacheHelper), staticMethodStr(SC_ProductCacheHelper, calcProductCache), [webshopId, custAccount, inventTable.itemId, inventDimCombination.InventDimId, cacheKey]));
+                    totalVar++;
+                }
+            }
+            totalProd++;
+        }               
+
+        allTasks = taskList.ToArray();
+        Task::WaitAll(allTasks);
+        arrayLength = allTasks.get_Length();
+
+        for (i = 0; i < arrayLength; i++)
+        {
+            var currentTask = allTasks.GetValue(i);
+            [cacheKey, unitPrice, listPrice, discValue] = AsyncTaskResult::getAsyncTaskResult(currentTask).getResult();
+            
+            dataCacheTable = SC_DataCacheTable::find(cacheKey, true);
+            dataCacheTable.Value = [unitPrice, listPrice, discValue];
+
+            if(dataCacheTable)
+            {                
+                dataCacheTable.update();
+            }
+            else
+            {
+                dataCacheTable.Key = cacheKey;
+                dataCacheTable.insert();
+            }
+        }
+        ttscommit;
+
+        info(strFmt("@SCL616", totalProd, totalVar));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcProductCache</Name>
+				<Source><![CDATA[
+    public static container calcProductCache(container _callerparameters)
+    {        
+        InventTable                     inventTable = InventTable::find(conPeek(_callerparameters,3));
+        SC_WebshopId                    webShopId = conPeek(_callerparameters,1);
+        CustTable                       custTable = CustTable::find(conPeek(_callerparameters,2));                
+        InventDim                       inventDim = InventDim::find(conPeek(_callerparameters,4));
+        SC_LargeText                    cacheKey = conPeek(_callerparameters,5);
+        SC_AXDataServiceClient_Product  dataServiceClient = SC_AXDataServiceClient_Product::construct();                                
+        Price                           unitPrice, listPrice, discValue;
+                
+        dataServiceClient.setCustTable(custTable);
+        dataServiceClient.setWebsite(webShopId);
+        dataServiceClient.setInventTable(inventTable);
+
+        [unitPrice, listPrice, discValue] = dataServiceClient.calcItemPrices(true, true, custTable.Currency, inventDim);
+          
+        return [cacheKey, unitPrice, listPrice, discValue];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runsImpersonated</Name>
+				<Source><![CDATA[
+    public boolean runsImpersonated()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines whether to add a select button to the dialog box.
+    /// </summary>
+    /// <returns>
+    /// Always returns true.
+    /// </returns>
+    /// <remarks>
+    /// If you click this button, it will show the query form. Therefore, the <c>queryRun</c> method has to
+    /// return a valid <c>queryRun</c> object.If you change the return value to false the button will no
+    /// longer be added.
+    /// </remarks>
+    public boolean showQueryValues()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        Version version = RunBase::getVersion(packedClass);        
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = packedClass;
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validate</Name>
+				<Source><![CDATA[
+    public boolean validate(Object _calledFrom = null)
+    {
+        boolean         ret;        
+
+        ret = super(_calledFrom);   
+  
+        if(!custAccount)
+        {
+            ret = checkFailed("@SYS59637");
+        }
+        else if(!CustTable::exist(custAccount))
+        {
+            ret = checkFailed(strFmt("@SYS55265", custAccount, fieldPName(CustTable,AccountNum), tablePName(CustTable)));
+        }
+
+        if(ret && !webshopId)
+        {
+            ret = checkFailed(strFmt("@SYS117590", fieldpname(SC_WebshopsTable, WebshopId)));
+        }        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    server static SC_ProductCacheHelper construct()
+    {
+        return new SC_ProductCacheHelper();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args args)
+    {
+        SC_ProductCacheHelper productCacheHelper = SC_ProductCacheHelper::construct();      
+        
+        if (productCacheHelper.prompt())
+        {
+            productCacheHelper.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

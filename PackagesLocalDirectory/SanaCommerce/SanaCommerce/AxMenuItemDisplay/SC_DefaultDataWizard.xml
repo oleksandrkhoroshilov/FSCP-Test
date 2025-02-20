@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SC_DefaultDataWizard</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DisabledResource>0</DisabledResource>
+	<HelpText>@SCL212</HelpText>
+	<Label>@SCL229</Label>
+	<LinkedPermissionObject>sc_defaultDataWizard</LinkedPermissionObject>
+	<LinkedPermissionType>Form</LinkedPermissionType>
+	<MaintainUserLicense>Universal</MaintainUserLicense>
+	<NormalResource>0</NormalResource>
+	<Object>SC_DefaultDataWizard</Object>
+	<ObjectType>Class</ObjectType>
+	<ViewUserLicense>Universal</ViewUserLicense>
+</AxMenuItemDisplay>

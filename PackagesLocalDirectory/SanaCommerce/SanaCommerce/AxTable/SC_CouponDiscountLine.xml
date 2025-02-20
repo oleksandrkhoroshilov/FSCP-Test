@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_CouponDiscountLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_CouponDiscountLine extends common
+{   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>displayProductName</Name>
+				<Source><![CDATA[
+   [SysClientCacheDataMethodAttribute(true)]
+    display Name displayProductName()
+    {
+        return EcoResProduct::find(this.Product).displayProductName();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>product2itemId</Name>
+				<Source><![CDATA[
+    public ItemId product2itemId()
+    {
+        return InventTable::findByProduct(this.Product).ItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupVariants</Name>
+				<Source><![CDATA[
+    client static EcoResDistinctProductVariant lookupVariants(FormReferenceControl _formReferenceControl, EcoResProductRecId _product)
+    {
+        SysReferenceTableLookup     sysTableLookup = SysReferenceTableLookup::newParameters(tableNum(EcoResDistinctProductVariant), _formReferenceControl, true);
+        Query                       query = new Query();
+        QueryBuildDataSource        queryBuildDataSource;
+        EcoResDistinctProductVariant selection;
+        ;
+
+        sysTableLookup.addLookupfield(fieldNum(EcoResDistinctProductVariant, DisplayProductNumber));
+        sysTableLookup.addLookupfield(fieldNum(EcoResDistinctProductVariant, SearchName));
+
+        queryBuildDataSource = query.addDataSource(tablenum(EcoResDistinctProductVariant));
+        queryBuildDataSource.addRange(fieldNum(EcoResDistinctProductVariant, ProductMaster)).value(queryValue(_product));
+        queryBuildDataSource = queryBuildDataSource.addDataSource(tablenum(InventDimCombination));
+        queryBuildDataSource.joinMode(JoinMode::InnerJoin);
+        queryBuildDataSource.relations(true);
+        queryBuildDataSource = queryBuildDataSource.addDataSource(tablenum(InventDim));
+        queryBuildDataSource.joinMode(JoinMode::InnerJoin);
+        queryBuildDataSource.relations(true);
+
+        sysTableLookup.parmQuery(query);
+        selection = sysTableLookup.performFormLookup();
+
+        return selection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupProducts</Name>
+				<Source><![CDATA[
+    client static EcoResProduct lookupProducts(FormReferenceControl _formReferenceControl, RefRecId _selectedCategoryId = 0)
+    {
+        SysReferenceTableLookup     sysTableLookup = SysReferenceTableLookup::newParameters(tableNum(EcoResProduct), _formReferenceControl, true);
+        Query                       query = new Query();
+        EcoResProduct               selection;
+        QueryBuildDataSource        product_ds = query.addDataSource(tableNum(EcoResProduct));
+        QueryBuildDataSource        category_ds, category_ds2;
+        EcoResCategory              category;
+        GiroReportTmp               relatedCategories;
+
+        sysTableLookup.addLookupfield(fieldNum(EcoResProduct, DisplayProductNumber));
+        sysTableLookup.addLookupfield(fieldNum(EcoResProduct, SearchName));
+        sysTableLookup.addLookupfield(fieldNum(EcoResProduct, ProductType));
+
+        product_ds.addDataSource(tableNum(InventTable)).addLink(fieldNum(EcoResProduct, RecId), fieldNum(InventTable, Product));
+        query.dataSourceTable(tableNum(InventTable)).fetchMode(QueryFetchMode::One2One);
+
+        if (_selectedCategoryId)
+        {
+            delete_from relatedCategories;
+            SC_CouponDiscountLine::fillProductCategoryRelationData(_selectedCategoryId);
+
+            category = EcoResCategory::find(_selectedCategoryId);
+
+            category_ds = product_ds.addDataSource(tableNum(EcoResProductCategory));
+            category_ds.addLink(fieldNum(EcoResProduct, RecId), fieldNum(EcoResProductCategory, Product));
+            category_ds2 = category_ds.addDataSource(tableNum(GiroReportTmp));
+            category_ds2.addLink(fieldNum(EcoResProductCategory, Category), fieldNum(GiroReportTmp, AltRecId));
+        }
+
+        sysTableLookup.parmQuery(query);
+        selection = sysTableLookup.performFormLookup();
+
+        return selection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public boolean validateWrite()
+    {
+        boolean ret;
+    
+        ret = super();
+
+        if(ret && this.NumberOfItemsNeeded == 0)
+        {
+            ret = checkFailed("@SYS322499");
+        }
+
+        if(ret && !this.Product && !this.Category)
+        {
+            ret = checkFailed(strFmt("@SYS50087", fieldPName(SC_CouponDiscountLine,Category), fieldPName(SC_CouponDiscountLine,Product)));
+        }
+
+        if(ret && (select firstOnly SC_CouponDiscountLine
+                   where SC_CouponDiscountLine.DiscountId  == this.DiscountId &&
+                         SC_CouponDiscountLine.Category  == this.Category &&
+                         SC_CouponDiscountLine.Product   == this.Product &&
+                         SC_CouponDiscountLine.Variant   == this.Variant &&
+                         SC_CouponDiscountLine.SalesUnit == this.SalesUnit &&
+                         SC_CouponDiscountLine.WebshopId == this.WebShopId &&
+                         SC_CouponDiscountLine.RecId     != this.RecId).RecId)
+        {
+            ret = checkFailed(strFmt("@SYS153389", tableId2pname(this.TableId), tableId2name(this.TableId)));
+        }  
+      
+        if(ret && this.Product && !InventTable::findByProduct(this.Product).ItemId)
+        {
+            ret = checkFailed(strFmt("@SYS15726", EcoResProduct::find(this.Product).DisplayProductNumber));
+        }
+
+        if(ret && this.MaxQtyOfItems && this.MaxQtyOfItems < this.NumberOfItemsNeeded)
+        {
+            ret = checkFailed("@SCL613");
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillProductCategoryRelationData</Name>
+				<Source><![CDATA[
+    server static void fillProductCategoryRelationData(EcoResCategoryId _category)
+    {
+        GiroReportTmp  tmpData;
+        EcoResCategory ecoResCategoryChild;
+
+        select firstOnly tmpData where tmpData.AltRecId == _category;
+
+        if(!tmpData)
+        {
+            tmpData.AltRecId = _category;
+            tmpData.doinsert();
+        }
+
+        while select RecId from ecoResCategoryChild
+        where ecoResCategoryChild.ParentCategory == _category
+        {
+            SC_CouponDiscountLine::fillProductCategoryRelationData(ecoResCategoryChild.RecId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupCategories</Name>
+				<Source><![CDATA[
+    client static EcoResCategory lookupCategories(FormReferenceControl _formReferenceControl, SC_WebshopId _webshopId, RefRecId _selectedCategoryId = 0)
+    {
+        EcoResCategoryHierarchy categoryHierarchy = EcoResCategoryHierarchy::find(SC_WebshopsTable::find(_webshopId).CategoryHierarchy);
+
+        if(!categoryHierarchy)
+        {
+            categoryHierarchy = EcoResCategoryHierarchy::find(EcoResCategoryHierarchy::findDefaultFormHierarchyRecId());
+        }
+
+        return EcoResCategory::lookupCategoryHierarchy(
+                _formReferenceControl,
+                categoryHierarchy,
+                false,
+                true,
+                true,
+                null,
+                0,
+                0,
+                ProcCategoryOrganizationOption::BuyingLegalEntity,
+                0,
+                [EcoResCategoryNamedHierarchyRole::Retail,
+                 EcoResCategoryNamedHierarchyRole::RetailSpecialGroup,
+                 EcoResCategoryNamedHierarchyRole::Sales,
+                 EcoResCategoryNamedHierarchyRole::RetailChannelNavigation,
+                 EcoResCategoryNamedHierarchyRole::Commodity,
+                 EcoResCategoryNamedHierarchyRole::Financials,
+                 EcoResCategoryNamedHierarchyRole::Procurement,
+                 EcoResCategoryNamedHierarchyRole::RetailVendorProductHierarchy,
+                 EcoResCategoryNamedHierarchyRole::CostManagement],
+                _selectedCategoryId
+                );
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedField</Name>
+				<Source><![CDATA[
+    public void modifiedField(FieldId _fieldId)
+    {
+        super(_fieldId);
+
+        switch (_fieldId)
+        {
+            case fieldnum(SC_CouponDiscountLine, Product):
+                if(this.orig().Product != this.Product)
+                {
+                    this.Variant = 0;
+                }
+                break;            
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL603</DeveloperDocumentation>
+	<FormRef>SC_CouponDiscount</FormRef>
+	<Label>@SCL603</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>DiscountId</TitleField1>
+	<TitleField2>Product</TitleField2>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>ProductIdx</ClusteredIndex>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Category</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Product</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Variant</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SalesUnit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberOfItemsNeeded</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscPercent</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Product</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Category</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Variant</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SalesUnit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberOfItemsNeeded</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscPercent</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Category</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Product</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Variant</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SalesUnit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberOfItemsNeeded</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscPercent</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Description</Name>
+			<Label>@SYS36186</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Category</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Product</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Variant</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Setup</Name>
+			<Label>@SYS12687</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SalesUnit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberOfItemsNeeded</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscPercent</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxQtyOfItems</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DiscountId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DiscCode</ExtendedDataType>
+			<HelpText>@SYS135299</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS12581</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WebShopId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL161</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>DiscPercent</Name>
+			<ExtendedDataType>DiscPct</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>NumberOfItemsNeeded</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>@SCL500</HelpText>
+			<Label>@SCL499</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>Product</Name>
+			<ExtendedDataType>EcoResProductRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SalesUnit</Name>
+			<ExtendedDataType>SalesUnit</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>Variant</Name>
+			<ExtendedDataType>EcoResDistinctProductVariantRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>Category</Name>
+			<ExtendedDataType>EcoResCategoryId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxQtyOfItems</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>@SCL612</HelpText>
+			<Label>@SCL611</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ProductIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Product</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Variant</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>SalesUnit</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DiscountId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>WebShopId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>SetupIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>NumberOfItemsNeeded</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>SC_WebShopsTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>SC_WebShopsTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>EcoResDistinctProductVariant</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>EcoResDistinctProductVariant</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Variant</Name>
+					<Field>Variant</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>EcoResProduct</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>EcoResProduct</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Product</Name>
+					<Field>Product</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>SC_CouponDiscountTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>SC_CouponDiscountTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DiscountId</Name>
+					<Field>DiscountId</Field>
+					<RelatedField>DiscountId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>EcoResCategory</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>EcoResCategory</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Category</Name>
+					<Field>Category</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

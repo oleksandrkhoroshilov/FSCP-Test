@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>InventItemGroup.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>SanaCommerce</Name>
+			<Label>@SCL2</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SC_VisibleInWebshop</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SC_VisibleFrom</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SC_VisibleTo</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SC_SortNum</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>SC_SortNum</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>@SCL45</HelpText>
+			<Label>@SCL40</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_VisibleInWebshop</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL44</HelpText>
+			<Label>@SCL1</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>SC_VisibleFrom</Name>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<Label>@SCL635</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>SC_VisibleTo</Name>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<Label>@SCL636</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>

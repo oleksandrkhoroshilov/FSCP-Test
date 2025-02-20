@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemAction xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SC_OrdersCleanup</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<HelpText>@SYS23355</HelpText>
+	<Label>@SCL454</Label>
+	<MaintainUserLicense>Universal</MaintainUserLicense>
+	<Object>SC_OrdersCleanup</Object>
+	<ObjectType>Class</ObjectType>
+	<ViewUserLicense>Universal</ViewUserLicense>
+</AxMenuItemAction>

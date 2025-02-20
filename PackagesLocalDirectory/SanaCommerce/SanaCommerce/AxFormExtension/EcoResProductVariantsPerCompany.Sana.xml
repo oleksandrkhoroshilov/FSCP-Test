@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>EcoResProductVariantsPerCompany.Sana</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>Copy1rkomin01</Name>
+			<FormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>SanaCommerce</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>SanaCommerce_SC_VisibleInWebShop</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SC_VisibleInWebShop</DataField>
+						<DataSource>InventDimCombination</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataGroup>SanaCommerce</DataGroup>
+				<DataSource>InventDimCombination</DataSource>
+			</FormControl>
+			<Parent>DetailsDetailsTabPage</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>Copyop05puws1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>SanaCommerceMain</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>SanaCommerceMain_SC_VisibleInWebShop</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SC_VisibleInWebShop</DataField>
+						<DataSource>InventDimCombination</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataGroup>SanaCommerce</DataGroup>
+				<DataSource>InventDimCombination</DataSource>
+			</FormControl>
+			<Parent>MainGrid</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

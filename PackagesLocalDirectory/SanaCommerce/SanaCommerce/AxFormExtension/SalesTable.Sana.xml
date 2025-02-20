@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SalesTable.Sana</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>Copy1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormTabPageControl">
+				<Name>ECommerce</Name>
+				<ElementPosition>1073741823</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>Auto</HeightMode>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>TabPage</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>Auto</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>SanaImport</Name>
+						<ElementPosition>1717986916</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>Group</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>SanaImport_SC_SanaOrder</Name>
+								<Type>CheckBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_SanaOrder</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>SanaImport_SC_IsPersistedBasket</Name>
+								<Type>CheckBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_IsPersistedBasket</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaImport_SC_WebshopId</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_WebshopId</DataField>
+								<DataSource>SalesTable</DataSource>
+								<Label>@SCL246</Label>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormDateControl">
+								<Name>SanaImport_SC_DateReceived</Name>
+								<Type>Date</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_DateReceived</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTimeControl">
+								<Name>SanaImport_SC_TimeReceived</Name>
+								<Type>Time</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_TimeReceived</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaImport_SC_AuthorizationStatus</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_AuthorizationStatus</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaImport_SC_ShipmentMethodName</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_ShipmentMethodName</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaImport_SC_ShopAccountCode</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_ShopAccountCode</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaImport_SC_AdminAccountCode</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_AdminAccountCode</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>SanaImport</DataGroup>
+						<DataSource>SalesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>SanaPromotion</Name>
+						<ElementPosition>1288490187</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>Group</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaPromotion_SC_PromotionCode</Name>
+								<FilterExpression>%1</FilterExpression>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_PromotionCode</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaPromotion_SC_PromotionTitle</Name>
+								<FilterExpression>%1</FilterExpression>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_PromotionTitle</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormComboBoxControl">
+								<Name>SanaPromotion_SC_PromotionType</Name>
+								<FilterExpression>%1</FilterExpression>
+								<Type>ComboBox</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_PromotionType</DataField>
+								<DataSource>SalesTable</DataSource>
+								<Items />
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormRealControl">
+								<Name>SanaPromotion_SC_PromotionValue</Name>
+								<Type>Real</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_PromotionValue</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormRealControl">
+								<Name>SanaPromotion_SC_PromotionAmount</Name>
+								<Type>Real</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_PromotionAmount</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>SanaPromotion</DataGroup>
+						<DataSource>SalesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>SanaComment</Name>
+						<ElementPosition>858993458</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>Group</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaComment_SC_Comments</Name>
+								<FilterExpression>%1</FilterExpression>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_Comments</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>Sana</DataGroup>
+						<DataSource>SalesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>SanaPickupLocation</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaPickupLocation_SC_PickupLocationId</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_PickupLocationId</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaPickupLocation_SC_PickupLocationAddress</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>SC_PickupLocationAddress</DataField>
+								<DataSource>SalesTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>SanaPickupLocation</DataGroup>
+						<DataSource>SalesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>SanaCollectionLocation</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaCollectionLocation_StoreLocationCode</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>StoreLocationCode</DataField>
+								<DataSource>SC_SalesTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>SanaCollectionLocation_locationAddress</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataMethod>locationAddress</DataMethod>
+								<DataSource>SC_SalesTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>SanaCollectionLocation</DataGroup>
+						<DataSource>SC_SalesTable</DataSource>
+					</AxFormControl>
+				</Controls>
+				<ColumnsMode>Fill</ColumnsMode>
+				<Caption>@SCL95</Caption>
+				<Scrollbars>Auto</Scrollbars>
+			</FormControl>
+			<Parent>HeaderDetailsTab</Parent>
+			<PositionType>AfterItem</PositionType>
+			<PreviousSibling>TabHeaderPriceCalc</PreviousSibling>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlkv3evu3h1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormStringControl">
+				<Name>SalesTable_SC_PaymentMethod</Name>
+				<Type>String</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_PaymentMethod</DataField>
+				<DataSource>SalesTable</DataSource>
+			</FormControl>
+			<Parent>Payment</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlc2rtt00q1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormStringControl">
+				<Name>SC_SalesTable_ExternalPaymentMethodType</Name>
+				<AllowEdit>No</AllowEdit>
+				<Type>String</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>ExternalPaymentMethodType</DataField>
+				<DataSource>SC_SalesTable</DataSource>
+			</FormControl>
+			<Parent>Payment</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlm2lm3uxb1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormStringControl">
+				<Name>SalesTable_SC_PaymentStatus</Name>
+				<Type>String</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_PaymentStatus</DataField>
+				<DataSource>SalesTable</DataSource>
+			</FormControl>
+			<Parent>Payment</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControly1cfyyq11</Name>
+			<FormControl xmlns=""
+				i:type="AxFormStringControl">
+				<Name>SalesTable_SC_PaymentTransactionId</Name>
+				<Type>String</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_PaymentTransactionId</DataField>
+				<DataSource>SalesTable</DataSource>
+			</FormControl>
+			<Parent>Payment</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>SC_SalesTable</Name>
+			<Table>SC_SalesTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExternalPaymentMethodType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesTable</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SanaLocationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StoreLocationCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>SalesTable</JoinSource>
+			<LinkType>OuterJoin</LinkType>
+			<InsertAtEnd>No</InsertAtEnd>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxDataEntityViewExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>EcoResReleasedProductV2Entity.Sana</Name>
+	<DataSources />
+	<FieldGroupExtensions />
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_ConfiguratorModel</Name>
+			<DataField>SC_ConfiguratorModel</DataField>
+			<DataSource>InventTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_VisibleInWebShop</Name>
+			<DataField>SC_VisibleInWebShop</DataField>
+			<DataSource>InventTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_HideDescription</Name>
+			<DataField>SC_HideDescription</DataField>
+			<DataSource>InventTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_VisibleFrom</Name>
+			<DataField>SC_VisibleFrom</DataField>
+			<DataSource>InventTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>SC_VisibleTo</Name>
+			<DataField>SC_VisibleTo</DataField>
+			<DataSource>InventTable</DataSource>
+		</AxDataEntityViewField>
+	</Fields>
+	<Mappings />
+	<PropertyModifications />
+	<Relations />
+</AxDataEntityViewExtension>

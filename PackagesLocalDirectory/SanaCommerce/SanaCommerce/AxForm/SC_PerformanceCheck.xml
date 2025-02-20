@@ -1,0 +1,887 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_PerformanceCheck</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_PerformanceCheck extends FormRun
+{
+    container orderableProducts;
+    Integer   i;
+    str       tmpStr, tmpStr2;
+
+    System.Diagnostics.Stopwatch stopwatch;    
+    
+    #localmacro.GetProductsStart
+    '<Request>\n'+
+    '  <Operation>GetProducts</Operation>\n'+
+    '  <Params>\n'+
+    '    <VisibleOnly>0</VisibleOnly>\n'+
+    '    <LoadRelatedSkus>1</LoadRelatedSkus>\n'+
+    '    <LoadVisibilityRules>1</LoadVisibilityRules>\n'+
+    '    <CalculatePrices>1</CalculatePrices>\n'+
+    '    <CalculateInventory>1</CalculateInventory>\n'+
+    '    <CalculateSkuPrices>1</CalculateSkuPrices>\n'+
+    '    <CalculateSkuInventory>1</CalculateSkuInventory>\n'+
+    '    <CheckStock>1</CheckStock>\n'+
+    '    <AccountId>\%1</AccountId>\n'+
+    '    <AccountType>Customer</AccountType>\n'+
+    '    <MultiCurrency>0</MultiCurrency>\n'+
+    '    <PageIndex>0</PageIndex>\n'+
+    '    <PageSize>1</PageSize>\n'+
+    '    <SortField>Id</SortField>\n'+
+    '    <SortAscending>1</SortAscending>\n'+
+    '    <Filter>\n'+
+    '      <for field="Id">\n'
+    #endmacro
+    #localmacro.GetProductsFilter
+    '        <Equal>\%1</Equal>\n'
+    #endmacro
+    #localmacro.GetProductsEnd
+    '      </for>\n'+
+    '    </Filter>\n'+
+    '    <WebsiteId>\%1</WebsiteId>\n'+
+    '  </Params>\n'+
+    '</Request>'
+    #endmacro
+
+
+    #localmacro.GetPriceInfoStart
+    '<Request>\n'+
+    '  <Operation>GetPriceInfo</Operation>\n'+
+    '  <Params>\n'+
+    '    <AccountId>\%1</AccountId>\n'+
+    '    <AccountType>Customer</AccountType>\n'+
+    '    <MultiCurrency>0</MultiCurrency>\n'+
+    '    <LoadRelatedSkus>1</LoadRelatedSkus>\n'
+    #endmacro
+    #localmacro.GetPriceInfoFilter
+    '    <Product>\n'+
+    '      <Id>\%1</Id>\n'+
+    '      <UnitOfMeasureId>\%2</UnitOfMeasureId>\n'+
+    '    </Product>\n'
+    #endmacro
+    #localmacro.GetPriceInfoEnd
+    '    <WebsiteId>\%1</WebsiteId>\n'+
+    '  </Params>\n'+
+    '</Request>'
+    #endmacro
+
+
+    #localmacro.GetStockInfoStart
+    '<Request>\n'+
+    '  <Operation>GetStockInfo</Operation>\n'+
+    '  <Params>\n'+
+    '    <AccountId>\%1</AccountId>\n'+
+    '    <AccountType>Customer</AccountType>\n'+
+    '    <LoadRelatedSkus>1</LoadRelatedSkus>\n'+
+    '    <CheckStock>1</CheckStock>\n'
+    #endmacro
+    #localmacro.GetStockInfoFilter
+    '    <Product>\n'+
+    '      <Id>\%1</Id>\n'+
+    '    </Product>\n'
+    #endmacro
+    #localmacro.GetStockInfoEnd
+    '    <WebsiteId>\%1</WebsiteId>\n'+
+    '  </Params>\n'+
+    '</Request>'
+    #endmacro
+
+
+    #localmacro.CalculateBasketStart
+    '<Request>\n'+
+    '  <Operation>CalculateBasket</Operation>\n'+
+    '  <Params>\n'+
+    '    <Basket>\n'+
+    '      <SalesLines>\n'
+    #endmacro
+    #localmacro.CalculateBasketLines
+    '        <SalesLine>\n'+
+    '          <field name="Id" value="4225663f-b835-4b76-99b1-7316e5bf36e7" />\n'+
+    '          <field name="Quantity" value="1" />\n'+
+    '          <field name="ProductId" value="\%1" />\n'+
+    '          <field name="VariantId" />\n'+
+    '          <field name="PrepackId" />\n'+
+    '          <field name="LineType" value="item" />\n'+
+    '          <field name="UnitOfMeasureId" value="\%2" />\n'+
+    '          <field name="QuantityPrecision" value="1" />\n'+
+    '          <field name="SalesAgreementLineNo" value="" />\n'+
+    '          <field name="SkipSalesAgreement" value="1" />\n'+
+    '        </SalesLine>\n'
+    #endmacro
+    #localmacro.CalculateBasketEnd
+    '        <SalesLine>\n'+
+    '          <field name="Id" value="ac927e44-cd77-496d-a103-cb2b0cfef175" />\n'+
+    '          <field name="Quantity" value="1" />\n'+
+    '          <field name="ProductId" />\n'+
+    '          <field name="VariantId" />\n'+
+    '          <field name="LineType" value="shippingcosts" />\n'+
+    '          <field name="Title" value="Free shipping" />\n'+
+    '          <field name="Price" value="0.0000" />\n'+
+    '        </SalesLine>\n'+
+    '        <SalesLine>\n'+
+    '          <field name="Id" value="ac1aa74b-b799-4199-a31c-2257d7ec18cd" />\n'+
+    '          <field name="Quantity" value="1" />\n'+
+    '          <field name="ProductId" value="NA3BKPV6" />\n'+
+    '          <field name="VariantId" />\n'+
+    '          <field name="PrepackId" />\n'+
+    '          <field name="LineType" value="promotioncode" />\n'+
+    '          <field name="Title" value="WT Valid promocode" />\n'+
+    '          <field name="DiscountType" value="Percentage" />\n'+
+    '          <field name="DiscountValue" value="0.1" />\n'+
+    '        </SalesLine>\n'+
+    '      </SalesLines>\n'+
+    '      <field name="Id" value="8ee74fa2-b11e-4da8-a69f-e8572b7c78dd" />\n'+
+    '      <field name="LastUpdate" value="7/22/2013 5:38:43 PM" />\n'+
+    '    </Basket>\n'+
+    '    <AccountId>\%1</AccountId>\n'+
+    '    <AccountType>Customer</AccountType>\n'+
+    '    <ContactId />\n'+
+    '    <CheckStock>0</CheckStock>\n'+
+    '    <B2bOnlinePayments>Prepayment</B2bOnlinePayments>\n'+
+    '    <ShopAccountType>Customer</ShopAccountType>\n'+
+    '    <LanguageId>\%2</LanguageId>\n'+
+    '    <ShippingMethodCode></ShippingMethodCode>\n'+
+    '    <SalesAgreementId></SalesAgreementId>\n'+
+    '    <ShippingAddress>\n'+
+    '      <field name="Id" value=""/>\n'+
+    '      <field name="Name" value="Customer name"/>\n'+
+    '      <field name="Address" value="Shipping address"/>\n'+
+    '      <field name="Address2" value="Shippnig address 2"/>\n'+
+    '      <field name="ZipCode" value="3044"/>\n'+
+    '      <field name="City" value="Rotterdam"/>\n'+
+    '      <field name="CountryId" value="NL"/>\n'+
+    '      <field name="State" />\n'+
+    '    </ShippingAddress>\n'+
+    '    <WebsiteId>\%3</WebsiteId>\n'+
+    '  </Params>\n'+
+    '</Request>'
+    #endmacro
+
+
+    #localmacro.GetOrders
+    '<Request>\n'+
+    '  <Operation>GetOrders</Operation>\n'+
+    '  <Params>\n'+
+    '    <PageIndex>0</PageIndex>\n'+
+    '    <PageSize>1</PageSize>\n'+
+    '    <SortField>OrderDate</SortField>\n'+
+    '    <SortAsc>0</SortAsc>\n'+
+    '    <LanguageId>\%1</LanguageId>\n'+
+    '    <MaxOrderLinesToLoad>25</MaxOrderLinesToLoad>\n'+
+    '    <DocumentType>Order</DocumentType>\n'+
+    '    <StartDate></StartDate>\n'+
+    '    <EndDate></EndDate>\n'+
+    '    <CustomerId></CustomerId>\n'+
+    '    <DocumentId>\%2</DocumentId>\n'+
+    '    <OriginalOrderId></OriginalOrderId>\n'+
+    '    <SalesPersonId></SalesPersonId>\n'+
+    '    <CheckPaymentStatus>1</CheckPaymentStatus>\n'+
+    '    <WebsiteId>\%3</WebsiteId>\n'+
+    '  </Params>\n'+
+    '</Request>'
+    #endmacro
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrderableProducts</Name>
+				<Source><![CDATA[
+    public void findOrderableProducts()
+    {
+        SC_AXDataServiceClient_Product  AXDataServiceClient = SC_AXDataServiceClient_Product::construct();
+        InventTable                     inventTable;
+        Counter                         cnt;
+
+        orderableProducts = conNull();
+
+        ResultString.text(strFmt("@SCL582", ProductNum.value()));
+
+        while select inventTable
+        order by SC_VisibleInWebShop desc
+        {
+            if(inventTable.hasProductDimensions())
+            {
+                continue;
+            }
+
+            AXDataServiceClient.setCustTable(CustTable::find(CustAccount.text()));
+            AXDataServiceClient.setInventTable(inventTable);
+            AXDataServiceClient.setErrorMsg('');
+            AXDataServiceClient.setWebsite(WebShopId.text());
+
+            if(AXDataServiceClient.checkProductOrderability(null, null))
+            {
+                orderableProducts += inventTable.ItemId;
+                cnt++;
+
+                if(cnt == ProductNum.value())
+                {
+                    break;
+                }
+            }
+        }
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL583", cnt));              
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+
+        WebShopId.text(SC_WebShopsTable::findFirst().WebShopId);
+        CustAccount.text((select firstonly CustTable).AccountNum);
+
+        new InteropPermission(InteropKind::ClrInterop).assert();
+        stopwatch = new System.Diagnostics.Stopwatch();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processRequest</Name>
+				<Source><![CDATA[
+    public container processRequest(str _request)
+    {
+        int64                   elapsedTime, minTime=maxInt(), maxTime, totalTime;
+        SC_AXDataServiceClient  AXDataServiceClient;               
+
+        for(i=1;i<=TestsNum.value();i++)
+        {
+            stopwatch.Start();
+
+            AXDataServiceClient = SC_AXDataServiceClient::construct(); //construct for each loop for cache clearing
+            tmpStr2 = AXDataServiceClient.ProcessRequest(_request);
+
+            stopwatch.Stop();
+            elapsedTime = stopwatch.get_ElapsedMilliseconds();
+
+            minTime = elapsedTime < minTime ? elapsedTime : minTime;
+            maxTime = elapsedTime > maxTime ? elapsedTime : maxTime;
+            totalTime += elapsedTime;
+
+            stopwatch.Reset();            
+        }
+
+        return [minTime, totalTime/TestsNum.value(), maxTime];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testCalcBasket</Name>
+				<Source><![CDATA[
+    public void testCalcBasket()
+    {
+        int64       minTime, averageTime, maxTime;
+        InventTable inventTable;
+        Integer     localeId;
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL584", ProductNum.value()));
+        
+        localeId = SC_LanguageParametersTable::findByLocale(1033).LocaleId;
+
+        if(!localeId)
+        {
+            localeId = (select firstonly SC_LanguageParametersTable).LocaleId;
+        }
+
+        tmpStr = #CalculateBasketStart;
+
+        for(i=1;i<=conLen(orderableProducts);i++)
+        {
+            inventTable = InventTable::find(conPeek(orderableProducts, i));
+            tmpStr += strFmt(#CalculateBasketLines, inventTable.ItemId, inventTable.salesUnitId());
+        }
+        tmpStr += strFmt(#CalculateBasketEnd, CustAccount.text(), localeId, WebShopId.text());
+
+        [minTime, averageTime, maxTime] = element.processRequest(tmpStr);
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL585", minTime, averageTime, maxTime));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testGetOrders</Name>
+				<Source><![CDATA[
+    public void testGetOrders()
+    {
+        int64       minTime, averageTime, maxTime;
+        Integer     localeId;
+        SalesLine   salesLine, salesLineCount;
+        SalesTable  salesTable;
+
+        select maxOf(LineNum) from salesLine;
+
+        if(salesLine.LineNum >= ProductNum.value())
+        {
+            ResultString.text(ResultString.text() + '\n' + strFmt("@SCL586", ProductNum.value()));
+
+            while select SalesId from salesTable
+                where  salesTable.SalesStatus == SalesStatus::Backorder
+            exists join salesLine
+                where salesLine.SalesId == salesTable.SalesId &&
+                      salesLine.LineNum == ProductNum.value()
+            {
+                select maxOf(LineNum) from salesLineCount
+                    where salesTable.SalesId == salesLineCount.SalesId;
+
+                if(salesLineCount.LineNum == ProductNum.value())
+                {
+                    break;
+                }
+            }
+        }
+        else
+        {
+            ResultString.text(ResultString.text() + '\n' + strFmt("@SCL587", ProductNum.value()));
+            
+            select firstOnly SalesId from salesTable
+                where salesTable.SalesStatus == SalesStatus::Backorder;
+        }
+
+        if(!salesTable)
+        {
+            ResultString.text(ResultString.text() + '\n' + "@SCL588");
+            return;
+        }
+
+        ResultString.text(ResultString.text() + '\n' + "@SCL589");
+        
+        localeId = SC_LanguageParametersTable::findByLocale(1033).LocaleId;
+
+        if(!localeId)
+        {
+            localeId = (select firstonly SC_LanguageParametersTable).LocaleId;
+        }
+
+        tmpStr = strFmt(#GetOrders, localeId, salesTable.SalesId, WebShopId.text());
+
+        [minTime, averageTime, maxTime] = element.processRequest(tmpStr);
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL590", minTime, averageTime, maxTime));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testGetPriceInfo</Name>
+				<Source><![CDATA[
+    public void testGetPriceInfo()
+    {
+        int64       minTime, averageTime, maxTime;
+        InventTable inventTable;
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL591", i));
+
+        tmpStr = strFmt(#GetPriceInfoStart, CustAccount.text());
+
+        for(i=1;i<=conLen(orderableProducts);i++)
+        {
+            inventTable = InventTable::find(conPeek(orderableProducts, i));
+            tmpStr += strFmt(#GetPriceInfoFilter, inventTable.ItemId, inventTable.salesUnitId());
+        }
+        tmpStr += strFmt(#GetPriceInfoEnd, WebShopId.text());
+
+        [minTime, averageTime, maxTime] = element.processRequest(tmpStr);
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL592", minTime, averageTime, maxTime));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testGetProducts</Name>
+				<Source><![CDATA[
+    public void testGetProducts()
+    {
+        int64   minTime, averageTime, maxTime;
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL593", i));
+
+        tmpStr = strFmt(#GetProductsStart, CustAccount.text());
+
+        for(i=1;i<=conLen(orderableProducts);i++)
+        {
+            tmpStr += strFmt(#GetProductsFilter, conPeek(orderableProducts, i));
+        }
+        tmpStr += strFmt(#GetProductsEnd, WebShopId.text());
+
+        [minTime, averageTime, maxTime] = element.processRequest(tmpStr);
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL594", minTime, averageTime, maxTime));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testGetStockInfo</Name>
+				<Source><![CDATA[
+    public void testGetStockInfo()
+    {
+        int64       minTime, averageTime, maxTime;
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL595", i));
+
+        tmpStr = strFmt(#GetStockInfoStart, CustAccount.text());
+
+        for(i=1;i<=conLen(orderableProducts);i++)
+        {
+            tmpStr += strFmt(#GetStockInfoFilter, conPeek(orderableProducts, i));
+        }
+        tmpStr += strFmt(#GetStockInfoEnd, WebShopId.text());
+
+        [minTime, averageTime, maxTime] = element.processRequest(tmpStr);
+
+        ResultString.text(ResultString.text() + '\n' + strFmt("@SCL596", minTime, averageTime, maxTime));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>RunTests</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            if(GetProducts.value() || GetPrice.value() || GetStock.value() || CalcBasket.value())
+            {
+                element.findOrderableProducts();
+
+                if(orderableProducts == conNull())
+                {
+                    ResultString.text("@SCL597");
+                    return;
+                }
+            }
+
+            if(GetProducts.value())
+            {
+                element.testGetProducts();
+            }
+
+            if(GetPrice.value())
+            {
+                element.testGetPriceInfo();
+            }
+
+            if(GetStock.value())
+            {
+                element.testGetStockInfo();
+            }
+
+            if(CalcBasket.value())
+            {
+                element.testCalcBasket();
+            }
+
+            if(GetOrder.value())
+            {
+                element.testGetOrders();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>WebShopId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(SC_WebShopsTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebShopsTable::lookupWebshops(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            boolean ret;
+
+            ret = super();
+
+            return ret && this.valueStr();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>CustAccount</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            boolean ret;
+    
+            ret = super();
+    
+            return ret && this.valueStr() && CustTable::exist(this.valueStr());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ProductNum</Name>
+				<Type>Integer</Type>
+				<Methods>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            return ret && this.value() > 0;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TestsNum</Name>
+				<Type>Integer</Type>
+				<Methods>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            boolean ret;
+    
+            ret = super();
+    
+            return ret && this.value() > 0;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SelectAll</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            GetProducts.value(this.value());
+            GetPrice.value(this.value());
+            GetStock.value(this.value());
+            CalcBasket.value(this.value());
+            GetOrder.value(this.value());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@PerfCheck:PerformanceTest</Caption>
+		<DefaultAction xmlns="">RunTests</DefaultAction>
+		<Pattern xmlns="">SimpleDetails-FastTabsContainer</Pattern>
+		<PatternVersion xmlns="">1.4</PatternVersion>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>RunTests</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1288490187</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@SYS113197</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+								<NormalImage>Next</NormalImage>
+								<Text>@SYS9282</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>FormTabControl1</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageTestOption</Name>
+						<Pattern>Custom</Pattern>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>WarningMessageGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>WarningMessage</Name>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>Note that running tests for 5 products and 10 loops can take approximately 2 minutes. The more products and loops you enter, the longer it will take to complete the tests. Be careful using larger numbers not to run into form timeouts.</Text>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>MainGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Filters</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>WebShopId</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+												<Label>@SCL161</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>CustAccount</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<ExtendedDataType>CustAccount</ExtendedDataType>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>ProductNum</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SCL569</HelpText>
+												<Type>Integer</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL169</Label>
+												<Value>5</Value>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>TestsNum</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SCL571</HelpText>
+												<Type>Integer</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL570</Label>
+												<Value>10</Value>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>TestsGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>SelectAll</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SYS63238</Label>
+												<Value>1</Value>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>GetProducts</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SCL573</HelpText>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL572</Label>
+												<Value>1</Value>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>GetPrice</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SCL575</HelpText>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL574</Label>
+												<Value>1</Value>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>GetStock</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SCL577</HelpText>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL576</Label>
+												<Value>1</Value>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>CalcBasket</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SCL579</HelpText>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL578</Label>
+												<Value>1</Value>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>GetOrder</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SCL581</HelpText>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL580</Label>
+												<Value>1</Value>
+											</AxFormControl>
+										</Controls>
+										<ArrangeMethod>Auto</ArrangeMethod>
+										<Columns>3</Columns>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@SCL598</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageTestResult</Name>
+						<Pattern>Custom</Pattern>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>ResultString</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DisplayHeight>20</DisplayHeight>
+								<DisplayHeightMode>Fixed</DisplayHeightMode>
+								<Label>@PerfCheck:Result</Label>
+								<MultiLine>Yes</MultiLine>
+								<ShowLabel>No</ShowLabel>
+							</AxFormControl>
+						</Controls>
+						<Caption>@PerfCheck:Result</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

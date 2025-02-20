@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLabelFile xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SCL_nl</Name>
+	<LabelContentFileName>SCL.nl.label.txt</LabelContentFileName>
+	<LabelFileId>SCL</LabelFileId>
+	<Language>nl</Language>
+	<RelativeUriInModelStore>ApplicationSuite/ApplicationSuite.Sana/AxLabelFile/LabelResources/nl/SCL.nl.label.txt</RelativeUriInModelStore>
+</AxLabelFile>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SalesQuotationHeaderV2Staging.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_WebshopId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_IsPromotable</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL301</HelpText>
+			<Label>@SCL300</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_PaymentTransactionId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>PaymAccountNum</ExtendedDataType>
+			<Label>@SCL174</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldTime">
+			<Name>SC_TimeReceived</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>TimeOfDay</ExtendedDataType>
+			<Label>@SCL138</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_SanaOrder</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL134</HelpText>
+			<Label>@SCL133</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_AuthorizationStatus</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>String30</ExtendedDataType>
+			<HelpText>@SCL299</HelpText>
+			<Label>@SCL298</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_BillToName</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>CustName</ExtendedDataType>
+			<Label>@SCL79</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>SC_PromotionValue</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>Amount</ExtendedDataType>
+			<Label>@SCL93</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>SC_DateReceived</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<Label>@SCL139</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_PromotionTitle</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<Label>@SCL90</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_PromotionType</Name>
+			<EnumType>SC_DiscountType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_IsPersistedBasket</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL296</HelpText>
+			<Label>@SCL295</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_PaymentStatus</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>PaymSpec</ExtendedDataType>
+			<Label>@SCL83</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_PromotionCode</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>@SCL89</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>SC_PromotionDiscPercent</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>SalesEndDiscPct</ExtendedDataType>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_ShopAccountCode</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>Email</ExtendedDataType>
+			<Label>@SCL137</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_ShipmentMethodName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_FieldName</ExtendedDataType>
+			<HelpText>@SCL136</HelpText>
+			<Label>@SCL135</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_PaymentMethod</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>PaymId</ExtendedDataType>
+			<Label>@SCL84</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_OrderId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>String50</ExtendedDataType>
+			<Label>@SCL75</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_Comments</Name>
+			<ExtendedDataType>SC_Comments</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>SC_PromotionAmount</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>Amount</ExtendedDataType>
+			<Label>@SCL92</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_PickupLocationId</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>String50</ExtendedDataType>
+			<HelpText>@SYS131568</HelpText>
+			<Label>@SCL463</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_AdminAccountCode</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>Email</ExtendedDataType>
+			<Label>@SCL508</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>

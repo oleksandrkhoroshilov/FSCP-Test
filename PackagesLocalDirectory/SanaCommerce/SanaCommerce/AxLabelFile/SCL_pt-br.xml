@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLabelFile xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SCL_pt-br</Name>
+	<LabelContentFileName>SCL.pt-br.label.txt</LabelContentFileName>
+	<LabelFileId>SCL</LabelFileId>
+	<Language>pt-br</Language>
+	<RelativeUriInModelStore>ApplicationSuite/ApplicationSuite.Sana/AxLabelFile/LabelResources/pt-br/SCL.pt-br.label.txt</RelativeUriInModelStore>
+</AxLabelFile>

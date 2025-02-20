@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_DisplayMethods_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public static class SC_DisplayMethods_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>displayLastMDateTime</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    public static display ParmTxt displayLastMDateTime(InventTable _this)
+    {
+        System.DateTime                     dateTime;
+        System.Globalization.CultureInfo    cultInfo;
+        utcDateTime                         localDateTime;
+        ParmTxt                             ret;
+        ;
+        if(_this.SC_LastModified)
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+    
+            dateTime      = System.DateTime::FromOADate(Global::real2double(_this.SC_LastModified));
+            cultInfo      = System.Globalization.CultureInfo::GetCultureInfo('en-us');
+            localDateTime = dateTime.ToDateTime(cultInfo);
+            localDateTime = DateTimeUtil::applyTimeZoneOffset(localDateTime, DateTimeUtil::getCompanyTimeZone());
+    
+            ret = DateTimeUtil::toFormattedStr(localDateTime, -1, -1, -1, -1, -1, -1, -1, -1);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

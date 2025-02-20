@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxQuerySimpleExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SalesTableListPage.Sana</Name>
+	<DataSources />
+	<Fields />
+	<Ranges>
+		<AxQueryExtensionQueryDataSourceRange>
+			<Parent>SalesTable</Parent>
+			<QueryDataSourceRange>
+				<Name>SC_IsPersistedBasket</Name>
+				<Field>SC_IsPersistedBasket</Field>
+				<Value>No</Value>
+			</QueryDataSourceRange>
+		</AxQueryExtensionQueryDataSourceRange>
+		<AxQueryExtensionQueryDataSourceRange>
+			<Parent>SalesTable</Parent>
+			<QueryDataSourceRange>
+				<Name>SC_AuthorizationStatus</Name>
+				<Field>SC_AuthorizationStatus</Field>
+				<Value>!Declined,!Pending</Value>
+			</QueryDataSourceRange>
+		</AxQueryExtensionQueryDataSourceRange>
+	</Ranges>
+</AxQuerySimpleExtension>

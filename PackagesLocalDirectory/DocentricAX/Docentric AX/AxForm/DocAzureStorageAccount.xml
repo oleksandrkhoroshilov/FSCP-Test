@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DocAzureStorageAccount</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DocAzureStorageAccount extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Form initialization.
+    /// </summary>
+    public void init()
+    {
+        super();
+
+        // Set the controls
+        this.setControls();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setControls</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set the controls.
+    /// </summary>
+    private void setControls()
+    {
+        // Toggle AllowEdit and Mandatory properties for Connection string control
+        Grid_connectionStringEdit.allowEdit(DocAzureStorageAccount.ConnectionStringStorageType == DocSecretStorageType::Database);
+        Grid_connectionStringEdit.mandatory(DocAzureStorageAccount.ConnectionStringStorageType == DocSecretStorageType::Database);
+
+        // Toggle AllowEdit and Mandatory properties for Key Vault certificate control
+        Grid_keyVaultCertificateRefEdit.allowEdit(DocAzureStorageAccount.ConnectionStringStorageType == DocSecretStorageType::AzureKeyVault);
+        Grid_keyVaultCertificateRefEdit.mandatory(DocAzureStorageAccount.ConnectionStringStorageType == DocSecretStorageType::AzureKeyVault);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>DocAzureStorageAccount</Name>
+				<Methods>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Execute query and setup initial form values and visual controls.
+        /// </summary>
+        public void executeQuery()
+        {
+            super();
+
+            // Set the controls
+            element.setControls();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>selectionChanged</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// When record selection is changed enable/disable particular fields.
+        /// </summary>
+        public void selectionChanged()
+        {
+            super();
+
+            // Set the controls
+            element.setControls();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>ConnectionStringStorageType</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            /// <summary>
+            /// Called when the field value has changed.
+            /// </summary>
+            public void modified()
+            {
+                super();
+
+                // Set the controls
+                element.setControls();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>KeyVaultParameters</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Work-around to avoid getting the "caller record" in the open form title.
+        /// </summary>
+        public void clicked()
+        {
+            Args args = new Args();
+            args.caller(element);
+
+            new MenuFunction(menuItemDisplayStr(KeyVaultParameters), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RefreshButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Called when the TestConnections button is clicked.
+        /// </summary>
+        public void clicked()
+        {
+            // Executes a class static method in the client async sandbox.
+            // Test connection for all storage accounts. 
+            SysOperationSandbox::callStaticMethod(
+                                    classNum(DocAzureHelper),
+                                    staticMethodStr(DocAzureHelper, testAzureStorageAccountsConnections),
+                                    conNull(),
+                                    "@DocentricAX5:DocAzureStorageAccountsRefreshProcess",
+                                    "@DocentricAX5:DocAzureStorageAccountsRefreshProcessCompleted");
+            DocAzureStorageAccount_ds.research(true);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>HelpMenuItemButton</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Clicked event on menu function button Help.
+        /// </summary>
+        public void clicked()
+        {
+            DocGlobalHelper::navigateToUrl(DocConstant::AzureStorageAccountManualURL, true, false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Grid_keyVaultCertificateRefEdit</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Calls lookup control.
+        /// </summary>
+        public void lookup()
+        {
+            if (!DocAzureStorageAccount.CompanyId)
+            {
+                DocGlobalHelper::handleWarning("@DocentricAX2:SelectCompanyFirst");
+            }
+
+            SysTableLookup sysTableLookup = SysTableLookup::newParameters(tableNum(KeyVaultCertificateTable), this);
+
+            Query query = new Query();
+            query.allowCrossCompany(true);
+            query.addCompanyRange(DocAzureStorageAccount.CompanyId);
+            query.addDataSource(tableNum(KeyVaultCertificateTable));
+
+            sysTableLookup.addLookupfield(fieldNum(KeyVaultCertificateTable, Name));
+            sysTableLookup.addLookupfield(fieldNum(KeyVaultCertificateTable, Description));
+            sysTableLookup.addLookupfield(fieldNum(KeyVaultCertificateTable, KeyVaultRef));
+
+            sysTableLookup.parmQuery(query);
+
+            sysTableLookup.performFormLookup();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Jumps to the referenced table.
+        /// </summary>
+        public void jumpRef()
+        {
+            if (!DocAzureStorageAccount.CompanyId)
+            {
+                DocGlobalHelper::handleWarning("@DocentricAX2:SelectCompanyFirst");
+            }
+
+            CompanyId curCompanyId = curExt();
+            appl.setDefaultCompany(DocAzureStorageAccount.CompanyId, false);
+
+            try
+            {
+                Args args = new Args();
+                args.lookupField(fieldNum(KeyVaultCertificateTable, RecId));
+                args.lookupValue(int642Str(DocAzureStorageAccount.KeyVaultCertificateRef));
+                args.caller(element);
+
+                FormRun formRun = new MenuFunction(menuItemDisplayStr(KeyVaultParameters), MenuItemType::Display).create(args);
+                formRun.run();
+                formRun.wait(true);
+            }
+            finally
+            {
+                appl.setDefaultCompany(curCompanyId, false);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>DocAzureStorageAccount</Name>
+			<Table>DocAzureStorageAccount</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AccessType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AccountId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompanyId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ConnectionString</DataField>
+					<Visible>No</Visible>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ConnectionStringStorageType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>KeyVaultCertificateRef</DataField>
+					<Visible>No</Visible>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ValidationStatus</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ValidationStatusMessage</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertAtEnd>No</InsertAtEnd>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@DocentricAX3:AzureStorageAccount</Caption>
+		<DataSource xmlns="">DocAzureStorageAccount</DataSource>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<Style xmlns="">SimpleList</Style>
+		<TitleDataSource xmlns="">DocAzureStorageAccount</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ApplicationBar</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroup</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DocAzureStorageConnectionString</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>DocAzureStorageAccountConnectionString</MenuItemName>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>KeyVaultParameters</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>KeyVaultParameters</MenuItemName>
+								<MultiSelect>Yes</MultiSelect>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>RefreshButton</Name>
+								<HelpText>@DocentricAX3:AzureStorageAccountTestConnectionHelp</HelpText>
+								<NeededPermission>Update</NeededPermission>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MultiSelect>Yes</MultiSelect>
+								<NeedsRecord>Yes</NeedsRecord>
+								<NormalImage>Refresh</NormalImage>
+								<Text>@DocentricAX3:AzureStorageAccountTestConenction</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>HelpMenuItemButton</Name>
+								<NeededPermission>Read</NeededPermission>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MultiSelect>Yes</MultiSelect>
+								<NormalImage>Help</NormalImage>
+								<Text>@SYS14501</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>CustomFilterGroup</Name>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilter</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+									<Value>Grid_AccountId</Value>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>Grid</Name>
+				<Type>Grid</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_CompanyId</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>CompanyId</DataField>
+						<DataSource>DocAzureStorageAccount</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_AccountId</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>AccountId</DataField>
+						<DataSource>DocAzureStorageAccount</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_accountNameDisplay</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>accountNameDisplay</DataMethod>
+						<DataSource>DocAzureStorageAccount</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>Grid_ConnectionStringStorageType</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ConnectionStringStorageType</DataField>
+						<DataSource>DocAzureStorageAccount</DataSource>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_connectionStringEdit</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>@DocentricAX3:AzureStorageAccountConnectionStringHelp</HelpText>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>connectionStringEdit</DataMethod>
+						<DataSource>DocAzureStorageAccount</DataSource>
+						<Label>@DocentricAX3:AzureStorageAccountConnectionString</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_keyVaultCertificateRefEdit</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>@DocentricAX4:AzureStorageAccountKeyVaultConnectionStringHelp</HelpText>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>keyVaultCertificateRefEdit</DataMethod>
+						<DataSource>DocAzureStorageAccount</DataSource>
+						<Label>@DocentricAX4:AzureStorageAccountKeyVaultConnectionString</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>Grid_AccessType</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>AccessType</DataField>
+						<DataSource>DocAzureStorageAccount</DataSource>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormImageControl">
+						<Name>Grid_validationStatusIndicator</Name>
+						<ExtendedStyle>image_gridIcon</ExtendedStyle>
+						<Type>Image</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>validationStatusIndicator</DataMethod>
+						<DataSource>DocAzureStorageAccount</DataSource>
+						<ShowLabel>No</ShowLabel>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Grid_ValidationStatusMessage</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ValidationStatusMessage</DataField>
+						<DataSource>DocAzureStorageAccount</DataSource>
+						<DisplayHeight>1</DisplayHeight>
+						<DisplayHeightMode>Fixed</DisplayHeightMode>
+						<MultiLine>Yes</MultiLine>
+					</AxFormControl>
+				</Controls>
+				<DataSource>DocAzureStorageAccount</DataSource>
+				<Style>Tabular</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_About</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+///Sana Commerce about window.
+///Used only if environment does not have rights to used temp folder to store pictures.
+///This simple form will be used instead of nice one with pictures.
+/// </summary>
+class SC_About extends RunBase
+{
+    Description description;
+    DialogText  text;
+
+    #define.CurrentVersion(1)
+    #define.Version1(1)
+    #localmacro.CurrentList
+        description
+    #endmacro
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        #AOT
+        #define.delim('\n')
+    
+        Dialog  dialog = super();
+        ;
+        dialog.dialogForm().form().design().windowType(1);
+    
+        dialog.addText("@SCL37" + #delim + #delim + "@SCL247" + #delim + #delim + "@SCL38", 300);
+    
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion,#CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        Version version = RunBase::getVersion(packedClass);
+        ;
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = packedClass;
+                break;
+            default:
+                return false;
+        }
+    
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "@SCL36";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    server static void main(Args args)
+    {
+        SC_About   about = new SC_About();
+        SystemNotificationExecuteActionDataContract data = args.parmObject() as SystemNotificationExecuteActionDataContract;
+
+        if(data)
+        {
+            str navigationURL = data.Data();
+        
+            if (navigationURL)
+            {
+                Browser br = new Browser();
+                br.navigate(navigationURL, true, false);
+            }
+        }
+        else if (about.prompt())
+        {
+            about.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Can be runned in new session
+    /// </summary>
+    /// <returns></returns>
+    protected boolean canRunInNewSession()
+    {           
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

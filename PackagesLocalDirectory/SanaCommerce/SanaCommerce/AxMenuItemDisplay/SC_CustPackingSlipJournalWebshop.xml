@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SC_CustPackingSlipJournalWebshop</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DisabledResource>0</DisabledResource>
+	<HelpText>@SYS338457</HelpText>
+	<Label>@SYS11549</Label>
+	<MaintainUserLicense>Universal</MaintainUserLicense>
+	<NormalImage>Find</NormalImage>
+	<NormalResource>0</NormalResource>
+	<Object>CustPackingSlipJournal</Object>
+	<Query>SC_custPackingSlipJournalWebshop</Query>
+	<ViewUserLicense>Universal</ViewUserLicense>
+</AxMenuItemDisplay>

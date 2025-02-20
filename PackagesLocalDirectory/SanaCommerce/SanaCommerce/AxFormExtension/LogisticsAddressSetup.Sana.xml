@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>LogisticsAddressSetup.Sana</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlj5tbikq51</Name>
+			<FormControl xmlns=""
+				i:type="AxFormStringControl">
+				<Name>LogisticsAddressState_SC_TaxGroup</Name>
+				<Type>String</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_TaxGroup</DataField>
+				<DataSource>LogisticsAddressState</DataSource>
+			</FormControl>
+			<Parent>DetailsBody</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlgj2l1am11</Name>
+			<FormControl xmlns=""
+				i:type="AxFormCheckBoxControl">
+				<Name>LogisticsAddressState_SC_VisibleInWebShop</Name>
+				<Type>CheckBox</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>SC_VisibleInWebShop</DataField>
+				<DataSource>LogisticsAddressState</DataSource>
+			</FormControl>
+			<Parent>DetailsBody</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

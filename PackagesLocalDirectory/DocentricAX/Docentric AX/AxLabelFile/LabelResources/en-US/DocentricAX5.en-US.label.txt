@@ -1,0 +1,192 @@
+﻿AzureStorageAccountCompanyIdHelp=Use the DAT company to apply this setting for all companies except for those, which have their own setup
+ ;Azure storage account
+AzureStorageAccountGenerateConnectionString=Generate connection string
+ ;Azure storage account
+AzureStorageAccountGenerateConnectionStringHelp=Generate a custom connection string for role-based access (Azure RBAC) to resources such as blob containers and file shares within an Azure storage account
+ ;Azure storage account
+AzureStorageAccountIsNotPermitted=The Azure storage account ID (%1) is not allowed for use in the current company. Please select an Azure Storage account ID from the current (%2) or 'DAT' company.
+ ;Azure storage account
+AzureStorageAccountValidationStatus=Status
+ ;Azure storage account
+AzureStorageAccountValidationStatusError=Error
+ ;Azure storage account
+AzureStorageAccountValidationStatusHelp=Specifies the status of the connection string validation for the Azure storage account
+ ;Azure storage account
+AzureStorageAccountValidationStatusUnknown=Unknown
+ ;Azure storage account
+AzureStorageAccountValidationStatusValid=Valid
+ ;Azure storage account
+Base64ToByteArrayConversionFailed=Converting from base64 string to byte array failed
+ ;Docentric
+Base64ToTextConversionFailed=Converting from base64 string to text failed
+ ;Docentric
+BlobToNonBlobContainerConversionFailed=Conversion from blob container to non-blob container failed
+ ;Docentric
+ByteArrayToBase64ConversionFailed=Converting from byte array to base64 string failed
+ ;Docentric
+ByteArrayToContainerConversionFailed=Conversion from byte array to container failed
+ ;Docentric
+ByteArrayToMemoryStreamConversionFailed=Conversion from byte array to memory stream failed
+ ;Docentric
+ContainerToByteArrayConversionFailed=Conversion from container to byte array failed
+ ;Docentric
+ContainerToMemoryStreamConversionFailed=Conversion from container to memory stream failed
+ ;Docentric
+DateRangeType=Date range type
+ ;General
+DateRangeTypeFixed=Fixed
+ ;General
+DateRangeTypeHelp=Select the type of the date range
+ ;General
+DateRangeTypeRelative=Relative
+ ;General
+DestDocSaveProformaToArchive=DOC Archive proforma?
+ ;Print mgmt utils
+DestDocSaveProformaToArchiveHelp=Docentric options:\r\nTurn on to support archiving proforma documents. By default, proformas are not saved in Print archive.
+ ;Print mgmt utils
+DestSSRSPrinterOverridePageSettings=SSRS Override page settings
+ ;Print mgmt utils
+DestSSRSPrinterOverridePageSettingsHelp=SSRS Printer print destination:\r\nOverride page settings.
+ ;Print mgmt utils
+DocAzureAccessType=Access type
+ ;Azure storage account
+DocAzureAccessTypeFullAccess=Full access (via access key)
+ ;Azure storage account
+DocAzureAccessTypeHelp='Full access (via access key)' grants D365FO app full access to all resources within the current Azure account, by using a system connection string for this account access key configured in Azure portal.\r\n'Role-based access (via app secret)' restricts access of D365FO app to only those resources within the current Azure account, as it is configured in Entra admin center through Azure RBAC. 
+ ;Azure storage account
+DocAzureAccessTypeRoleBasedAccess=Role-based access (via app secret)
+ ;Azure storage account
+DocAzureAccessTypeUnknown=Unknown access
+ ;Azure storage account
+DocAzureApplicationId=Application ID
+ ;Azure storage account
+DocAzureApplicationIdHelp=Find the Application ID in the Azure App Registrations
+ ;Azure storage account
+DocAzureApplicationSecret=Application secret
+ ;Azure storage account
+DocAzureApplicationSecretHelp=Find the Application secret in the Azure App Registrations under the Certificates & secrets section
+ ;Azure storage account
+DocAzureEndpointSuffix=Endpoint suffix
+ ;Azure storage account
+DocAzureEndpointSuffixHelp=Find the Storage Account Endpoint Suffix in the Azure Storage account's endpoints
+ ;Azure storage account
+DocAzureStorageAccessTypeHelp='Full access (via access key)' grants D365 app full access to all resources within the current Azure storage account, by using a system connection string for this account access key configured in Azure portal.\r\n'Role-based access (via app secret)' restricts access of D365FO app to only those resources within the current Azure storage account, as it is configured in Entra admin center through Azure RBAC. Use the 'Generate connection string' button to create a custom connection string.
+ ;Azure storage account
+DocAzureStorageAccountNameHelp=Find the Azure storage account name under the Azure Storage account section in the Azure portal
+ ;Azure storage account
+DocAzureStorageAccountsRefreshProcess=Testing connection for the storage accounts...
+ ;Azure storage account
+DocAzureStorageAccountsRefreshProcessCompleted=Testing connections for the storage accounts completed.
+ ;Azure storage account
+DocAzureStorageAccountStatusText=Status
+ ;Azure storage account
+DocAzureStorageAccountStatusTextHelp=Contains the information why the Azure storage account can't be accessed using the configured connection string in the case of an error. Click 'Refresh' to refresh the access status.
+ ;Azure storage account
+DocAzureStorageConnectionStringGenerate=Generate
+ ;Azure storage account
+DocAzureStorageConnectionStringGenerateError=Error generating the connection string from the specified connection string settings.
+ ;Azure storage account
+DocAzureStorageConnectionStringGenerateHelp=Generate the connection string based on the provided values
+ ;Azure storage account
+DocAzureStorageConnectionStringInstructions=Instructions
+ ;Azure storage account
+DocAzureStorageGenerateConnectionString=Generate a custom connection string
+ ;Azure storage account
+DocAzureStorageGenerateConnectionStringHelp=Generate a custom connection string for role-based access (Azure RBAC) to resources such as blob containers and file shares within an Azure storage account.\r\n\r\nUse generated connection string either for the Azure storage account with a connection string stored in the database or as a secret stored in Azure Key Vault.
+ ;Azure storage account
+DocAzureStorageGeneratedConnectionString=Generated connection string
+ ;Azure storage account
+DocAzureStorageGeneratedConnectionStringHelp=Please copy the generated connection string and:\r\n\r\n- paste it in the 'Connection string' field in an Azure storage account record with Access type = Role-based access and Connection string storage = Database, or\r\n\r\n- (1) enter it in Azure Key Vault on Azure portal manually, (2) open the 'Key Vault parameters' setup and create a new secret (Secret type = Manual), (3) select this Key Vault parameter in an Azure storage account record with Access type = Role-based access and Connection string storage = Azure Key Vault.
+ ;Azure storage account
+DocAzureTenantId=Tenant ID
+ ;Azure storage account
+DocAzureTenantIdHelp=Find the Tenant ID in the Microsoft Entra ID overview
+ ;Azure storage account
+EmailUserAccountForGraphInvalid='From' email address is empty and therefore should be inferred from the default email provider's email account (Microsoft Graph). In case of Graph this is the email account (%1) of the current user (%2) which is invalid so the email cannot be sent.
+ ;Setup
+EmailUserAccountForGraphNotSet='From' email address is empty and therefore should be inferred from the default email provider's email account (Microsoft Graph). In case of Graph this is the email account of the current user (%1) which is empty so the email cannot be sent.
+ ;Setup
+ErrorRetrievingResource=Error while retrieving resource (%1) from AOT
+ ;Docentric
+FailedToLoadXMLDocumentFromStringError=Failed to load XML document from the following string:\n%1
+ ;Docentric
+GeneratingLinkFailed=Generating a link to %1 failed
+ ;Docentric
+Graph=Microsoft Graph
+ ;Setup
+IsProforma=Is proforma
+ ;Save proforma reports in PrintArchive
+IsProformaHelp=Is the archived report a proforma document
+ ;Save proforma reports in PrintArchive
+MemoryStreamCopyingFailed=Copying of the given memory stream failed
+ ;Docentric
+MemoryStreamToContainerConversionFailed=Conversion from memory stream to container failed
+ ;Docentric
+NewLabel0=Label files created on 10/02/2023 14:35:05 for label file Id DocentricAX5 and language en-US
+ ;Label file comment - see above label
+NonBlobToBlobContainerConversionFailed=Conversion from non-blob container to blob container failed
+ ;Docentric
+NonPdfReportFilename=Non-PDF report filename
+ ;Print archive
+NonPdfReportFilenameHelp=If the archived report was printed in the format different from PDF (e.g. MS Word or Excel), this field is populated with the original report filename.
+ ;Print archive
+ParameterEmptyStringError=Parameter %1 is an empty string
+ ;Docentric
+ParameterNotEnumOrIntegerError=Parameter %1 (%2) has to be of type Enum or Integer
+ ;Docentric
+PrintArchivePdfReportFilename=PDF report filename
+ ;Print archive
+PrintArchivePdfReportFilenameHelp=Filename of the archived PDF report document
+ ;Print archive
+PrintDestinationSettingsMap=Print destination settings map
+ ;Print mgmt utils
+PrintDestinationSettingsMapDD=The DocPrintDestinationSettingsMap map provides an interface that handles the common fields for Print destination settings that are used in the DocPrintMgmtUtilsTmp and DocPrintMgmtSettingsEntity table.
+ ;Print mgmt utils
+PrintToNetworkPrinterSSRSBasedAndPreProcessedError=Printing from Docentric Viewer for SSRS-based pre-processed reports to Network printers is not supported in on-premises environment
+ ;Print to network printer
+ProjProposalJour=Contract line invoice
+ ;Print archive
+PurchAgreementHeader=Purchase agreement
+ ;Print archive
+PurchAgreementHeaderHistory=Purchase agreement confirmation
+ ;Print archive
+QueryBuildRangeParseError=Error while parsing QueryBuildRange (%1)
+ ;Docentric
+QuoteEmail=Quote email
+ ;Email tokens
+QuoteEmailAddressNotApplicable=Quote email address is not applicable to this type of document or no Quotation is found for this document
+ ;Email tokens
+QuoteEmailAddressNotFound=Quote email address was not found on quotation(s) %1
+ ;Email tokens
+SalesAgreementHeader=Sales agreement
+ ;Print archive
+SalesAgreementHeaderHistory=Sales agreement confirmation
+ ;Print archive
+SaveProformaReportToArchive=Archive proforma?
+ ;Save proforma reports in PrintArchive
+SaveProformaReportToArchiveHelp=Turn on to support archiving proforma documents. By default, proformas are not saved in Print archive.
+ ;Save proforma reports in PrintArchive
+SavingToPrintArchiveFailedReportCaption=Report (%1) with ID (%2) failed to be saved to Print archive
+ ;Docentric
+SavingXMLDocumentError=Error during saving XML to memory stream/container
+ ;Docentric
+SendingEmailFailedGraph=Microsoft Graph: Failed to send email from %1 to %2 with subject "%3"
+ ;Docentric
+StringToUTCDateTimeConversionError=Error while converting String (%1) to UtcDateTime using Culture (%2)
+ ;Docentric
+SysEmailCleanupCreatedDatePeriodCodeHelp=Clean up emails created in the selected date interval. Leave empty if the condition should not be applied.
+ ;Email cleanup
+SysEmailCleanupLatestStatusChangeDatePeriodCodeHelp=Clean up emails whose status changed in the selected date interval. Leave empty if the condition should not be applied.
+ ;Email cleanup
+TableDoesNotExist=Table with ID %1 does not exist
+ ;Docentric
+TextToBase64ConversionFailed=Converting from text to base64 string failed
+ ;Docentric
+UnexpectedExceptionTypeError=Only Exception::Error, Exception::Warning or Exception::Info are expected
+ ;Docentric
+UnsupportedEnumValueError=Unsupported enum value (%1) in enum (%2)
+ ;Docentric
+UnsupportedExceptionTypeError=Exception type (%1) not supported
+ ;Docentric
+WrongFormatError=Only ranges that are in the format: fieldName = value are supported
+ ;Docentric

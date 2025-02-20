@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>IDocReportEmailTemplateSelector</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The IDocReportEmailTemplateSelector interface defines methods that must be implemented to use the DocReportEmailTemplateSelector lookup form.
+/// </summary>
+public interface IDocReportEmailTemplateSelector extends IDocReportSelector
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getUseEmailTemplate_DC</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the flag indicating if the email template will be used for the email body.
+    /// </summary>
+    /// <returns>True/False</returns>
+    public boolean getUseEmailTemplate_DC() {}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_TableGroup</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<Help>@SYS320246</Help>
+	<Label>@SYS81318</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Table</Name>
+			<Label>@SYS8868</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Group</Name>
+			<Label>@SYS81110</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

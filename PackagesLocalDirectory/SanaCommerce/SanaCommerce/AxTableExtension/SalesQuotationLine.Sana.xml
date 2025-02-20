@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SalesQuotationLine.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SC_SuppItemTableRecid</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>SysInt64</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SC_SuppAttachRecId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>SysInt64</ExtendedDataType>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_SuppItem</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_MixMatchDiscountId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DiscCode</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_ConfigurationId</Name>
+			<ExtendedDataType>SC_Code</ExtendedDataType>
+			<Visible>No</Visible>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>SanaDiscountIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>SC_MixMatchDiscountId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>SanaSuppItemIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>SC_SuppItem</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>SC_SuppItemTableRecid</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>SC_SuppAttachRecId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>

@@ -1,0 +1,830 @@
+﻿@SCL0= 
+@SCL1=Visible in webshop
+ ;By user Admin
+@SCL100=Default storage dimension
+@SCL101=Could not find warehouse %1 in site %2
+@SCL103=The InventTxt table contains text descriptions of the items. An item can have several descriptions in different languages.
+ ;{locked}
+@SCL104=Unknown
+@SCL105=No mapping is found for language locale %1 in the 'Parameters' table
+@SCL108=Number sequence on Prospect is missing
+@SCL109=Last date/time modified
+@SCL11=Payment method code
+@SCL110=Windows language Id
+@SCL111=Select the Windows language Id for the current language.
+@SCL112=Language mapping parameters
+@SCL113=Manual process requests
+@SCL114=Date last accessed
+@SCL115=Date last modified
+@SCL116=Type of the file.
+@SCL117=Response ext. tool
+@SCL118=Request ext. tool
+@SCL119=Response output directory
+@SCL120=Setup record does not exist for user %1. Do you want it to be created automatically?
+@SCL121=Error while writing file %1
+@SCL122=Error while reading file %1
+@SCL123=Setup parameters for user %1 are not created. Check the 'Process requests setup' form.
+@SCL124=Process requests setup
+@SCL125=Add request XML file
+@SCL126=View request
+@SCL127=Setup of parameters.
+@SCL128=View selected request.
+@SCL129=Process selected request.
+@SCL13=Shipping cost account
+@SCL130=Get response from manually requested XML file.
+@SCL131=Sana customer number
+@SCL132=Sana order
+@SCL133=Sana quotation
+@SCL134=Order is made using E-Commerce system.
+@SCL135=Sana shipment method name
+@SCL136=Shipment method name imported from SQL provider.
+@SCL137=Sell-to shop account e-mail
+@SCL138=Sana order time received
+@SCL139=Sana order date received
+@SCL140=The fields 'City' and 'Country region' cannot be empty.
+@SCL141=Country region code %1 is not found in the %2 company or empty for a customer account.
+@SCL142=The SC_LanguageParametersTable table contains Windows language Id  mapping with company languages.
+@SCL143=The SC_ManualProcessRequestsTable table contains XML requests to be processed manually.
+@SCL144=The SC_ManualRequestsSetupTable table contains setup parameters for a specific user.
+@SCL145=The SC_OrderImportInformation table contains information about the imported orders from SQL provider.
+@SCL147=The SC_FilterWebShopsTable table contains product filters for a specific webshop.
+@SCL148=The SC_ParametersTable table contains parameters for Sana Commerce solution.
+@SCL149=The SC_WebShopsTable table contains webshops for Sana Commerce solution.
+@SCL15=Payment cost account
+@SCL150=Sana Commerce web service
+@SCL151=Manage webshops
+@SCL152=Set up webshops to be used with Sana Commerce solution
+@SCL153=Sana Commerce workflow
+@SCL154=Sana Commerce webshop manager
+@SCL155=Manage webshop, products, orders and accounts for Sana Commerce solution
+@SCL156=Sana Commerce webshop solution
+@SCL157=Payment cost account is not specified or not correct for %1 webshop.
+@SCL158=Shipping cost account is not specified or not correct for %1 webshop.
+@SCL159=State %1 does not exist in country %2
+@SCL160=Country cannot be visible in the webshop without ISO code filled in.
+@SCL161=Webshop name
+@SCL163=Represent customer account
+@SCL164=Orderable
+@SCL165=Non-orderable reason
+@SCL166=Webshop catalog overview
+@SCL168=Sales information
+@SCL169=Number of products
+@SCL17=Logging output directory
+@SCL170=Product combination information overview
+@SCL171=Information about product combination.
+@SCL172=Sales item information details for the webshops.
+@SCL173=Webshop with/without filters and anonymous customer for price and inventory calculation.
+@SCL174=Payment transaction ID
+@SCL175=Unspecified order type is requested.
+@SCL176=Promotion discount type cannot be empty with promotion code filled in.
+@SCL177=The webshop template customer is allowed to be used only for B2C customer.
+@SCL178=Number sequence for a customer account is not specified or not correct.
+@SCL179=Permission type
+@SCL18=B2C customer
+@SCL180=Allow or deny enum.
+@SCL181=Customer assortment
+@SCL182=Allow
+@SCL183=Product visibility rules for customer assortment.
+@SCL184=Do you want to update the visibility of product variants?
+@SCL185=Data validation rules
+@SCL186=Do you want to activate a rule?
+@SCL187=Data validation rules lines
+@SCL188=Custom function
+@SCL189=Reset all to defaults
+@SCL19=Webshop
+@SCL190=Do you want to reset all validation rules for the %1 table to defaults?
+@SCL191=Incorrect method signature. \nCorrect method signature: public boolean VR_methodName(anytype _fieldValue...)
+@SCL192=Method '%1' is not found in %2
+@SCL193=Do you want to reset all validation rules for all tables to defaults?
+@SCL194=Insert the default validation rules.
+@SCL195=Data validation error for table %1.
+@SCL196=Specific rules that validate table data for response.
+@SCL197=No default rules are found for table %1
+@SCL198=No data validation rules have been found. Do you want to create a default set of validation rules?
+@SCL2=Sana Commerce
+@SCL200=Update visibility of the product variants using filters.
+@SCL201=Set variants visibility
+@SCL202=Remove variants visibility
+@SCL209=On this step you can create a new webshop. You can only use the webshop name provided by the Sana Commerce consultant who is implementing the Sana webshop for you. Select the anonymous customer that will be used to show stock and prices to the anonymous webshop visitors. Also select the ledger accounts for payment and shipping costs.
+@SCL210=Default webshop settings
+@SCL211=Welcome to Sana Commerce startup wizard
+@SCL212=This wizard will guide you through the Sana Commerce setup and help you to configure the main settings. Also this wizard can help you to create and manage a new webshop, configure customer assortment and create the default data validation rules.
+@SCL213=Step 1 from 9
+@SCL214=Step 2 from 9
+@SCL215=On this step you can set the default item settings. These settings determine how inventory is calculated and which site and warehouse to take, either from the customers or the default ones. Detailed settings can be changed on the 'Webshops' form in the 'Webshop' menu item. \r\n\r\nNote: If you don't know the meaning of these settings, leave it as it is.
+@SCL216=Step 4 from 9
+@SCL217=On this step you can manage customer assortment rules. Use this form to allow or deny a specific item or item group to be shown to an individual customer or customer group. This form is also available from the 'Webshop' menu.
+@SCL218=Step 5 from 9
+@SCL219=This step can be used to configure data validation rules which affect data retrieving. Only data which satisfies the selected criteria can be processed.
+@SCL220=The 'Data validation rules' form is available from the 'Webshop' menu in the 'Setup' area. Please use the button below if you want to review or manage data validation rules now.
+@SCL221=Note: for the correct work of the Sana Commerce solution you should generate the default set of data validation rules. Please use the button below to do it.
+@SCL222=Generate the default set of validation rules
+@SCL223=The default data validation rules are generated.
+@SCL224=Step 6 from 9
+@SCL225=Generate AxBC classes
+@SCL226=During development of the Sana Commerce solution, some custom fields were created. To resolve the best practice errors and for the correct work of Business Connector we recommend to generate AxBC classes. You can skip it for now and generate it later using a job from the Sana Commerce solution. To generate it now, please use the button below, it will take from 3 to 10 minutes.
+@SCL227=Congratulation
+@SCL228=You have successfully completed a Sana Commerce startup wizard. If the items are ready and set to visible in webshop, then update the webshop index by running the ‘Index’ task in the Sana Admin. Now your webshop is ready for trading. Thank you for choosing Sana Commerce.
+@SCL229=Startup Wizard
+@SCL230=Webshop settings
+@SCL231=Use to generate default set of validation rules.
+@SCL232=Use to generate AxBC classes.
+@SCL233=On this step you can configure language mapping between Microsoft Dynamics AX and Sana Commerce framework. Language mapping must be configured to convert the language IDs used in Microsoft Dynamics AX to the Windows language IDs format.
+@SCL234=Step 3 from 9
+@SCL235=Product is on hold.
+@SCL236=Non orderable by stock.
+@SCL237=The mandatory product dimension is not filled in.
+@SCL238=Product dimension combinations are not set up.
+@SCL239=All variants of the product are invisible.
+@SCL24=Shop account type.
+@SCL240=Description of the webshop filter.
+@SCL241=Set products visibility
+ ;Used for the SCM Prodduction
+@SCL242=Remove products visibility
+@SCL243=Update visibility of the products using filters.
+@SCL244=Do you want also to set visibility of the product variants?
+@SCL245=Do you want also to remove visibility of the product variants?
+@SCL246=Sana webshop name
+@SCL247=Version: 10.0.90.0
+@SCL248=Step 8 from 9
+@SCL249=On this step you can manage visibility of countries/regions in the webshop. Also you can setup customer template which is used for a new customer registration. This form is also available from the ‘Organization administration’ area page under the ‘Setup’ area. 
+@SCL25=Table field name.
+@SCL250=Sana customer account
+@SCL251=This step can be used to configure unit of measure visibility on webshop. Visible product unit of measure can be changed directly on webshop basket.
+@SCL252=Unit of measure setup
+@SCL253=Step 9 from 9
+@SCL256=Enable product categories
+@SCL257=Product categories will be used instead of item groups.
+@SCL26=Webshop name.
+@SCL260=Product categories could not be enabled because category hierarchy is empty.
+@SCL262=Changing this settings, full product reindexing is required. Open the Sana Commerce backoffice and run the ‘Rebuild index’ task. Do you want to continue?
+@SCL263=Use retail discounts for order calculation and skip all sales discounts.
+@SCL264=Mandatory product dimensions are not setup.
+@SCL265=Step 7 from 9
+@SCL266=This step can be used to configure currency visibility on webshop. Note: company currency will be always visible on webshop.
+@SCL267=Currency setup
+@SCL268=The default Item sales tax group cannot be empty, because sales tax group is mandatory in General ledger parameters.
+@SCL269=Override customer dimensions
+@SCL270=Calculate inventory using customer or default dimensions.
+@SCL271=Inventory calculation method
+@SCL272=Determine how to calculate product inventory.
+@SCL273=Site and warehouse could not be empty.
+@SCL274=Item sales tax group is empty on a product but it's mandatory in general ledger parameters.
+@SCL275=Customer info:
+@SCL276=Product info:
+@SCL277=About Sana
+@SCL278=Webshop orders
+@SCL279=Update product threshold (sec.)
+@SCL28=Enable Logging for all requests.
+@SCL280=Threshold will be used to skip the LastModifedDate field of the updated product in a certain period of time. It is recommended to use with lots of recalculation batch jobs.
+@SCL281=Default culture
+@SCL282=Regional settings
+ ;Sana
+@SCL283=Incorrect culture format. The correct format is xx-xx.
+@SCL284=Webshop optimization
+@SCL285=Disable supplementary items
+@SCL286=Select, if such functionality is not used on environment.
+@SCL287=Settings to improve webshop performance
+@SCL288=Webshop functionality options.
+@SCL289=Product optimization
+@SCL29=Define filters for the webshop.
+@SCL290=Order optimization
+@SCL291=Disable UOM conversion
+@SCL292=Disable BOM components
+@SCL293=Disable product attributes
+@SCL294=Disable tax calculation
+@SCL295=Draft
+@SCL296=Document represents a draft order.
+@SCL297=These settings are only meant to be changed by well informed technical personnel
+@SCL298=Authorization status
+ ;New Comment
+@SCL299=Approvement status of the order placed by the customer with the sub-account role.
+ ;New Comment
+@SCL300=Quotation promotable
+ ;New Comment
+@SCL301=Quotation can be converted to order from a webshop.
+ ;New Comment
+@SCL302=Day range within which to search
+ ;New Comment
+@SCL303=Number of lookback years
+ ;New Comment
+@SCL304=Quotation promotable by default
+ ;New Comment
+@SCL305=Save new quotations as promotable to order.
+ ;New Comment
+@SCL306=Sorting option
+ ;New Comment
+@SCL307=Synchronized basket type
+ ;New Comment
+@SCL308=Order processing
+ ;New Comment
+@SCL309=Shopping cart suggestions
+ ;New Comment
+@SCL31=Webshop parameters.
+@SCL310=Retail functionality is not in use on current environment.
+ ;New Comment
+@SCL311=The sales order cannot be converted to sales qoutation. The value for the field '%1' is not correct.
+ ;New Comment
+@SCL312=Quote '%1' could not be converted to order
+ ;New Comment
+@SCL313=. This product was replaced with the alternative product: 
+ ;New Comment
+@SCL314=Disable alternative products
+ ;New Comment
+@SCL315=Disable multiline discounts calculation
+ ;New Comment
+@SCL316=Disable tiered charges calculation
+ ;New Comment
+@SCL317=Disable total discounts calculation
+ ;New Comment
+@SCL318=. The quantity of this product was increased to the minimum quantity that can be ordered.
+ ;New Comment
+@SCL319=. The quantity of this product was decreased to the maximum quantity that can be ordered.
+ ;New Comment
+@SCL32=Setup webshops.
+@SCL320=. The quantity of this product was changed to the closest available quantity that can be ordered.
+ ;New Comment
+@SCL321=Set BOM visibility
+ ;New Comment
+@SCL322=All BOM lines will be set to visible in webshop. Do you want to continue?
+ ;New Comment
+@SCL323=Set product images and attachments visibility
+ ;New Comment
+@SCL324=All product attachments will be set to visible in webshop. Do you want to continue?
+ ;New Comment
+@SCL325=The payment journal name that is used for posting customer payments has not been set up.
+ ;New Comment
+@SCL326=Enable report downloads
+ ;New Comment
+@SCL327=Order report for quotations, confirmations, invoices and packing slips are available for downloads.
+ ;New Comment
+@SCL328=Enable document attachment downloads
+ ;New Comment
+@SCL329=Set attachments for quotations, confirmations, invoices and packing slips availability for downloads.
+ ;New Comment
+@SCL330=Enable product attachment downloads
+ ;New Comment
+@SCL331=Set product attachments availability for downloads.
+ ;New Comment
+@SCL332=Use only products from assortments set for retail store.
+ ;New Comment
+@SCL333=Draft quotations
+ ;New Comment
+@SCL334=Draft orders
+ ;New Comment
+@SCL335=Define sorting for product sizes
+ ;New Comment
+@SCL336=Define sorting for product colors
+ ;New Comment
+@SCL337=Define sorting for product styles
+ ;New Comment
+@SCL338=Define sorting for product configurations
+ ;New Comment
+@SCL339=Product dimension sorting
+ ;New Comment
+@SCL34=Is this a B2C customer?
+@SCL340=Automatic product dimensions sorting.
+ ;New Comment
+@SCL341=Disable discount for price
+ ;New Comment
+@SCL342=Guest customer account
+ ;New Comment
+@SCL343=Guest number sequence is not setup or invalid.
+ ;New Comment
+@SCL344=The sales line quantity is lower than the one which has been returned.
+ ;New Comment
+@SCL345=Requested invoice order line #%1 is not found.
+ ;New Comment
+@SCL346=Payment processing
+ ;New Comment
+@SCL347=Is guest
+ ;New Comment
+@SCL348=Is this a guest customer account
+ ;New Comment
+@SCL349=Credit limit exceeded by %1
+ ;New Comment
+@SCL35=Make it visibile in the webshop.
+@SCL350=At least one webshop should be created before running integrity checks. Do you want to open Webshops form?
+ ;New Comment
+@SCL351=Bill of materials are not used in a webshop.
+ ;New Comment
+@SCL352=%1 BOM components are visible in a webshop.
+ ;New Comment
+@SCL353=Bill of materials are available, but there are no visible BOM components in a webshop.
+ ;New Comment
+@SCL354=BOM components visibility
+ ;New Comment
+@SCL355=Not run
+ ;New Comment
+@SCL356=A valid category hierarchy '%1' is used. '%2' categories are set to visible in webshop.
+ ;New Comment
+@SCL357=The category hierarchy '%1' is enabled, but there are no categories set to visible in webshop.
+ ;New Comment
+@SCL358=Category hierarchy is disabled. Item groups will be used in a webshop.
+ ;New Comment
+@SCL359=%1 countries are set to visible in webshop.
+ ;New Comment
+@SCL36=Sana Commerce webshop
+@SCL360=There are no countries set to visible in webshop.
+ ;New Comment
+@SCL361=Countries visibility
+ ;New Comment
+@SCL362=All visible in webshop countries have a valid customer template.
+ ;New Comment
+@SCL363=%1 visible in webshop countries don’t have a customer template. Customer registration for these countries will not work.
+ ;New Comment
+@SCL364=Country template customer 
+ ;New Comment
+@SCL365=%1 currencies are set to visible in webshop.
+ ;New Comment
+@SCL366=There are no currencies set to visible in webshop.
+ ;New Comment
+@SCL367=Currency visibility
+ ;New Comment
+@SCL368=There are %1 active data validation rules.
+ ;New Comment
+@SCL369=There are no active data validation rules. Generate the default data validation rules.
+ ;New Comment
+@SCL37=The integrated real-time e-Commerce solution for Microsoft Dynamics 365 for Finance and Operations.
+@SCL370=Sales document attachments are enabled for a webshop. %1 attachments are set to visible in webshop.
+ ;New Comment
+@SCL371=Sale document attachments are enabled for a webshop, but there are no attachments set to visible in webshop.
+ ;New Comment
+@SCL372=Sales document attachments are disabled for a webshop. The attachments will not be available in a webshop.
+ ;New Comment
+@SCL373=Document attachments
+ ;New Comment
+@SCL374=Item groups are enabled. %1 item groups are set to visible in webshop.
+ ;New Comment
+@SCL375=Item groups are enabled, but there are no groups set to visible in webshop.
+ ;New Comment
+@SCL376=Item groups are disabled. Category hierarchy will be used for a webshop.
+ ;New Comment
+@SCL377=%1 languages are set up for a webshop.
+ ;New Comment
+@SCL378=No languages are set up for a webshop. Translations will not work correctly.
+ ;New Comment
+@SCL379=Language mapping
+ ;New Comment
+@SCL38=© 1998 - 2024 Sana Commerce. All rights reserved.
+@SCL380=The '%1' number sequence is set for a guest account. 
+ ;New Comment
+@SCL381=Orders: '%1'.
+ ;New Comment
+@SCL382=Quotes: '%1'.
+ ;New Comment
+@SCL383=Guest account, order or quote number sequence is not set. Default number sequences will be used.
+ ;New Comment
+@SCL384=Site and warehouse of the customers are not used. Site '%1' and warehouse '%2' are used for a webshop.
+ ;New Comment
+@SCL385=The default site '%1' and warehouse '%2' are set for a webshop. They will be used only if site and warehouse are not set for a customer.
+ ;New Comment
+@SCL386=Override storage dimensions
+ ;New Comment
+@SCL387=A valid ledger account number '%1' is set. 
+ ;New Comment
+@SCL388=Payment ledger account '%1' is invalid. Payment methods will not work correctly.
+ ;New Comment
+@SCL389=Payment costs
+ ;New Comment
+@SCL390=Payment processing configuration is valid. Customers can pay their orders from a webshop.
+ ;New Comment
+@SCL391=Payment processing configuration is invalid. Customers cannot pay their orders from a webshop.
+ ;New Comment
+@SCL392=Product attachments are enabled for a webshop. 
+ ;New Comment
+@SCL393=%1 attachments are set to visible in webshop.
+ ;New Comment
+@SCL394=Product attachments are enabled for a webshop, but there are no attachments set to visible in webshop.
+ ;New Comment
+@SCL395=Product attachments are disabled for a webshop. The attachments will not be available in a webshop.
+ ;New Comment
+@SCL396=Product attachments
+ ;New Comment
+@SCL397=Configuration is valid. Years: %1, Days: %2, Sorting by '%3'.
+ ;New Comment
+@SCL398=Configuration is invalid. Shopping cart suggestions will not be shown in a webshop.
+ ;New Comment
+@SCL399=%1 product variants are visible in webshop. 
+ ;New Comment
+@SCL4=Filters for webshops
+@SCL40=Sorting no.
+@SCL400=No products with variants are set to visible in webshop.
+ ;New Comment
+@SCL401=%1 product masters are visible in webshop, but they don’t have product variants set to visible in webshop.
+ ;New Comment
+@SCL402=Product variants visibility
+ ;New Comment
+@SCL403=%1 products are visible in webshop.
+ ;New Comment
+@SCL404=No products are set to visible in webshop.
+ ;New Comment
+@SCL405=Products visibility
+ ;New Comment
+@SCL406=Conversion of a quotation to an order is allowed by default. Customers can convert quotations to sales orders in a webshop.
+ ;New Comment
+@SCL407=Conversion of a quotation to an order is allowed after approval. Customers can convert quotations to sales orders in a webshop only after approval in ERP.
+ ;New Comment
+@SCL408=Quotation to order conversion
+ ;New Comment
+@SCL409=Sales document reports are enabled for a webshop.
+ ;New Comment
+@SCL41=Item group texts
+@SCL410=Sales document reports are disabled for a webshop. Customers are not able to download reports from a webshop.
+ ;New Comment
+@SCL411=Sales document reports
+ ;New Comment
+@SCL412=Retail functionality is disabled.
+ ;New Comment
+@SCL413=Retail functionality is enabled. The valid store '%1' and terminal '%2' are configured.
+ ;New Comment
+@SCL414=Retail functionality is enabled, but a store or a terminal is invalid. Check retail settings of your webshop.
+ ;New Comment
+@SCL415=Retail settings
+ ;New Comment
+@SCL416=Retail functionality is enabled. %1 products from the retail assortments are used.
+ ;New Comment
+@SCL417=Retail assortments are enabled, but the assortment assigned to the retail store is empty or the products in it are invalid.
+ ;New Comment
+@SCL418=Retail functionality is enabled, but the retail assortments are disabled. All products are available in a webshop.
+ ;New Comment
+@SCL419=Retail assortments
+ ;New Comment
+@SCL42=Language - item group description
+@SCL420=A valid ledger account number '%1' is set.
+ ;New Comment
+@SCL421=Shipping ledger account is invalid. 
+ ;New Comment
+@SCL422=Shipping ledger account is not set up. 
+ ;New Comment
+@SCL423=Shipping methods will not work correctly.
+ ;New Comment
+@SCL424=Shipping costs
+ ;New Comment
+@SCL425=Configuration is valid. The default site '%1' and warehouse '%2' are used.
+ ;New Comment
+@SCL426=Configuration is invalid. Site or warehouse doesn’t exist or it is not set up.
+ ;New Comment
+@SCL427=Default storage dimensions
+ ;New Comment
+@SCL428=A valid anonymous customer '%1' is set for a webshop.
+ ;New Comment
+@SCL429=Anonymous customer '%1' set for a webshop is invalid. Reason: data validation rules didn’t pass.
+ ;New Comment
+@SCL43=Create or update the item group texts in different languages.
+@SCL430=Webshop anonymous customer
+ ;New Comment
+@SCL431=%1 units of measure are visible in webshop.
+ ;New Comment
+@SCL432=No units of measure are set to visible in webshop.
+ ;New Comment
+@SCL433=UOM visibility
+ ;New Comment
+@SCL434=Default price
+ ;New Comment
+@SCL435=Define which price to use as a list price.
+ ;New Comment
+@SCL436=Integrity check
+ ;New Comment
+@SCL437=Total checks
+ ;New Comment
+@SCL438=Passed checks
+ ;New Comment
+@SCL439=Failed checks
+ ;New Comment
+@SCL44=Item group visibility in webshop.
+@SCL440=Checks with warning
+ ;New Comment
+@SCL441=Run an integrity check to validate the webshop settings.
+ ;New Comment
+@SCL442=You are going to process '%1' document created by Sana Commerce. Do you want to continue?
+ ;New Comment
+@SCL443=New B2C customer registration type
+ ;New Comment
+@SCL444=New customer registration type (Organization/Person).
+ ;New Comment
+@SCL445=Declined quotations
+ ;New Comment
+@SCL446=Pending quotations
+ ;New Comment
+@SCL447=Declined sales orders
+ ;New Comment
+@SCL448=Pending sales orders
+ ;New Comment
+@SCL449=Unauthorized orders
+ ;New Comment
+@SCL45=Order number in a tree.
+@SCL450=Do you want to change the visibility of all products and product variants in the webshop within this category?
+ ;New Comment
+@SCL451=Include request processing duration
+ ;New Comment
+@SCL452=Include to the request processing duration time?
+ ;New Comment
+@SCL453=Hide description in webshop
+ ;New Comment
+@SCL454=Cleanup documents
+ ;New Comment
+@SCL455=Remove documents older than the following number of days
+ ;New Comment
+@SCL456=Do you want to change the visibility of all products and product variants in the webshop within this group?
+ ;New Comment
+@SCL457=Post invoice payments automatically
+ ;New Comment
+@SCL458=Post invoice payment journal after online payment.
+ ;New Comment
+@SCL459=Post prepayments automatically
+ ;New Comment
+@SCL46=Sorting number
+@SCL460=Post prepayment journal after online order payment.
+ ;New Comment
+@SCL461=Customer payment journal was not posted.
+ ;New Comment
+@SCL462=Order: %1. Transaction ID: %2
+ ;New Comment
+@SCL463=Pickup location ID
+ ;New Comment
+@SCL464=Pickup location address
+ ;New Comment
+@SCL465=Sana pickup location
+ ;New Comment
+@SCL466=Hide internal auto charges
+ ;New Comment
+@SCL467=Do not show auto charges with a zero value in a Sana webshop.
+ ;New Comment
+@SCL468=Payment processing configuration is invalid.
+ ;New Comment
+@SCL469=Prepayment journal requires approval. Please, check if the user that is used for connection between Sana and AX is present in this list:
+ ;New Comment
+@SCL470=Prepayment journal requires approval, but the approval group is empty.
+ ;New Comment
+@SCL471=Posting prepayments has not been enabled.
+ ;New Comment
+@SCL472=Pre-payment processing
+ ;New Comment
+@SCL473=Invoice payment processing
+ ;New Comment
+@SCL474=Invoice payment journal requires approval, but the approval group is empty.
+ ;New Comment
+@SCL475=Invoice payment journal requires approval. Please, check if the user that is used for connection between Sana and AX is present in this list:
+ ;New Comment
+@SCL476=The field '%1' contains the non-indexable symbols.
+ ;New Comment
+@SCL477=The field '%1' contains the non-indexable symbols in the primary address of a customer.
+ ;New Comment
+@SCL478=The field '%1' contains the non-indexable symbols in the shipping address of a customer.
+ ;New Comment
+@SCL479=Show only invalid
+ ;New Comment
+@SCL480=Show only non-indexable
+ ;New Comment
+@SCL481=Non-indexable reason
+ ;New Comment
+@SCL482=Indexable
+ ;New Comment
+@SCL483=Invalidity reason
+ ;New Comment
+@SCL484=Customer overview
+ ;New Comment
+@SCL485=Variant name
+ ;New Comment
+@SCL486=All customers are indexable.
+ ;New Comment
+@SCL487=All products are indexable.
+ ;New Comment
+@SCL488=Customers indexability
+ ;New Comment
+@SCL489=Products indexability
+ ;New Comment
+@SCL490=Remove all filters
+ ;New Comment
+@SCL491=Remove all applied filters - show invalid and non-indexable products.
+ ;New Comment
+@SCL492=Are you sure you want to run this task? It may take a long time to complete.
+ ;New Comment
+@SCL493=All customers are valid.
+ ;New Comment
+@SCL494=All products are valid.
+ ;New Comment
+@SCL495=Use price in zero price sales agreements
+ ;New Comment
+@SCL496=Use sales price for sales agreements without price.
+ ;New Comment
+@SCL497=To activate the discount, you should set up at least two product lines.
+ ;New Comment
+@SCL498=Mix and match discounts
+ ;New Comment
+@SCL499=Number of products needed
+ ;New Comment
+@SCL5=Webshops
+@SCL500=Number of items needed to activate the mix and match discount.
+ ;New Comment
+@SCL501=Mix and match discount lines
+ ;New Comment
+@SCL502=Setup mix and match discount agreements.
+ ;New Comment
+@SCL503=This discount already exists.
+ ;New Comment
+@SCL504=Item field
+ ;New Comment
+@SCL505=A Decimal value must be specified
+ ;New Comment
+@SCL506=Disable Sana discounts
+ ;New Comment
+@SCL507=On this step you can change the settings to improve webshop performance. Please disable the features that you are not using or skip this step for further investigation. The 'Webshop optimization' button is also available on the 'Webshops' form in the 'Webshop' menu.
+ ;New Comment
+@SCL508=Admin account e-mail
+ ;New Comment
+@SCL509=There are %1 log files. We recommend to turn off logging.
+ ;New Comment
+@SCL510=Logging is turned off.
+ ;New Comment
+@SCL511=Logging
+ ;New Comment
+@SCL512=All visible in webshop countries don't have a customer template. Customer registration for these countries will not work.
+ ;New Comment
+@SCL513=The following sales document types are used for your webshop: order type - '%1', synchronized basket type - '%2'.
+ ;New Comment
+@SCL514=Posting invoice payments has not been enabled.
+ ;New Comment
+@SCL515=Configurator model
+ ;New Comment
+@SCL516=Before activating the mix and match discount, make sure that the number of products you have entered matches the minimum and maximum order quantities set for the product. Otherwise, the customer may encounter a problem when creating the order.
+@SCL517=Run all checks
+@SCL518=Run selected
+@SCL519=Do you want to update the last modified date of all products that meet this rule?
+@SCL520=Retail order could not be complete due to payment error.
+@SCL521=Complete call center order
+@SCL522=Сall center payment method
+@SCL523=The order will not be completed if the default payment method is not set for the call center.
+@SCL524=Make sure that the selected payment method belongs to the call center channel.
+@SCL525=Configured product variant #%1
+@SCL526=Pricing priority
+@SCL527=The pricing priority number. Lowest numbers take priority over the highest numbers.
+@SCL528=Priority up
+@SCL529=Priority down
+@SCL530=Discount concurrency mode
+@SCL531=Indicates how Sana’s mix and match discount interacts with standard AX discounts.
+@SCL532=Sana discount
+@SCL533=Best price
+@SCL534=Compounded
+@SCL535=Concurrency
+@SCL536=Parameter xPath
+@SCL537=File request processing
+@SCL538=Template request processing
+@SCL539=Request parameters
+@SCL540=Response parameters
+@SCL541=Select request template
+@SCL542=Scan params
+@SCL543=Auto add
+@SCL544=Add an item with 100% discount to the sales order automatically.
+@SCL545=Sana discount codes can’t be used for %1 product(s) because total discount is disabled.
+@SCL546=Sana discount codes can be used for all products.
+@SCL547=Total discount for specific products
+@SCL548=Total discount is activated. Sana discount codes can be used.
+@SCL549=Total discount is disabled at the webshop optimization form.
+@SCL550=Total discount is not activated. Sana discount codes can’t be used.
+@SCL551=Total discount activation
+@SCL552=Webshop management
+@SCL553=Webshop analytics
+@SCL554=Retail functionality could not be used with the Quotation order type.
+@SCL555=All orderability checks will be ignored for products with “Auto add” enabled.
+@SCL556=Working on order %1
+@SCL557=Error. Order %1 was not removed.
+@SCL558=Total line quantity is %1
+@SCL559=Unable to delete order line LineNo-%1, ItemId-%2
+@SCL560=Total line quantity left after deleting is %1
+@SCL561=All order lines deleted successfully.
+@SCL562=Compatibility level
+@SCL563=9.3.5
+@SCL564=9.3.4
+@SCL565=9.3.3
+@SCL566=9.3.0
+@SCL567=Sana Commerce backward compatibility.
+@SCL568=Backward compatibility
+@SCL569=The number of products used in each test.
+@SCL570=Number of loops
+@SCL571=The number of loops used for each test.
+@SCL572=Get products
+@SCL573=Get the specified number of products.
+@SCL574=Get price info
+@SCL575=Get prices for a specified number of products.
+@SCL576=Get stock info
+@SCL577=Get stock for a specified number of products.
+@SCL578=Calculate basket
+@SCL579=Calculate basket for a specified number of products.
+@SCL58=Code for identification.
+@SCL580=Get orders
+@SCL581=Get orders with a specified number of products.
+@SCL582=Searching for %1 orderable products...
+@SCL583=Found %1 orderable products, starting tests...
+@SCL584=Calculating basket performance with %1 lines...
+@SCL585=Basket calculation performance results (ms.): min: %1, average: %2, max: %3
+@SCL586=Searching for orders with %1 lines...
+@SCL587=No orders with %1 lines, taking the first available orders…
+@SCL588=No open orders found, GetOrders test aborted.
+@SCL589=Calculating GetOrders performance...
+@SCL590=GetOrders performance results (ms.): min: %1, average: %2, max: %3
+@SCL591=Calculating GetPriceInfo performance...
+@SCL592=GetPriceInfo performance results (ms.): min: %1, average: %2, max: %3
+@SCL593=Calculating GetProducts performance...
+@SCL594=GetProducts performance results (ms.): min: %1, average: %2, max: %3
+@SCL595=Calculating GetStockInfo performance...
+@SCL596=GetStockInfo performance results (ms.): min: %1, average: %2, max: %3
+@SCL597=No orderable products found, tests aborted.
+@SCL598=Enter a settings to run the test with and click the button to run it
+@SCL599=Best revenue
+@SCL6=Webshop filters
+@SCL600=Coupons
+@SCL601=Setup coupon discount agreements.
+@SCL602=Coupon code
+@SCL603=Coupon lines
+@SCL604=Webshop discounts
+@SCL605=Setup webshop discount agreements.
+@SCL606=Enable inventory statuses
+@SCL607=Use inventory statuses to filter product on-hand.
+@SCL608=Webshop data mapping
+@SCL609=Mapped field name
+@SCL610=New mapping
+@SCL611=Max. quantity
+@SCL612=Maximum number of items needed to activate the mix and match discount.
+@SCL613=Max. quantity cannot be less then Number of product needed.
+@SCL614=Calculate and cache product prices for customers.
+@SCL615=Precalculate prices for customer
+@SCL616=Product prices calculated and cached for %1 products and %2 variants.
+@SCL617=Disable multi-threading
+@SCL618=Enable quotations for Retail
+@SCL619=Allow to use sales quotations for Retail functionality.
+@SCL620=Disable data mapping
+@SCL621=Copy data mapping to webshop
+@SCL622=All order attachments will be set to visible in webshop. To include invoices, click “Yes to all”. Do you want to continue?
+@SCL623=Set order attachments visibility
+@SCL624=Change visibility
+@SCL625=Show invoiced sales orders
+@SCL626=Log file browser
+@SCL627=Explore log file folder.
+@SCL628=PSP reference
+@SCL629=B2B customer template
+@SCL63=Customer template
+@SCL630=Customer optimization
+@SCL631=Use separate customer template for B2B customer registration.
+@SCL632=Enable B2B customer template
+@SCL633=Invoice: %1. Transaction ID: %2
+@SCL634=Template customer for country %1 is invalid. Reason: data validation rules didn’t pass.
+@SCL635=Visible from
+@SCL636=Visible to
+@SCL637=New B2B customer registration type
+@SCL638=B2C customer template
+@SCL639=New customer registration type
+@SCL640=Enable categories as products
+@SCL641=Allow to use sales categories as standard products
+@SCL642=Payment method type
+@SCL643=Disable credit limit check
+@SCL644=Allowed for pre-order
+@SCL645=Is item allowed for pre-order sale?
+@SCL646=Allow  products for pre-order
+@SCL647=Update pre-ordering of the products using filters.
+@SCL648=Deny  products for pre-order
+@SCL649=Calculate inventory for BOM lines
+@SCL650=Inventory will be calculated not for BOM but for BOM lines.
+@SCL651=Cache recycling (mins.)
+@SCL652=Do you want the default value of the rule to override the existing field value?
+@SCL653=Gift card
+@SCL654=Select this checkbox to indicate that the item is a gift card.
+@SCL655=Gift card code
+@SCL656=Gift cards
+@SCL657=Setup webshop gift cards.
+@SCL658=Collection location
+@SCL659=Sana location ID
+@SCL660=Sana collection location
+@SCL661=Do you want to copy or move the source field value?
+@SCL662=Get API
+@SCL663=Save API
+@SCL664=Gift card history
+@SCL665=Maximum discount percentage
+@SCL666=Customers will not be able to pay online if the order total is 0.
+@SCL667=Synchronize balance
+@SCL668=Synchronize gift card balance with orders.
+@SCL669=Maximum threads 
+@SCL670=SCC 1.0.0
+@SCL72=Field %1 is empty in the related table %2.
+@SCL73=Field %1 is empty in the request.
+@SCL75=Sana order number
+@SCL76=Raw XML data
+@SCL78=Order comments.
+@SCL79=Bill to name
+@SCL8=Filter description
+@SCL83=Payment method status
+@SCL84=Payment method name
+@SCL85=Order %1 cannot be updated.
+@SCL87=Log directory cannot be empty.
+@SCL89=Promotion code
+@SCL9=Anonymous customer
+@SCL90=Promotion title
+@SCL91=Promotion discount type
+@SCL92=Promotion discount amount
+@SCL93=Promotion discount value
+@SCL94=Sana promotion
+@SCL95=E-Commerce
+@SCL97=Define promotion discount type.
+@SCL98=Promotion code must be filled in first.
+@SCL99=Document with type '%1' and number '%2' does not exist.

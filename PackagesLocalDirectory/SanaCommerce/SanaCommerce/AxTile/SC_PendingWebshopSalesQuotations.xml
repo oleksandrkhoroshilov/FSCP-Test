@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTile xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SC_PendingWebshopSalesQuotations</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<Label>@SCL446</Label>
+	<MenuItemName>SC_SalesQuotationListPagePending</MenuItemName>
+	<Type>Count</Type>
+</AxTile>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_About</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_About extends FormRun
+{
+
+
+
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<AlwaysOnTop xmlns="">Yes</AlwaysOnTop>
+		<Caption xmlns="">@SCL2</Caption>
+		<Frame xmlns="">Border</Frame>
+		<Height xmlns="">336</Height>
+		<LeftMode xmlns="">Center</LeftMode>
+		<Pattern xmlns="">DialogReadOnly</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<Style xmlns="">Dialog</Style>
+		<TopMode xmlns="">Center</TopMode>
+		<ViewEditMode xmlns="">View</ViewEditMode>
+		<Width xmlns="">482</Width>
+		<WindowResize xmlns="">Fixed</WindowResize>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>MainGroup</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Pattern>Custom</Pattern>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormImageControl">
+						<Name>MainWindow</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1789569705</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<LeftMode>Center</LeftMode>
+						<TopMode>Center</TopMode>
+						<Type>Image</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ImageLocation>AOTResource</ImageLocation>
+						<NormalImage>SC_SanaImg</NormalImage>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>CopyRightText</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<LeftMode>Center</LeftMode>
+						<Top>240</Top>
+						<TopMode>Manual</TopMode>
+						<Type>StaticText</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<BackStyle>Opaque</BackStyle>
+						<BackgroundColorRGB>
+							<Red>255</Red>
+							<Green>255</Green>
+							<Blue>255</Blue>
+						</BackgroundColorRGB>
+						<ColorScheme>RGB</ColorScheme>
+						<ForegroundColorRGB>
+							<Red>8</Red>
+							<Green>0</Green>
+							<Blue>0</Blue>
+						</ForegroundColorRGB>
+						<Text>@SCL38</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>MainText</Name>
+						<ElementPosition>1073741823</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<LeftMode>Center</LeftMode>
+						<Top>110</Top>
+						<TopMode>Manual</TopMode>
+						<Type>StaticText</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<BackStyle>Opaque</BackStyle>
+						<BackgroundColorRGB>
+							<Red>255</Red>
+							<Green>255</Green>
+							<Blue>255</Blue>
+						</BackgroundColorRGB>
+						<ColorScheme>RGB</ColorScheme>
+						<ForegroundColorRGB>
+							<Red>8</Red>
+							<Green>0</Green>
+							<Blue>0</Blue>
+						</ForegroundColorRGB>
+						<Text>@SCL37</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>VersionText</Name>
+						<ElementPosition>715827882</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<LeftMode>Center</LeftMode>
+						<Top>80</Top>
+						<TopMode>Manual</TopMode>
+						<Type>StaticText</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<BackStyle>Opaque</BackStyle>
+						<BackgroundColorRGB>
+							<Red>255</Red>
+							<Green>255</Green>
+							<Blue>255</Blue>
+						</BackgroundColorRGB>
+						<Bold>Bold</Bold>
+						<ColorScheme>RGB</ColorScheme>
+						<FontSize>12</FontSize>
+						<ForegroundColorRGB>
+							<Red>8</Red>
+							<Green>0</Green>
+							<Blue>0</Blue>
+						</ForegroundColorRGB>
+						<Text>@SCL247</Text>
+					</AxFormControl>
+				</Controls>
+				<Style>DialogContent</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormButtonGroupControl">
+				<Name>ButtonGroupControl</Name>
+				<Type>ButtonGroup</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>OkButton</Name>
+						<Type>CommandButton</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>Cancel</Command>
+						<SaveRecord>No</SaveRecord>
+						<Text>@SYS15212</Text>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalRight</ArrangeMethod>
+				<Style>DialogCommitContainer</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

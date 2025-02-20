@@ -1,0 +1,2926 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_InventItemInfoDetail</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_InventItemInfoDetail extends FormRun
+{        
+    #SANA
+    CustTable                       custTable;
+    TmpDimTransExtract              tempTable;
+    int                             prevSelection;
+    [FormObservable]
+    Integer                         numRecords;
+    [FormObservable]
+    ErrorMsg                        errorMsg, nonIndexableMsg;
+    [FormObservable]
+    Qty                             inventory;
+    [FormObservable]
+    Price                           unitPrice, listPrice;
+    SC_AXDataServiceClient_Product  dataServiceClient;
+    
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayCustCurrency</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    display CurrencyCode displayCustCurrency()
+    {
+        return custTable.Currency;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayCustIncTax</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// display if cusomter including/excluding tax
+    /// </summary>
+    //BP deviation documented
+    [SysClientCacheDataMethodAttribute(true)]
+    display NoYes displayCustIncTax()
+    {
+        return custTable.InclTax;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayCustName</Name>
+				<Source><![CDATA[
+    //BP deviation documented
+    [SysClientCacheDataMethodAttribute(true)]
+    display CustName displayCustName()
+    {
+        return custTable.name();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayCustNum</Name>
+				<Source><![CDATA[
+    //BP deviation documented
+    [SysClientCacheDataMethodAttribute(true)]
+    display CustAccount displayCustNum()
+    {
+        return custTable.AccountNum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayCustSite</Name>
+				<Source><![CDATA[
+    //BP deviation documented
+    [SysClientCacheDataMethodAttribute(true)]
+    display InventSiteId displayCustSite()
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshop.text());
+        ;
+    
+        return webshopTable.OverrideCustDim || !custTable.InventSiteId ? webshopTable.DefaultSiteId : custTable.InventSiteId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayCustWarehouse</Name>
+				<Source><![CDATA[
+    //BP deviation documented
+    [SysClientCacheDataMethodAttribute(true)]
+    display InventLocationId displayCustWarehouse()
+    {
+        SC_WebShopsTable webshopTable = SC_WebShopsTable::find(webshop.text());
+        ;
+        return webshopTable.OverrideCustDim || !custTable.InventLocation ? webshopTable.DefaultLocationId : custTable.InventLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWebsite</Name>
+				<Source><![CDATA[
+    public SC_WebshopId getWebsite()
+    {
+        ;
+        return webShop.text();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {        
+        ;
+        super();
+
+        dataServiceClient = SC_AXDataServiceClient_Product::construct();
+    
+        Webshop.text(SC_WebShopsTable::findFirst().WebShopId);
+        Webshop.modified();   
+    
+        this.updateDesign();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupContacts</Name>
+				<Source><![CDATA[
+    public void lookupContacts(FormStringControl _ctrl)
+    {
+        Args    args;
+        Object  formRun;
+        ;
+    
+        args = new Args();
+        args.name(formStr(ContactPersonLookup));
+        args.parm(#one);
+        args.caller(_ctrl);
+    
+        formRun = classfactory.formRunClass(args);
+        formRun.init();
+    
+        _ctrl.performFormLookup(formRun);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupRepresentCustAccounts</Name>
+				<Source><![CDATA[
+    public void lookupRepresentCustAccounts(FormStringControl _formControl, AccountNum _accountNum)
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(CustTable),_formControl);
+        CommissionSalesRep      commissionSalesRep;
+        ;
+        sysTableLookup.addLookupfield(fieldnum(CustTable,AccountNum));
+        sysTableLookup.addLookupMethod(tableMethodStr(CustTable, name));
+        sysTableLookup.addLookupMethod(tableMethodStr(CustTable, nameAlias));
+    
+        select firstonly Person from commissionSalesRep where commissionSalesRep.Person == HcmWorker::findByPersonnelNumber(AccountNum.text()).Person;
+    
+        if(commissionSalesRep)
+        {
+            queryBuildDataSource = query.addDataSource(tablenum(CustTable));
+            queryBuildDataSource.addRange(fieldnum(CustTable,SalesGroup)).value(queryValue(commissionSalesRep.GroupId));
+            sysTableLookup.parmQuery(query);
+            sysTableLookup.performFormLookup();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDesign</Name>
+				<Source><![CDATA[
+    public void updateDesign()
+    {
+        ;
+        RepresentAccount.skip(AccountType.selection() == SC_AccountType::Employee && AccountNum.text());
+        RepresentAccount.allowEdit(AccountType.selection() == SC_AccountType::Employee && AccountNum.text());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductTranslations</Name>
+				<Source><![CDATA[
+    public boolean checkProductTranslations(EcoResProductRecId _product)
+    {
+        EcoResProductTranslation    inventTxt;
+        SC_LanguageParametersTable  languageParametersTable;
+        boolean                     ret = true;
+        ;
+
+        while select Name from inventTxt
+            index hint ProductLanguageIdx
+            where inventTxt.Product == _product && inventTxt.Name
+                exists join TableId from languageParametersTable
+                    where languageParametersTable.LanguageId == inventTxt.LanguageId
+        {
+            ret = element.isStringIndexable(inventTxt.Name);
+
+            if(!ret)
+            {
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkProductDescriptions</Name>
+				<Source><![CDATA[
+    public boolean checkProductDescriptions(EcoResProductRecId _product)
+    {
+        EcoResProductTranslation    inventTxt;
+        SC_LanguageParametersTable  languageParametersTable;
+        boolean                     ret = true;
+        ;
+
+        while select Description from inventTxt
+            index hint ProductLanguageIdx
+            where inventTxt.Product == _product && inventTxt.Description
+                exists join TableId from languageParametersTable
+                    where languageParametersTable.LanguageId == inventTxt.LanguageId
+        {
+            ret = element.isStringIndexable(inventTxt.Description);
+
+            if(!ret)
+            {
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isStringIndexable</Name>
+				<Source><![CDATA[
+    public boolean isStringIndexable(SC_LargeText _text)
+    {
+        return !System.Text.RegularExpressions.Regex::IsMatch(_text, @"[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u0084\u0086-\u009F\uD800-\uDFFF\uFDD0-\uFDEF\uFFFE-\uFFFF]");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countQueryTotal</Name>
+				<Source><![CDATA[
+    public Counter countQueryTotal(container _queryPack)
+    {
+        Query                   countQuery;
+        QueryRun                countQueryRun;
+        QueryBuildDataSource    qbds;
+        QueryBuildFieldList     qbfl;
+        Common                  common;
+        Integer                 counter;
+
+        countQueryRun   = new QueryRun(_queryPack);
+        countQuery      = countQueryRun.query();
+
+        if(countQuery.dataSourceCount())
+        {
+            qbds = countQuery.dataSourceNo(1);
+
+            qbds.update(false);
+            qbds.sortClear();
+            countQuery.clearGroupBy();
+            countQuery.clearOrderBy();
+            qbfl = qbds.fields();
+            qbfl.dynamic(false);
+            qbfl.clearFieldList();
+            qbds.addSelectionField(fieldNum(Common,RecId),SelectionField::Count);
+
+            countQueryRun   = new QueryRun(countQuery);
+
+            while (countQueryRun.next())
+            {
+                common  = countQueryRun.get(countQuery.dataSourceNo(1).table());
+                counter += common.RecId;
+            }
+        }
+
+        return counter;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>InventTable</Name>
+				<Methods>
+					<Method>
+						<Name>displayOption</Name>
+						<Source><![CDATA[
+        public void displayOption(Common _record, FormRowDisplayOption _options)
+        {
+            ;
+            if(!InventTable_ds.displayIsOrderable(_record))
+            {
+                _options.backColor(WinAPI::RGB2int( 255,225,225 ));
+            }
+        
+            super(_record, _options);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        public void write()
+        {
+            super();
+        
+            Refresh.clicked();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>calc</Name>
+						<Source><![CDATA[
+        public void calc(InventTable _inventTable, boolean _onlyNonIndexable = false)
+        {
+            ;
+            select firstonly tempTable
+                where tempTable.AccountMain == custTable.AccountNum &&
+                      tempTable.Voucher == _inventTable.ItemId;
+
+            if(tempTable)
+            {
+                unitPrice = tempTable.AmountCur;
+                listPrice = tempTable.AmountMSTDebCred;
+                errorMsg = tempTable.MainFocus;
+                inventory = tempTable.AccumulatedMST;
+                nonIndexableMsg = tempTable.SecondaryFocus;
+            }
+            else
+            {
+                if(_onlyNonIndexable)
+                {
+                    tempTable.AccountMain = custTable.AccountNum;
+                    tempTable.Voucher = _inventTable.ItemId;
+
+                    nonIndexableMsg = this.calcIndexability(_inventTable);
+                    tempTable.SecondaryFocus = nonIndexableMsg;
+
+                    if(nonIndexableMsg)
+                    {
+                        [unitPrice, listPrice, errorMsg, inventory] = dataServiceClient.calcItemFormData(_inventTable, custTable, webshop.text());
+                        tempTable.AmountCur = unitPrice;
+                        tempTable.AmountMSTDebCred = listPrice;
+                        tempTable.MainFocus = errorMsg;
+                        tempTable.AccumulatedMST = inventory;
+                        tempTable.insert();
+                    }
+                }
+                else
+                {
+                    tempTable.AccountMain = custTable.AccountNum;
+                    tempTable.Voucher = _inventTable.ItemId;
+
+                    nonIndexableMsg = this.calcIndexability(_inventTable);
+                    tempTable.SecondaryFocus = nonIndexableMsg;
+
+                    [unitPrice, listPrice, errorMsg, inventory] = dataServiceClient.calcItemFormData(_inventTable, custTable, webshop.text());
+                    tempTable.AmountCur = unitPrice;
+                    tempTable.AmountMSTDebCred = listPrice;
+                    tempTable.MainFocus = errorMsg;
+                    tempTable.AccumulatedMST = inventory;
+                    tempTable.insert();
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayName</Name>
+						<Source><![CDATA[
+        [SysClientCacheDataMethodAttribute(true)]
+        display Name displayName(InventTable _inventTable)
+        {
+            return _inventTable.defaultProductName();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayInventory</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display Qty displayInventory(InventTable _inventTable)
+        {
+            ;
+            this.calc(_inventTable);
+        
+            return inventory;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayListPrice</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display Price displayListPrice(InventTable _inventTable)
+        {
+            ;
+            this.calc(_inventTable);
+
+            return listPrice;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayUnitPrice</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display Price displayUnitPrice(InventTable _inventTable)
+        {
+            ;
+            this.calc(_inventTable);
+        
+            return unitPrice;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayIsOrderable</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display NoYes displayIsOrderable(InventTable _inventTable)
+        {
+            ;
+            this.calc(_inventTable);
+        
+            return !errorMsg;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            ;
+            super();
+            numRecords = element.countQuerytotal(inventTable_ds.queryRun().pack(false));
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayNumOfProducts</Name>
+						<Source><![CDATA[
+        [SysClientCacheDataMethodAttribute(true)]
+        display Integer displayNumOfProducts()
+        {
+            return numRecords;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+        
+            Variants.enabled(InventTable.hasProductDimensions());
+            EcoResProductMasterDimensionPerCompany.enabled(Variants.enabled());
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayErrorMsg</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display smmBusRelMemo displayErrorMsg(InventTable _inventTable)
+        {
+            ;
+            this.calc(_inventTable);
+        
+            return strrem(errorMsg, '\t');
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayIndexableErrorMsg</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display smmBusRelMemo displayIndexableErrorMsg(InventTable _inventTable)
+        {
+            ;
+            this.calc(_inventTable);
+
+            return nonIndexableMsg;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>calcIndexability</Name>
+						<Source><![CDATA[
+        private smmBusRelMemo calcIndexability(InventTable _inventTable)
+        {
+            InventDimCombination        inventDimCombination;
+            boolean                     ret = true;
+            ;
+            nonIndexableMsg = '';
+
+            ret = element.isStringIndexable(_inventTable.ItemId);
+            nonIndexableMsg = ret ? nonIndexableMsg : strFmt("@SCL476","@SYS12836");
+
+            if(ret)
+            {
+                ret = element.checkProductTranslations(_inventTable.Product);
+                nonIndexableMsg = ret ? nonIndexableMsg : strFmt("@SCL476","@SYS59620");
+            }
+
+            if(ret)
+            {
+                ret = element.checkProductDescriptions(_inventTable.Product);
+                nonIndexableMsg = ret ? nonIndexableMsg : strFmt("@SCL476","@SYS58893");
+            }
+
+            if(ret)
+            {
+                while select DistinctProductVariant from inventDimCombination
+            where inventDimCombination.ItemId == _inventTable.itemId &&
+                    inventDimCombination.SC_VisibleInWebShop
+                {
+                    ret = element.checkProductTranslations(inventDimCombination.DistinctProductVariant);
+                    nonIndexableMsg = ret ? nonIndexableMsg : strFmt("@SCL476","@SCL485");
+
+                    if(!ret)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return nonIndexableMsg;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayIsIndexable</Name>
+						<Source><![CDATA[
+        //BP deviation documented
+        [SysClientCacheDataMethodAttribute(true)]
+        display NoYes displayIsIndexable(InventTable _inventTable)
+        {
+            ;
+            this.calc(_inventTable);
+
+            return !nonIndexableMsg;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>Variants</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Args    args = new Args();
+            ;
+            args.caller(element);
+            args.record(inventTable);
+            args.parm(custTable.AccountNum);
+            new MenuFunction(menuitemdisplaystr(SC_InventItemCombinationInfo), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>EcoResProductMasterDimensionPerCompany</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Args args = new Args();
+            ;
+        
+            args.record(EcoResProductMaster::find(InventTable.Product));
+            args.caller(this);
+        
+            new MenuFunction(menuitemDisplayStr(EcoResProductMasterDimensionPerCompany), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SC_ProductDimensionSorting</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            new MenuFunction(menuItemDisplayStr(SC_ProductDimensionSorting), MenuItemType::Display).run();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ProductGroup</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Args args = new Args();
+            ;
+        
+            args.record(InventTable.inventItemGroupItem());
+            args.caller(this);
+        
+            new MenuFunction(menuitemDisplayStr(InventItemGroup), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ProductCategory</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Args args = new Args();
+            ;
+        
+            args.record(EcoResProduct::find(InventTable.Product));
+            args.caller(this);
+        
+            new MenuFunction(menuitemDisplayStr(EcoResProductCategory), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SetProdAttachmentsVisibility</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            DocuRef docuRef;
+            ;
+
+            if(Box::yesNo("@SCL324", DialogButton::Yes) == DialogButton::Yes)
+            {                
+                ttsBegin;
+                while select forUpdate docuRef
+                    where docuRef.RefTableId == tableNum(InventTable) ||
+                          docuRef.RefTableId == tableNum(InventDimCombination)
+                {
+                    docuRef.SC_VisibleInWebShop = NoYes::Yes;
+                    docuRef.doUpdate();
+                }
+                ttsCommit;             
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SetOrderAttachmentsVisibility</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            DocuRef docuRef;
+            DialogButton dialogButton = Box::yesYesAllNoCancel("@SCL622", DialogButton::Yes);
+            ;
+
+            if(dialogButton == DialogButton::Yes || dialogButton == DialogButton::YesToAll)
+            {
+                ttsBegin;
+                while select forUpdate docuRef
+                    where docuRef.RefTableId == tableNum(SalesTable) ||
+                          docuRef.RefTableId == tableNum(SalesQuotationTable) ||
+                         (docuRef.RefTableId == tableNum(CustInvoiceJour) && dialogButton == DialogButton::YesToAll)
+                {
+                    docuRef.SC_VisibleInWebShop = NoYes::Yes;
+                    docuRef.doUpdate();
+                }
+                ttsCommit;
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SetBOMVisibility</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            BOM BOM;
+            ;
+
+            if(Box::yesNo("@SCL322", DialogButton::Yes) == DialogButton::Yes)
+            {                
+                ttsBegin;
+                while select forUpdate BOM
+                {
+                    BOM.SC_VisibleInWebShop = NoYes::Yes;
+                    BOM.doUpdate();
+                }
+                ttsCommit;             
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SetProductsVisibility</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            SysQueryRun         queryRun = new SysQueryRun(querystr(InventTable));
+            InventTable         inventTableLocal;
+            boolean             setVariants;
+            ;
+        
+            if (queryRun.prompt())
+            {
+                if(Box::yesNo("@SCL244", DialogButton::Yes) == DialogButton::Yes)
+                {
+                    setVariants = true;
+                }
+        
+                while(queryRun.next())
+                {
+                    inventTableLocal = queryRun.get(tableNum(InventTable));
+        
+                    SC_AXDataServiceClient::updateItemVisibilitySilent(inventTableLocal, NoYes::Yes);
+        
+                    SC_AXDataServiceClient_Product::updateLastModifiedDate(inventTableLocal.ItemId);
+        
+                    if(inventTableLocal.hasProductDimensions() && setVariants)
+                    {
+                        SC_AXDataServiceClient_Product::updateAllVariantsVisibility(inventTableLocal.ItemId, true);
+                    }
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AllowProductsPreOrder</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            SysQueryRun         queryRun = new SysQueryRun(querystr(InventTable));
+            InventTable         inventTableLocal;
+
+            if (queryRun.prompt())
+            {
+                while(queryRun.next())
+                {
+                    inventTableLocal = queryRun.get(tableNum(InventTable));
+
+                    ttsBegin;
+                    inventTableLocal.SC_AllowForPreOrders = NoYes::Yes;
+                    inventTableLocal.doUpdate();
+                    ttsCommit;
+
+                    SC_AXDataServiceClient_Product::updateLastModifiedDate(inventTableLocal.ItemId);
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>UpdateVisibility</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {            
+            SysQueryRun             queryRun;
+            Query                   query = new Query();
+            QueryBuildDatasource    qbd1, qbd2, qbd3;    
+            InventTable             inventTableLocal;
+            container               conItems;
+
+            qbd1 = query.addDataSource(tablenum(InventTable), tableStr(InventTable));
+            qbd2 = qbd1.addDataSource(tableNum(InventDimCombination), tableStr(InventDimCombination));
+            qbd2.relations(true);
+            qbd3 = qbd2.addDataSource(tableNum(inventDim), tableStr(inventDim));
+            qbd3.relations(true);
+
+            queryRun = new SysQueryRun(query);
+
+            if (queryRun.prompt())
+            {
+                while(queryRun.next())
+                {
+                    inventTableLocal = queryRun.get(tableNum(InventTable));
+
+                    if(!conFind(conItems, inventTableLocal.ItemId))
+                    {
+                        SC_AXDataServiceClient_Product::updateLastModifiedDate(inventTableLocal.ItemId);
+                        conItems += inventTableLocal.ItemId;
+                    }
+                    SC_AXDataServiceClient_Product::updateVariantVisibility(queryRun.get(tableNum(InventDimCombination)), true);
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RemoveProductsVisibility</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            SysQueryRun         queryRun = new SysQueryRun(querystr(InventTable));
+            InventTable         inventTableLocal;
+            boolean             setVariants;
+            ;
+        
+            if (queryRun.prompt())
+            {
+                if(Box::yesNo("@SCL245", DialogButton::Yes) == DialogButton::Yes)
+                {
+                    setVariants = true;
+                }
+        
+                while(queryRun.next())
+                {
+                    inventTableLocal = queryRun.get(tableNum(InventTable));
+        
+                    SC_AXDataServiceClient_Product::updateLastModifiedDate(inventTableLocal.ItemId);
+                            
+                    SC_AXDataServiceClient::updateItemVisibilitySilent(InventTable::find(inventTableLocal.ItemId, true), NoYes::No);                    
+        
+                    if(inventTableLocal.hasProductDimensions() && setVariants)
+                    {
+                        SC_AXDataServiceClient_Product::updateAllVariantsVisibility(inventTableLocal.ItemId, false);
+                    }
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RemoveVisibility</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            SysQueryRun             queryRun;
+            Query                   query = new Query();
+            QueryBuildDatasource    qbd1, qbd2, qbd3;
+            InventTable             inventTableLocal;
+            container               conItems;
+
+            qbd1 = query.addDataSource(tablenum(InventTable), tableStr(InventTable));
+            qbd2 = qbd1.addDataSource(tableNum(InventDimCombination), tableStr(InventDimCombination));
+            qbd2.relations(true);
+            qbd3 = qbd2.addDataSource(tableNum(inventDim), tableStr(inventDim));
+            qbd3.relations(true);
+
+            queryRun = new SysQueryRun(query);
+
+            if (queryRun.prompt())
+            {
+                while(queryRun.next())
+                {
+                    inventTableLocal = queryRun.get(tableNum(InventTable));
+
+                    if(!conFind(conItems, inventTableLocal.ItemId))
+                    {
+                        SC_AXDataServiceClient_Product::updateLastModifiedDate(inventTableLocal.ItemId);
+                        conItems += inventTableLocal.ItemId;
+                    }
+                    SC_AXDataServiceClient_Product::updateVariantVisibility(queryRun.get(tableNum(InventDimCombination)), false);
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DenyProductsPreOrder</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            SysQueryRun         queryRun = new SysQueryRun(querystr(InventTable));
+            InventTable         inventTableLocal;
+    
+            if (queryRun.prompt())
+            {
+                while(queryRun.next())
+                {
+                    inventTableLocal = queryRun.get(tableNum(InventTable));
+    
+                    ttsBegin;
+                    inventTableLocal.SC_AllowForPreOrders = NoYes::No;
+                    inventTableLocal.doUpdate();
+                    ttsCommit;
+    
+                    SC_AXDataServiceClient_Product::updateLastModifiedDate(inventTableLocal.ItemId);
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OnlyValidButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {   
+            Map                     filters;
+            MapEnumerator           filtersEnum;
+            QueryBuildDataSource    qbd;
+            Query                   query = new Query();
+            QueryRun                queryRun;
+            InventTable             inventTableLocal;           
+            ;
+
+            if(Box::yesNo("@SCL492", DialogButton::Yes) == DialogButton::Yes)
+            {
+                super();        
+      
+                numRecords  = 0;
+                filters     = SC_FilterWebShopsTable::getWebshopFilters(webshop.text());
+                filtersEnum = filters.getEnumerator();
+
+                qbd =  query.addDataSource(tableNum(InventTable));
+
+                while(filtersEnum.moveNext())
+                {
+                    qbd.addRange(fieldname2id(tablenum(InventTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+                }
+
+                queryRun = new QueryRun(query);
+                
+                while(queryRun.next())
+                {                    
+                    inventTableLocal = queryRun.get(tablenum(InventTable));
+                    InventTable_ds.calc(inventTableLocal);                    
+                }
+
+                InventTable_ds.query().dataSourceTable(tablenum(InventTable)).clearRanges();
+                InventTable_ds.query().dataSourceTable(tablenum(InventTable)).addRange(fieldNum(InventTable, ItemId)).value(SysQuery::valueEmptyString());
+
+                while select tempTable
+                    where tempTable.MainFocus
+                {
+                    InventTable_ds.query().dataSourceTable(tablenum(InventTable)).addRange(fieldNum(InventTable, ItemId)).value(tempTable.Voucher);
+                    numRecords++;
+                }           
+
+                if(numRecords > 0)
+                {
+                    InventTable_ds.executeQuery();
+                }
+                else
+                {
+                    Box::info("@SCL494");
+                    Webshop.modified();
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OnlyNonIndexableButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {   
+            Map                     filters;
+            MapEnumerator           filtersEnum;
+            QueryBuildDataSource    qbd;
+            Query                   query = new Query();
+            QueryRun                queryRun;
+            InventTable             inventTableLocal;         
+            ;
+
+            if(Box::yesNo("@SCL492", DialogButton::Yes) == DialogButton::Yes)
+            {
+                super();            
+
+                numRecords  = 0;
+                filters     = SC_FilterWebShopsTable::getWebshopFilters(webshop.text());
+                filtersEnum = filters.getEnumerator();
+
+                qbd =  query.addDataSource(tableNum(InventTable));
+
+                while(filtersEnum.moveNext())
+                {
+                    qbd.addRange(fieldname2id(tablenum(InventTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+                }
+
+                queryRun = new QueryRun(query);
+                
+                while(queryRun.next())
+                {
+                    inventTableLocal = queryRun.get(tablenum(InventTable));
+                    InventTable_ds.calc(inventTableLocal, true);
+                }
+
+                InventTable_ds.query().dataSourceTable(tablenum(InventTable)).clearRanges();
+                InventTable_ds.query().dataSourceTable(tablenum(InventTable)).addRange(fieldNum(InventTable, ItemId)).value(SysQuery::valueEmptyString());
+
+                while select tempTable
+                    where tempTable.SecondaryFocus
+                {
+                    InventTable_ds.query().dataSourceTable(tablenum(InventTable)).addRange(fieldNum(InventTable, ItemId)).value(tempTable.Voucher);
+                    numRecords++;
+                }            
+
+                if(numRecords > 0)
+                {
+                    InventTable_ds.executeQuery();
+                }
+                else
+                {
+                    Box::info("@SCL487");
+                    Webshop.modified();
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Refresh</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            delete_from tempTable;
+            InventTable_ds.research();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RemoveAllFilters</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Webshop.modified();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Webshop</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+        
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(SC_WebShopsTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebShopsTable::lookupWebshops(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean                 ret;
+            Map                     filters;
+            MapEnumerator           filtersEnum;
+            SC_WebShopsTable        webShopsTable;
+            RetailChannelTable      retailChannelTable;
+            QueryBuildDataSource    assortmentBuildDataSource, assortmentTableBuildDataSource, categoryBuildDataSource, categoryBuildDataSource2, categoryBuildDataSource3;
+            SC_FilterWebShopsTable  filterWebShopsTable;
+            
+            ret = super();
+        
+            AccountType.selection(4);
+            Accountnum.text('');
+            Accountnum.modified();
+            VisibleInWebshop.selection(0);
+        
+            prevSelection = 0;
+        
+            webShopsTable = SC_WebShopsTable::find(this.text());
+            custTable     = CustTable::find(webShopsTable.TemplateCustAccount);
+            filters       = SC_FilterWebShopsTable::getWebshopFilters(this.text());
+            filtersEnum   = filters.getEnumerator();
+        
+            InventTable_ds.query().dataSourceTable(tablenum(inventtable)).clearRanges();
+        
+            if(InventTable_ds.query().dataSourceTable(tablenum(RetailAssortmentView)))
+            {
+                InventTable_ds.query().dataSourceTable(tablenum(RetailAssortmentView)).enabled(false);
+            }
+
+            if(InventTable_ds.query().dataSourceTable(tablenum(EcoResProductCategory)))
+            {
+                InventTable_ds.query().dataSourceTable(tablenum(EcoResProductCategory)).enabled(false);
+            }
+
+            while(filtersEnum.moveNext())
+            {
+                InventTable_ds.query().dataSourceTable(tablenum(InventTable)).addRange(fieldname2id(tablenum(InventTable), filtersEnum.currentKey())).value(filtersEnum.currentValue());
+            }
+
+            //retail assortments filters
+            if(webShopsTable.EnableRetail && webShopsTable.EnableRetailAssortments && isConfigurationkeyEnabled(configurationKeyNum(Retail)))
+            {
+                if(InventTable_ds.query().dataSourceTable(tablenum(RetailAssortmentView)))
+                {
+                    InventTable_ds.query().dataSourceTable(tablenum(RetailAssortmentView)).enabled(true);
+                    InventTable_ds.query().dataSourceTable(tablenum(RetailAssortmentView)).clearRanges();
+                }
+                retailChannelTable   = RetailChannelTable::findByRecId(RetailStoreTable::find(webShopsTable.RetailStore).RecId);
+
+                assortmentBuildDataSource = SysQuery::findOrCreateDataSource(InventTable_ds.query(), tablenum(RetailAssortmentView), tablenum(InventTable));
+                assortmentBuildDataSource.addLink(fieldnum(InventTable, Product), fieldnum(RetailAssortmentView, Product));
+                assortmentBuildDataSource.joinMode(JoinMode::ExistsJoin);
+                assortmentBuildDataSource.fetchMode(QueryFetchMode::One2One);
+                assortmentBuildDataSource.addRange(fieldNum(RetailAssortmentView, OMOperatingUnitId)).value(queryValue(retailChannelTable.OMOperatingUnitID));
+                assortmentBuildDataSource.addRange(fieldNum(RetailAssortmentView, ValidFrom)).value(SysQuery::valueEmptyString());
+                assortmentBuildDataSource.addRange(fieldNum(RetailAssortmentView, ValidFrom)).value('..' + queryValue(DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone())));
+                assortmentBuildDataSource.addRange(fieldNum(RetailAssortmentView, ValidTo)).value(SysQuery::valueEmptyString());
+                assortmentBuildDataSource.addRange(fieldNum(RetailAssortmentView, ValidTo)).value(queryValue(DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone())) + '..');
+
+                assortmentTableBuildDataSource = assortmentBuildDataSource.addDataSource(tablenum(RetailAssortmentTable));
+                assortmentTableBuildDataSource.addLink(fieldnum(RetailAssortmentView, AssortmentID), fieldnum(RetailAssortmentTable, RecId));
+                assortmentTableBuildDataSource.joinMode(JoinMode::ExistsJoin);
+                assortmentTableBuildDataSource.fetchMode(QueryFetchMode::One2One);
+                assortmentTableBuildDataSource.addRange(fieldNum(RetailAssortmentTable, Status)).value(QueryValue(RetailAssortmentStatusType::Published));
+            }
+
+            //category filters from webshop
+            if(SC_FilterWebShopsTable::existFilters(webShopsTable.WebShopId, tableStr(EcoResCategory)))
+            {
+                if(InventTable_ds.query().dataSourceTable(tablenum(EcoResProductCategory)))
+                {
+                    InventTable_ds.query().dataSourceTable(tablenum(EcoResProductCategory)).enabled(true);
+                    categoryBuildDataSource2 = InventTable_ds.query().dataSourceTable(tablenum(EcoResCategory));
+                    categoryBuildDataSource3 = InventTable_ds.query().dataSourceTable(tablenum(EcoResCategory), 2);
+                    categoryBuildDataSource2.clearRanges();
+                    categoryBuildDataSource3.clearRanges();                    
+                }
+                else
+                {
+                    categoryBuildDataSource = InventTable_ds.query().dataSourceTable(tablenum(InventTable)).addDataSource(tablenum(EcoResProductCategory));
+                    categoryBuildDataSource.addLink(fieldnum(EcoResProductCategory, Product), fieldnum(InventTable, Product));
+                    categoryBuildDataSource.joinMode(JoinMode::ExistsJoin);
+                    categoryBuildDataSource.fetchMode(QueryFetchMode::One2One);
+                    categoryBuildDataSource2 = categoryBuildDataSource.addDataSource(tablenum(EcoResCategory));
+                    categoryBuildDataSource2.addLink(fieldnum(EcoResProductCategory, Category), fieldnum(EcoResCategory, RecId));
+                    categoryBuildDataSource2.joinMode(JoinMode::ExistsJoin);
+                    categoryBuildDataSource2.fetchMode(QueryFetchMode::One2One);
+                    categoryBuildDataSource2.addRange(fieldnum(EcoResCategory, CategoryHierarchy)).value(queryValue(webShopsTable.CategoryHierarchy));
+                    categoryBuildDataSource3 = categoryBuildDataSource2.addDataSource(tablenum(EcoResCategory));
+                    categoryBuildDataSource3.addLink(fieldnum(EcoResCategory, CategoryHierarchy), fieldnum(EcoResCategory, CategoryHierarchy));
+                    categoryBuildDataSource3.joinMode(JoinMode::ExistsJoin);                    
+                }
+
+                categoryBuildDataSource3.addRange(fieldNum(EcoResCategory, DataAreaId)).value(strFmt('((%1.%2 <= %3.%2) && (%1.%4 >= %3.%4))',
+                                                      categoryBuildDataSource3.name(), fieldStr(EcoResCategory,NestedSetLeft),categoryBuildDataSource2.name(), fieldStr(EcoResCategory,NestedSetRight)));
+            
+                while select FieldName, FilterStr from filterWebShopsTable
+                        where filterWebShopsTable.WebShopId == webShopsTable.WebShopId &&
+                              filterWebShopsTable.TableName == tableStr(EcoResCategory)
+                {
+                    categoryBuildDataSource3.addRange(fieldname2id(tablenum(EcoResCategory), filterWebShopsTable.FieldName)).value(filterWebShopsTable.FilterStr);
+                }
+            }
+        
+            inventTable_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>VisibleInWebshop</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean     ret;
+            String50    expr;
+            ;
+            ret = super();
+        
+            if(this.selection() != prevSelection)
+            {
+                expr = this.selection() == NoneNoYes_IN::None ? '0..1' : this.selection() == NoneNoYes_IN::Yes ? '1' : '0';
+                SysQuery::findOrCreateRange(InventTable_ds.query().dataSourceTable(tablenum(InventTable)), fieldnum(InventTable, SC_VisibleInWebshop)).value(expr);
+                InventTable_ds.executeQuery();
+                prevSelection = this.selection();
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AccountType</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            AccountNum.text('');
+            RepresentAccount.text('');
+            custTable = CustTable::find(SC_WebShopsTable::find(Webshop.text()).TemplateCustAccount);
+        
+            if(AccountType.selection() == SC_AccountType::Contact)
+            {
+                AccountNum.extendedDataType(extendedTypeNum(ContactPersonId));
+            }
+        
+            if(AccountType.selection() == SC_AccountType::Customer)
+            {
+                AccountNum.extendedDataType(extendedTypeNum(CustAccount));
+            }
+        
+            if(AccountType.selection() == SC_AccountType::Employee)
+            {
+                AccountNum.extendedDataType(extendedTypeNum(HcmPersonnelNumberId));
+            }
+        
+            element.updateDesign();
+        
+            inventTable_ds.research();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AccountNum</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+        
+            args.caller(this);
+            if(this.text())
+            {
+                if(AccountType.selection() == SC_AccountType::Customer)
+                {
+                    args.record(CustTable::find(this.text()));
+                    new MenuFunction(menuitemdisplaystr(CustTable), MenuItemType::Display).run(args);
+                }
+                if(AccountType.selection() == SC_AccountType::Contact)
+                {
+                    args.record(ContactPerson::find(this.text()));
+                    new MenuFunction(menuitemdisplaystr(ContactPerson), MenuItemType::Display).run(args);
+                }
+                if(AccountType.selection() == SC_AccountType::Employee)
+                {
+                    args.record(HcmWorker::findByPersonnelNumber(this.text()));
+                    new MenuFunction(menuitemdisplaystr(HcmWorker), MenuItemType::Display).run(args);
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            ;
+            if(AccountType.selection() == SC_AccountType::Contact)
+            {
+                element.lookupContacts(this);
+            }
+            else if(AccountType.selection() == SC_AccountType::Employee)
+            {
+                HcmWorkerLookup::newAllWorkersWithinCompany().lookupWorker(this);
+            }
+            else
+            {
+                super();
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            RepresentAccount.text('');
+        
+            element.updateDesign();
+        
+            if(AccountType.selection() == SC_AccountType::Customer)
+            {
+                custTable = CustTable::find(this.text());
+            }
+        
+            if(AccountType.selection() == SC_AccountType::Contact)
+            {
+                custTable = CustTable::findByPartyRecId(ContactPerson::find(this.text()).ContactForParty);
+            }
+        
+            if(AccountType.selection() == SC_AccountType::Employee)
+            {
+                custTable = CustTable::find(SC_WebShopsTable::find(Webshop.text()).TemplateCustAccount);
+            }
+        
+            inventTable_ds.research();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RepresentAccount</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+        
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(CustTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(CustTable), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            ;
+            element.lookupRepresentCustAccounts(this, AccountNum.text());
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            custTable = CustTable::find(this.text());
+        
+            inventTable_ds.research();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>CustAccount</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+        
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(CustTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(CustTable), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Currency</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+        
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(Currency::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(Currency), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>InventTable</Name>
+			<Table>InventTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>ABCContributionMargin</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ABCRevenue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ABCTieUp</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ABCValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AlcoholManufacturerId_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AlcoholProductionTypeId_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AlcoholStrength_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AltConfigId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AltInventColorId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AltInventSizeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AltInventStyleId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AltItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ApproxTaxValue_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AssetGroupId_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AssetId_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AutoReportFinished</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BatchMergeDateCalculationMethod</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BatchNumGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BOMCalcGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BOMLevel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BOMManualReceipt</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BOMUnitId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CommissionGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CostGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CostModel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustomsExportTariffCodeTable_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustomsImportTariffCodeTable_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DAXIntegrationKey</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultDimension</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Density</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Depth</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DSA_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EPCManager</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExceptionCode_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExciseRecordType_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ExciseTariffCodes_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EximProductGroupTable_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FiscalLIFOAvoidCalc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FiscalLIFONormalValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FiscalLIFONormalValueCalc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ForecastDMPInclude</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>grossDepth</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>grossHeight</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>grossWidth</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Height</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ICMSOnService_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Intracode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IntrastatExclude</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IntrastatProcId_CZ</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IntraUnit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventFiscalLIFOGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventProductType_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemBuyerGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemDimCostPrice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemPriceToleranceGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemTaggingLevel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MarkupCode_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MatchingPolicy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MCRPackedExtensions</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MinimumPalletQuantity</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NameAlias</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NetWeight</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NGPCodesTable_FR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NRTaxGroup_LV</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrigCountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrigCountyId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrigStateId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PackagingGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Packing_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PalletTagging</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PBAAutoStart</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PBAHideApproval</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PBAHideDialog</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PBAInventItemGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PBAItemAutoGenerated</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PBAItemConfigurable</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PBAMandatoryConfig</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PDSBaseAttributeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsBestBefore</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsCWWMSMinimumPalletQty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsCWWMSQtyPerLayer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsCWWMSStandardPalletQty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsFreightAllocationGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsItemRebateGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PDSPotencyAttribRecording</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsShelfAdvice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsShelfLife</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PDSTargetFactor</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PdsVendorCheckItem</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Phantom</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PKWiUCode_PL</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PmfPlanningItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PmfProductType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PmfYieldPct</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PrimaryVendorId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProdFlushingPrincip</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProdGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProdPoolId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Product</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>projCategoryId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PropertyId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PurchModel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>qtyPerLayer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReqGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SADRateCode_PL</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesContributionRatio</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesModel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesPercentMarkup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesPriceModelBasic</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_LastModified</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SC_VisibleInWebShop</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ScrapConst</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ScrapVar</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SerialNumGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ServiceCodeTable_IN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SkipIntraCompanySync_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>sortCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StandardConfigId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StandardInventColorId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StandardInventSizeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StandardInventStyleId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>standardPalletQuantity</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StatisticsFactor</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaraWeight</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxationOrigin_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxFiscalClassification_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxPackagingQty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxServiceCode_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UnitVolume</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UseAltItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Width</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSArrivalHandlingTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSPalletTypeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSPickingQtyTime</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<InsertAtEnd>No</InsertAtEnd>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL166</Caption>
+		<Pattern xmlns="">SimpleDetails-FastTabsContainer</Pattern>
+		<PatternVersion xmlns="">1.4</PatternVersion>
+		<TitleDataSource xmlns="">InventTable</TitleDataSource>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>286331152</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormActionPaneTabControl">
+						<Name>GeneralTab</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ActionPaneTab</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>GeneralGroup</Name>
+								<ElementPosition>715827882</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ButtonGroup</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>Variants</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1073741822</ElementPosition>
+										<Enabled>No</Enabled>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SYS311014</HelpText>
+										<Type>MenuFunctionButton</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<DataSource>InventTable</DataSource>
+										<MenuItemName>sc_inventitemcombinationInfo</MenuItemName>
+										<Text>@SYS310686</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>EcoResProductMasterDimensionPerCompany</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1610612733</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>MenuFunctionButton</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<DataSource>InventTable</DataSource>
+										<MenuItemName>EcoResProductMasterDimensionPerCompany</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>SC_ProductDimensionSorting</Name>
+										<HelpText>@SCL340</HelpText>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL339</Text>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SYS191396</Caption>
+								<DataSource>InventTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>VisibilityGroup</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ButtonGroup</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>ProductGroup</Name>
+										<ElementPosition>1073741822</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>MenuFunctionButton</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<DataSource>InventTable</DataSource>
+										<MenuItemName>EcoResProductCategory</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+										<Text>@SYS4922</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>ProductCategory</Name>
+										<ElementPosition>1610612733</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>MenuFunctionButton</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<DataSource>InventTable</DataSource>
+										<MenuItemName>EcoResProductCategory</MenuItemName>
+										<NeedsRecord>Yes</NeedsRecord>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>SetProdAttachmentsVisibility</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL324</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL323</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>SetOrderAttachmentsVisibility</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL622</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL623</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>SetBOMVisibility</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL322</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL321</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>SetProductsVisibility</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL243</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL241</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>AllowProductsPreOrder</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL647</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL646</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>UpdateVisibility</Name>
+										<ElementPosition>1073741823</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@scl200</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL201</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>RemoveProductsVisibility</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL243</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL242</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>RemoveVisibility</Name>
+										<ElementPosition>1789569705</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL200</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL202</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>DenyProductsPreOrder</Name>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL647</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL648</Text>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SYS76275</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>CalculationsGroup</Name>
+								<Type>ButtonGroup</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>OnlyValidButton</Name>
+										<HelpText>@SYS35305</HelpText>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL479</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>OnlyNonIndexableButton</Name>
+										<HelpText>@SYS35305</HelpText>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>@SCL480</Text>
+									</AxFormControl>
+								</Controls>
+								<Caption>@SYS35062</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>RefreshGroup</Name>
+								<ElementPosition>1789569705</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ButtonGroup</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>Refresh</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SYS76741</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SYS29018</Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>RemoveAllFilters</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SCL491</HelpText>
+										<Type>Button</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Big>Yes</Big>
+										<Text>@SCL490</Text>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SYS6188</Caption>
+							</AxFormControl>
+						</Controls>
+						<AlignChild>No</AlignChild>
+						<AlignChildren>No</AlignChildren>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+						<Caption>@SYS135280</Caption>
+						<DataSource>InventTable</DataSource>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>InventTable</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>572662304</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FilterPage</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Filters</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Webshop</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HelpText>@SCL173</HelpText>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+										<Label>@SCL161</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>VisibleInWebshop</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1073741823</ElementPosition>
+										<HelpText>@SCL35</HelpText>
+										<Type>ComboBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<EnumType>NoneNoYes_IN</EnumType>
+										<Label>@SCL1</Label>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>AccountType</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1342177278</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>ComboBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<EnumType>SC_AccountType</EnumType>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>AccountNum</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1610612733</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SYS1996</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>RepresentAccount</Name>
+										<AllowEdit>No</AllowEdit>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1879048189</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Skip>Yes</Skip>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@SCL163</Label>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@SYS190436</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FooterPage</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Pattern>Custom</Pattern>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>CustomerInfo</Name>
+								<AllowEdit>No</AllowEdit>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>CustAccount</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>715827882</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustNum</DataMethod>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>CustName</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1073741823</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustName</DataMethod>
+										<Label>@SYS27874</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>CustSite</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1252698793</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustSite</DataMethod>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Warehouse</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustWarehouse</DataMethod>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+								<Caption>@SYS29051</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>SalesInfo</Name>
+								<AllowEdit>No</AllowEdit>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Currency</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustCurrency</DataMethod>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>PricesIncVAT</Name>
+										<ElementPosition>1288490187</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>CheckBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayCustIncTax</DataMethod>
+										<Label>@SYS55608</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>CountRec</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1717986916</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Integer</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayNumOfProducts</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<Label>@SCL169</Label>
+									</AxFormControl>
+								</Controls>
+								<Caption>@SCL168</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Info</Name>
+								<ElementPosition>1879048189</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>NonOrderableReasonTxt</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayErrorMsg</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<Label>@SCL165</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>NonIndexableReasonTxt</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayIndexableErrorMsg</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<Label>@SCL481</Label>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+								<Caption>@SYS2272</Caption>
+							</AxFormControl>
+						</Controls>
+						<Columns>3</Columns>
+						<Caption>@SYS325247</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>GridPage</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<ElementPosition>858993458</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>InventTable_ItemId</Name>
+										<ElementPosition>429496728</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ItemId</DataField>
+										<DataSource>InventTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>InventTable_ItemName</Name>
+										<ElementPosition>644245092</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>defaultProductName</DataMethod>
+										<DataSource>InventTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>InventTable_SC_VisibleInWebShop</Name>
+										<ElementPosition>858993456</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>CheckBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<BackgroundColor>WindowBackground</BackgroundColor>
+										<DataField>SC_VisibleInWebShop</DataField>
+										<DataSource>InventTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>OrderableField</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1073741820</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>CheckBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<BackgroundColor>WindowBackground</BackgroundColor>
+										<DataMethod>displayIsOrderable</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<Label>@SCL164</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>IndexableField</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1073741820</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>CheckBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<BackgroundColor>WindowBackground</BackgroundColor>
+										<DataMethod>displayIsIndexable</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<Label>@SCL482</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>NoneOrderableReason</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1288490185</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayErrorMsg</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<DisplayHeight>1</DisplayHeight>
+										<DisplayHeightMode>Fixed</DisplayHeightMode>
+										<Label>@SCL165</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>NoneIndexableReason</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1288490185</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayIndexableErrorMsg</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<DisplayHeight>1</DisplayHeight>
+										<DisplayHeightMode>Fixed</DisplayHeightMode>
+										<Label>@SCL481</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormRealControl">
+										<Name>UnitPriceField</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1503238550</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Real</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayUnitPrice</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<NoOfDecimals>-1</NoOfDecimals>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormRealControl">
+										<Name>ListPriceField</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1503238550</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Real</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayListPrice</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<Label>@SYS59587</Label>
+										<NoOfDecimals>-1</NoOfDecimals>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormRealControl">
+										<Name>Stock</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1717986915</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Real</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>displayInventory</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<Label>@SYS438</Label>
+										<NoOfDecimals>-1</NoOfDecimals>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>LastDateTimeModified</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1932735280</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<HelpText>@SYS79784</HelpText>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>SC_DisplayMethods_Extension::displayLastMDateTime</DataMethod>
+										<DataSource>InventTable</DataSource>
+										<DisplayLength>18</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
+										<Label>@SCL109</Label>
+									</AxFormControl>
+								</Controls>
+								<DataSource>InventTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS303714</Caption>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

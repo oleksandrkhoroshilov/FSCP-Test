@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_LogFileBrowser</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_LogFileBrowser extends FormRun
+{   
+    #SANA
+    SC_LargeText    logPath;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {        
+        Counter cnt;
+
+        super();
+
+        logPath = SC_ParametersTable::find().FileLogPath;
+
+        if(System.IO.Directory::Exists(logPath))
+        {
+            try
+            {                
+                var directoryInfo = new System.IO.DirectoryInfo(logPath);
+                var files = directoryInfo.GetFiles('*.xml');
+                var i = files.GetEnumerator();
+                
+                FilesCounter.text(files.get_Length().ToString());
+
+                while (i.MoveNext())
+                {
+                    System.IO.FileInfo fileInfo = i.get_Current();
+                    if(fileInfo)
+                    {                                                
+                        tempData.SysAotMethodName = fileInfo.get_Name();
+                        tempData.SysPropertyName = strContains(tempData.SysAotMethodName, #request) ? #request : #response;
+                        tempData.SysCompileErrorMessage = fileInfo.get_Length().ToString();
+                        tempData.SysUtilElementName = fileInfo.get_CreationTime().ToString();
+                        tempData.Line = cnt;
+                        tempData.insert();
+                        cnt++;
+                    }
+                }
+            }
+            catch
+            {
+                return;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>View</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+            
+            System.IO.FileStream fileStream = System.IO.File::OpenRead(logPath + '\\' + tempData.SysAotMethodName);
+            
+            File::SendFileToUser(fileStream, tempData.SysAotMethodName);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Delete</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            MultiSelectionHelper selectionHelper = MultiSelectionHelper::construct();
+            TmpCompilerOutput    tempDataLocal;
+
+            super();            
+            
+            if (tempData_ds.anyMarked())
+            {
+                selectionHelper.parmDataSource(tempData_ds);            
+                tempDataLocal = selectionHelper.getFirst();
+                
+                while(tempDataLocal)
+                {   
+                    System.IO.File::Delete(logPath + '\\' + tempDataLocal.SysAotMethodName);
+                    TempData_ds.positionToRecord(tempDataLocal);
+
+                    try
+                    {
+                        TempData.delete();                    
+                    }
+                    catch
+                    {
+                        //skip locked files
+                    }
+
+                    tempDataLocal = selectionHelper.getNext();
+                }                
+                        
+                select count(RecId) from tempData;
+                FilesCounter.text(int642Str(tempData.RecId));
+                TempData_ds.research(true);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ClearAll</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+                        
+            var directoryInfo = new System.IO.DirectoryInfo(logPath);
+            var files = directoryInfo.GetFiles('*.xml');
+            var i = files.GetEnumerator();
+
+            while (i.MoveNext())
+            {
+                System.IO.FileInfo fileInfo = i.get_Current();
+                if(fileInfo)
+                {
+                    try
+                    {
+                        fileInfo.Delete();
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            delete_from tempData;
+            
+            FilesCounter.text(#zero);
+            TempData_ds.research(true);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TempData</Name>
+			<Table>TmpCompilerOutput</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Column</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompileErrorCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompileErrorImage</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompileErrorString</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LatestCompile</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Line</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysAotMethodName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysCompileErrorMessage</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysCompilerOutputTab</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysCompilerSeverity</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysPropertyName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysUtilElementName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TreeNodePath</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UtilElementImage</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UtilElementType</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<Index>DateTimeIdx</Index>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL626</Caption>
+		<DataSource xmlns="">TempData</DataSource>
+		<HideIfEmpty xmlns="">No</HideIfEmpty>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">SimpleList</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>477218588</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>Actions</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>View</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NeedsRecord>Yes</NeedsRecord>
+								<NormalImage>View</NormalImage>
+								<Text>@SYS5252</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>Delete</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MultiSelect>Yes</MultiSelect>
+								<NeedsRecord>Yes</NeedsRecord>
+								<NormalImage>PageRemove</NormalImage>
+								<Text>@SYS10308</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ClearAll</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NeedsRecord>Yes</NeedsRecord>
+								<NormalImage>Delete</NormalImage>
+								<Text>@SYS3398</Text>
+							</AxFormControl>
+						</Controls>
+						<DataSource>TempData</DataSource>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>TempData</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>Grid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+									<Value>FileName</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FilesCounter</Name>
+						<AllowEdit>No</AllowEdit>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>@SYS320648</Label>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>Grid</Name>
+				<ElementPosition>954437176</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Grid</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FileName</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SysAotMethodName</DataField>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS16423</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Type</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SysPropertyName</DataField>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS1201</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Size</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SysCompileErrorMessage</DataField>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS11678</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DateTime</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>SysUtilElementName</DataField>
+						<DataSource>TempData</DataSource>
+						<Label>@SYS320611</Label>
+						<Text>                                                                                                                  </Text>
+					</AxFormControl>
+				</Controls>
+				<DataSource>TempData</DataSource>
+				<DefaultAction>View</DefaultAction>
+				<Style>Tabular</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

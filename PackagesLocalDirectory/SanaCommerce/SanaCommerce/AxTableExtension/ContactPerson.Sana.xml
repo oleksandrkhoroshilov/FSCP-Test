@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>ContactPerson.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>SC_LastModified</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>CapacityValue</ExtendedDataType>
+			<Label>@SCL109</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>SanaLastModifiedDateIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>SC_LastModified</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>

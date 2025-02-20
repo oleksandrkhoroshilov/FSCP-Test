@@ -1,0 +1,937 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_DataValidationRules</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_DataValidationRules extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canClose</Name>
+				<Source><![CDATA[
+    public boolean canClose()
+    {
+        boolean ret;
+    
+        ret = super();
+    
+        ret = ret && SC_DataValidationRulesLine_ds.leave();
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+    
+        GridLines_Value.label("@SYS310213");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>task</Name>
+				<Source><![CDATA[
+    public int task(int _taskId)
+    {
+        #Task
+    
+        int ret;
+        ;
+    
+        if(_taskId == #taskEnter && GridLines_Value.hasChanged())
+        {
+            ret = super(#taskArrowDown);
+        }
+        else
+        {
+            ret = super(_taskId);
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDesign</Name>
+				<Source><![CDATA[
+    public void updateDesign()
+    {
+        DictField   dictField;
+        SysDictType sysDictType;
+        ;
+        if(SC_DataValidationRulesLine.Operator == SC_ValidationOperator::CustomFunction)
+        {
+            GridLines_Value.extendedDataType(extendedTypeNum(String50));
+            GridLines_Value.lookupButton(FormLookupButton::Always);
+        }
+        else
+        {
+            dictField = new DictField(SC_DataValidationRulesLine.ValidationTableId, SC_DataValidationRulesLine.ValidationFieldId);
+    
+            if(dictField)
+            {
+                sysDictType = new SysDictType(dictField.typeId());
+
+                if(sysDictType && (sysDictType.getLookupRelation() || dictField.baseType() == Types::Date))
+                {
+                    GridLines_Value.lookupButton(FormLookupButton::Always);
+                }
+                else
+                {
+                    GridLines_Value.lookupButton(FormLookupButton::Hidden);
+                }
+    
+                GridLines_Value.extendedDataType(dictField.typeId());
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>SC_DataValidationRulesTable</Name>
+				<Methods>
+					<Method>
+						<Name>displayTableName</Name>
+						<Source><![CDATA[
+        [SysClientCacheDataMethodAttribute(true)]
+        public display TableName displayTableName(SC_DataValidationRulesTable _header)
+        {
+            ;
+            return tableId2name(_header.ValidationTableId);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>ValidationTableId</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            public void lookup(FormControl _formControl, SC_LargeText _filterStr)
+            {
+                TmpSysQuery     tmpSysQuery;
+                SqlDictionary   sqlDictionary;
+                SysTableLookup  sysTableLookup = SysTableLookup::newParameters(tablenum(TmpSysQuery), _formControl);
+                ;
+                
+                while select tabId from sqlDictionary
+                    group by tabId
+                    order by tabId
+                {
+                    tmpSysQuery.Table_Id = sqlDictionary.tabId;
+                    tmpSysQuery.Tablelabel = tableId2name(sqlDictionary.tabId);
+                    tmpSysQuery.insert();
+                }
+
+                //BP Deviation documented
+                sysTableLookUp.parmTmpBuffer(tmpSysQuery);
+                sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Table_Id), true);
+                sysTableLookUp.setLabel("@SYS5468");
+                sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Tablelabel));
+                sysTableLookUp.setLabel("@SYS92116");
+                sysTableLookUp.performFormLookup();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>SC_DataValidationRulesLine</Name>
+				<Methods>
+					<Method>
+						<Name>leave</Name>
+						<Source><![CDATA[
+        public boolean leave()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            if(ret && !SC_DataValidationRulesLine.Value && SC_DataValidationRulesLine.Operator == SC_ValidationOperator::CustomFunction)
+            {
+                ret = checkFailed(strFmt("@SYS136411", "@SYS13685"));
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+        
+            element.updateDesign();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayFieldName</Name>
+						<Source><![CDATA[
+        [SysClientCacheDataMethodAttribute(true)]
+        public display FieldName displayFieldName(SC_DataValidationRulesLine _lines)
+        {            
+            return fieldId2name(_lines.ValidationTableId, _lines.ValidationFieldId);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        public void write()
+        {
+            super();
+
+            //update header modified datetime
+            SC_DataValidationRulesTable.Active = !SC_DataValidationRulesTable.Active;
+            SC_DataValidationRulesTable_ds.write();
+            SC_DataValidationRulesTable.Active = !SC_DataValidationRulesTable.Active;
+            SC_DataValidationRulesTable_ds.write();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        public void delete()
+        {
+            super();
+
+            //update header modified datetime
+            SC_DataValidationRulesTable.Active = !SC_DataValidationRulesTable.Active;
+            SC_DataValidationRulesTable_ds.write();
+            SC_DataValidationRulesTable.Active = !SC_DataValidationRulesTable.Active;
+            SC_DataValidationRulesTable_ds.write();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>ValidationFieldId</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+            
+                SC_DataValidationRulesLine.Value = '';
+                element.updateDesign();
+            }
+
+]]></Source>
+							</Method>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            public void lookup(FormControl _formControl, SC_LargeText _filterStr)
+            {
+                SC_DataValidationRulesLine::lookupTableFields(_formControl, SC_DataValidationRulesLine.ValidationTableId);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>ResetToDefaults</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            ;
+            super();
+        
+            if(Box::yesNo("@SCL193", DialogButton::Yes) == DialogButton::Yes)
+            {
+                SC_AXDataServiceClient::setValidationRulesDefaults();
+                SC_DataValidationRulesTable_ds.research();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Defaults</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            ;
+            super();
+        
+            if(Box::yesNo(strFmt("@SCL190", tableId2name(SC_DataValidationRulesTable.ValidationTableId)), DialogButton::Yes) == DialogButton::Yes)
+            {
+                SC_AXDataServiceClient::setValidationRulesDefaults(SC_DataValidationRulesTable.ValidationTableId);
+                SC_DataValidationRulesLine_ds.research();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>GridLines_Operator</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            SC_DataValidationRulesLine.Value = '';
+            SC_DataValidationRulesLine_ds.leaveRecord(true);
+            element.updateDesign();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>GridLines_Value</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            TmpDefaultDataSetup tmpDefaultData;
+            sysTableLookup      sysTableLookup;
+            DictClass           dc = new DictClass(className2Id(classStr(SC_AXDataServiceClient_Common)));
+            int                 i;            
+        
+            if(SC_DataValidationRulesLine.Operator == SC_ValidationOperator::CustomFunction)
+            {
+                for(i=1;i<=dc.objectMethodCnt();i++)
+                {
+                    if(Global::strStartsWith(dc.objectMethod(i), 'VR_'))
+                    {
+                        tmpDefaultData.Description = dc.objectMethod(i);
+                        tmpDefaultData.insert();
+                    }
+                }
+        
+                sysTableLookup = SysTableLookup::newParameters(tableNum(TmpDefaultDataSetup),this,false);
+                sysTableLookup.addLookupField(fieldNum(TmpDefaultDataSetup, Description),True);
+                sysTableLookup.setLabel("@SYS60538");
+                //BP deviation documented
+                sysTableLookup.parmTmpBuffer(tmpDefaultData);
+                sysTableLookup.performFormLookup();
+            }
+            else
+            {
+                super();
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            FormDataUtil::getFormDataSource(SC_DataValidationRulesLine).leaveRecord();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            #AOT
+            boolean         ret;            
+            DictField       dictField;
+            DictRelation    dr;
+            Query           query = new Query();
+            QueryRun        queryRun;
+            SysDictClass    disctClass;
+            
+            ret = super();
+        
+            if(ret && this.text())
+            {
+                dictField = new DictField(SC_DataValidationRulesLine.ValidationTableId, SC_DataValidationRulesLine.ValidationFieldId);
+                if(dictField && dictField.relationObject() && SC_DataValidationRulesLine.Operator != SC_ValidationOperator::CustomFunction)
+                {
+                    dr = dictField.relationObject();
+                    query.addDataSource(dr.externTable()).addRange(dr.lineExternTableValue(1)).value(queryValue(this.text()));
+                    queryRun = new QueryRun(query);
+                    if(!queryRun.next())
+                    {
+                        ret = checkFailed(strfmt("@SYS112224", this.text(), fieldid2name(dr.externTable(), dr.lineExternTableValue(1)), tableid2name(dr.externTable())));
+                    }
+                }
+        
+                switch(extendedTypeId2Type(this.extendedDataType()))
+                {
+                    case Types::Integer,
+                         Types::Int64,
+                         Types::Enum:
+                        if(!Global::str2IntOk(this.text()))
+                        {
+                            ret = checkFailed("@SYS104733");
+                        }
+                        break;
+                    case Types::Real:
+                        if(!Global::str2NumOk(this.text()))
+                        {
+                            ret = checkFailed('A Decimal value must be specified');
+                        }
+                        break;
+                    case Types::Date:
+                        if(str2Date(this.text(), -1) == dateNull())
+                        {
+                            ret = checkFailed("@SYS58184");
+                        }
+                        break;
+                    case Types::UtcDateTime:
+                        if(DateTimeUtil::date(str2datetime(this.text(), -1)) == dateNull())
+                        {
+                            ret = checkFailed("@SYS58184");
+                        }
+                        break;
+                }
+        
+                if(ret && SC_DataValidationRulesLine.Operator == SC_ValidationOperator::CustomFunction)
+                {   
+                    disctClass = new SysDictClass(classNum(SC_AXDataServiceClient_Common));
+
+                    if(!disctClass.hasObjectMethod(this.text()))
+                    {
+                        ret = checkFailed(strfmt("@SCL192", this.text(), classStr(SC_AXDataServiceClient_Common)));
+                    }                    
+                }
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>SC_DataValidationRulesTable</Name>
+			<Table>SC_DataValidationRulesTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Active</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ValidationTableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_DataValidationRulesLine</Name>
+			<Table>SC_DataValidationRulesLine</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>createdDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ErrorTxt</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Operator</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ValidationFieldId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ValidationTableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>SC_DataValidationRulesTable</JoinSource>
+			<Index>FieldIdx</Index>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL185</Caption>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<Style xmlns="">SimpleList</Style>
+		<TitleDataSource xmlns="">SC_DataValidationRulesTable</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>536870911</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>NewDeleteGroup</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ResetToDefaults</Name>
+								<ElementPosition>1879048189</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@SCL194</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<NormalImage>Undo</NormalImage>
+								<Text>@SCL189</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+						<DataSource>SC_DataValidationRulesTable</DataSource>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>SC_DataValidationRulesTable</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<ElementPosition>912680549</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>NavFilter</Name>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>GridHeader</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+									<Value>GridHeader_ValidationTableId</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>GridHeader</Name>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Grid</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>GridHeader_ValidationTableId</Name>
+						<ElementPosition>858993458</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>Integer</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ValidationTableId</DataField>
+						<DataSource>SC_DataValidationRulesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>TableName</Name>
+						<ElementPosition>1288490187</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>String</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>displayTableName</DataMethod>
+						<DataSource>SC_DataValidationRulesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>SC_DataValidationRulesTable_ModifiedBy</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ModifiedBy</DataField>
+						<DataSource>SC_DataValidationRulesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormDateTimeControl">
+						<Name>SC_DataValidationRulesTable_ModifiedDateTime</Name>
+						<Type>DateTime</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ModifiedDateTime</DataField>
+						<DataSource>SC_DataValidationRulesTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>GridHeader_Active</Name>
+						<ElementPosition>1717986916</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>CheckBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<BackgroundColor>WindowBackground</BackgroundColor>
+						<DataField>Active</DataField>
+						<DataSource>SC_DataValidationRulesTable</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataSource>SC_DataValidationRulesTable</DataSource>
+				<Style>Tabular</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>GroupLines</Name>
+				<ElementPosition>1717986916</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>Auto</HeightMode>
+				<Pattern>Custom</Pattern>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormActionPaneControl">
+						<Name>ActionPane1</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ActionPane</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneTabControl">
+								<Name>ActionPaneTab1</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ActionPaneTab</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>NewDeleteGroup1</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>ButtonGroup</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>AddButton</Name>
+												<ElementPosition>536870911</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CommandButton</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+												<Command>New</Command>
+												<NormalImage>New</NormalImage>
+												<Primary>Yes</Primary>
+												<Text>@sys60080</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>RemoveButton</Name>
+												<ElementPosition>1073741822</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CommandButton</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+												<Command>DeleteRecord</Command>
+												<NormalImage>Delete</NormalImage>
+												<Primary>Yes</Primary>
+												<SaveRecord>No</SaveRecord>
+												<Text>@sys26394</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>Defaults</Name>
+												<ElementPosition>1610612734</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<HelpText>@SCL194</HelpText>
+												<Type>Button</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<NormalImage>ClearSelection</NormalImage>
+												<Text>@SYS80655</Text>
+											</AxFormControl>
+										</Controls>
+										<ArrangeMethod>Vertical</ArrangeMethod>
+										<DataSource>SC_DataValidationRulesLine</DataSource>
+									</AxFormControl>
+								</Controls>
+								<AlignChild>No</AlignChild>
+								<AlignChildren>No</AlignChildren>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Caption>@SYP4881478</Caption>
+							</AxFormControl>
+						</Controls>
+						<AlignChild>No</AlignChild>
+						<AlignChildren>No</AlignChildren>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+						<Style>Strip</Style>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGridControl">
+						<Name>GridLines</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>Grid</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>GridLines_ValidationFieldId</Name>
+								<ElementPosition>613566756</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Integer</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>ValidationFieldId</DataField>
+								<DataSource>SC_DataValidationRulesLine</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>StringEdit</Name>
+								<ElementPosition>920350134</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataMethod>displayFieldName</DataMethod>
+								<DataSource>SC_DataValidationRulesLine</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormComboBoxControl">
+								<Name>GridLines_Operator</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1227133512</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>ComboBox</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Operator</DataField>
+								<DataSource>SC_DataValidationRulesLine</DataSource>
+								<Items />
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>GridLines_Value</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1533916890</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataMethod>editFieldValue</DataMethod>
+								<DataSource>SC_DataValidationRulesLine</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>GridLines_ErrorTxt</Name>
+								<ElementPosition>1840700268</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>ErrorTxt</DataField>
+								<DataSource>SC_DataValidationRulesLine</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataSource>SC_DataValidationRulesLine</DataSource>
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

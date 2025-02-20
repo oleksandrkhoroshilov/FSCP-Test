@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxService xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_AXDataServiceClient</Name>
+	<Class>SC_AXDataServiceClient</Class>
+	<ExternalName>SanaService</ExternalName>
+	<Namespace>http://schemas.microsoft.com/dynamics/2011/01/services</Namespace>
+	<ServiceOperations>
+		<AxServiceOperation>
+			<Name>ProcessRequest</Name>
+			<EnableIdempotence>Yes</EnableIdempotence>
+			<Method>ProcessRequest</Method>
+		</AxServiceOperation>
+	</ServiceOperations>
+</AxService>

@@ -1,0 +1,1027 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_WebShopsTableStaging</Name>
+	<SourceCode>
+		<Methods />
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@DMF:StagingDeveloperDocumentation</DeveloperDocumentation>
+	<FormRef>SC_WebShops</FormRef>
+	<Label>@SCL5</Label>
+	<TableGroup>Staging</TableGroup>
+	<TitleField1>WebShopId</TitleField1>
+	<TitleField2>TemplateCustAccount</TitleField2>
+	<PrimaryIndex>StagingIdx</PrimaryIndex>
+	<ReplacementKey>StagingIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ExtensionList</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@DMF:StagingExtensionGroup</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsSelected</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TransferStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExecutionId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PaymentLedgerDimensionDisplayValue</Name>
+			<ExtendedDataType>DimensionDisplayValue</ExtendedDataType>
+			<Label>@Dimension:DimensionCombinationDisplayValue</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ShippingLedgerDimensionDisplayValue</Name>
+			<ExtendedDataType>DimensionDisplayValue</ExtendedDataType>
+			<Label>@Dimension:DimensionCombinationDisplayValue</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OffsetLedgerDimensionDisplayValue</Name>
+			<ExtendedDataType>DimensionDisplayValue</ExtendedDataType>
+			<Label>@Dimension:DimensionCombinationDisplayValue</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableDataMapping</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL620</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ShowInvoicedOrders</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<Label>@SCL625</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefinitionGroup</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFDefinitionGroupName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>60</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ExecutionId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFExecutionId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>90</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsSelected</Name>
+			<ExtendedDataType>DMFIsSelected</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TransferStatus</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>DMFTransferStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefaultItemSalesTaxGroup</Name>
+			<ExtendedDataType>TaxItemGroup</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SYS113300</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefaultLocationId</Name>
+			<ExtendedDataType>InventLocationId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefaultSiteId</Name>
+			<ExtendedDataType>InventSiteId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableAttributes</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL293</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableBOM</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL292</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableSuppItems</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL285</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableTax</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL294</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableUOM</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL291</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableProdCategories</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL257</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL256</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableRetail</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL263</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@RET6016</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderNumberSequence</Name>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SYS7443</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OverrideCustDim</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL270</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL269</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>QuoteNumberSequence</Name>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SYS5864</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RetailStore</Name>
+			<ExtendedDataType>RetailStoreId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RetailTerminalId</Name>
+			<ExtendedDataType>RetailTerminalId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>StockCalculationType</Name>
+			<HelpText>@SCL272</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL271</Label>
+			<EnumType>SC_InventCalcType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TemplateCustAccount</Name>
+			<ExtendedDataType>CustAccount</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL9</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TemplatePaymentCode</Name>
+			<ExtendedDataType>CustPaymMode</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL11</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WebShopId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>DayRange</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL302</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LookbackYears</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL303</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OrderType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>SC_SalesType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>QuotePromotableDefault</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL305</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL304</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SortingOption</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>SC_SortingOption</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SyncOrderType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL307</Label>
+			<EnumType>SC_SalesType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableAlternativeItems</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL314</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableMultilineDiscounts</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL315</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableTieredCharges</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL316</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableTotalDiscounts</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL317</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableReports</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL327</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL326</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableDocAttachments</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL329</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL328</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableProdAttachments</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL331</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL330</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableRetailAssortments</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL332</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@RET5970</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisablePriceDisc</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL341</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GuestNumberSequence</Name>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL342</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OffsetLedgerAccountType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SYS23950</Label>
+			<EnumType>LedgerJournalACType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OffsetLedgerCompany</Name>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@GeneralLedger:OffsetCompany</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OffsetLedgerTxt</Name>
+			<ExtendedDataType>LedgerJournalTransTxt</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SYS24282</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DefaultPrice</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>SC_DefaultPrice</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>B2CRegistrationType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>SC_B2CRegistrationType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CustPaymJournalName</Name>
+			<ExtendedDataType>LedgerJournalNameId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SYS96171</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PostAutoInvoicePayment</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL458</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL457</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PostAutoPrepayment</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL460</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL459</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableAutoCharges</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL467</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL466</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CalculateZeroSAPrice</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL496</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL495</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableSanaDiscounts</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL506</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CompleteRetailOrder</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL263</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL521</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RetailPaymMethod</Name>
+			<ExtendedDataType>MCRRetailStoreTenderTypeId</ExtendedDataType>
+			<HelpText>@SYS84040</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL522</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CompatibilityLevel</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>SC_CompatibilityLevel</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ExplodeBOMLines</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SYS68930</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SYS12988</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableInventoryStatuses</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL607</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL606</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableMultiThreading</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL617</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableQuoteForRetail</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL619</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL618</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EcoResCategoryHierarchy_Name</Name>
+			<ExtendedDataType>EcoResCategoryHierarchyName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>QuoteNumberSequenceTable_NumberSequence</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>NumberSequenceScope_DataArea</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>NumberSequenceScope_OperatingUnitType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>OMOperatingUnitType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>NumberSequenceScope_SHA256Hash</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@GLS180550</Label>
+			<StringSize>64</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendarPeriod_Name</Name>
+			<ExtendedDataType>PeriodName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendarYear_Name</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>FiscalYearName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendar_CalendarId</Name>
+			<ExtendedDataType>FiscalCalendarID</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LegalEntity_PartyNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DirPartyNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LegalEntity_DataArea</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OperatingUnit_PartyNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DirPartyNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SalesNumberSequenceTable_NumberSequence</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>NumberSequenceScope1_DataArea</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>NumberSequenceScope1_OperatingUnitType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>OMOperatingUnitType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>NumberSequenceScope1_SHA256Hash</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@GLS180550</Label>
+			<StringSize>64</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendarPeriod1_Name</Name>
+			<ExtendedDataType>PeriodName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendarYear1_Name</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>FiscalYearName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendar1_CalendarId</Name>
+			<ExtendedDataType>FiscalCalendarID</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LegalEntity1_PartyNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DirPartyNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LegalEntity1_DataArea</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OperatingUnit1_PartyNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DirPartyNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GuestNumberSequenceTable_NumberSequence</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>NumberSequenceScope2_DataArea</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>NumberSequenceScope2_OperatingUnitType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>OMOperatingUnitType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>NumberSequenceScope2_SHA256Hash</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@GLS180550</Label>
+			<StringSize>64</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendarPeriod2_Name</Name>
+			<ExtendedDataType>PeriodName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendarYear2_Name</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>FiscalYearName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FiscalCalendar2_CalendarId</Name>
+			<ExtendedDataType>FiscalCalendarID</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LegalEntity2_PartyNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DirPartyNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LegalEntity2_DataArea</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OperatingUnit2_PartyNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DirPartyNumber</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>B2BRegistrationType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL637</Label>
+			<EnumType>SC_B2CRegistrationType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>EnableSalesCategoryAsProduct</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL641</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL640</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DisableCreditLimit</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL286</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL643</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CalcBOMlinesInventory</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL650</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL649</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxMultiThreads</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>@SYS314331</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@SCL669</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>StagingIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ExecutionId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>WebShopId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>EcoResCategoryHierarchy</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>EcoResCategoryHierarchy</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Name</Name>
+					<Field>EcoResCategoryHierarchy_Name</Field>
+					<RelatedField>Name</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>LegalEntity</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>CompanyInfo</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DataArea</Name>
+					<Field>LegalEntity_DataArea</Field>
+					<RelatedField>DataArea</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>OperatingUnit</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>OMOperatingUnit</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PartyNumber</Name>
+					<Field>OperatingUnit_PartyNumber</Field>
+					<RelatedField>PartyNumber</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>FiscalCalendar</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>FiscalCalendar</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Composition</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CalendarId</Name>
+					<Field>FiscalCalendar_CalendarId</Field>
+					<RelatedField>CalendarId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>LegalEntity1</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>CompanyInfo</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DataArea</Name>
+					<Field>LegalEntity1_DataArea</Field>
+					<RelatedField>DataArea</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>OperatingUnit1</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>OMOperatingUnit</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PartyNumber</Name>
+					<Field>OperatingUnit1_PartyNumber</Field>
+					<RelatedField>PartyNumber</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>FiscalCalendar1</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>FiscalCalendar</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Composition</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CalendarId</Name>
+					<Field>FiscalCalendar1_CalendarId</Field>
+					<RelatedField>CalendarId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>LegalEntity2</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>CompanyInfo</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DataArea</Name>
+					<Field>LegalEntity2_DataArea</Field>
+					<RelatedField>DataArea</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>OperatingUnit2</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>OMOperatingUnit</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PartyNumber</Name>
+					<Field>OperatingUnit2_PartyNumber</Field>
+					<RelatedField>PartyNumber</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>FiscalCalendar2</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>FiscalCalendar</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Composition</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CalendarId</Name>
+					<Field>FiscalCalendar2_CalendarId</Field>
+					<RelatedField>CalendarId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DataEntity</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<EntityRelationshipRole>@DMF:StagingToDataEntityRelationshipRole</EntityRelationshipRole>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>SC_WebShopsTableEntity</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Link</RelationshipType>
+			<Validate>No</Validate>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

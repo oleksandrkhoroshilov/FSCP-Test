@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLicenseCode xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_SanaWebshop</Name>
+	<Certificate>SC_ISVCertificate</Certificate>
+	<CertificateIssuer>GB, Greater Manchester, Salford, COMODO CA Limited, COMODO Code Signing CA 2</CertificateIssuer>
+	<CertificateName>NL, 3044 BC, Zuid-Holland, Rotterdam, Van Nelleweg 1, Sana Commerce, Sana Commerce</CertificateName>
+	<Group>Partner</Group>
+	<Label>@SCL2</Label>
+	<PublicKey>100011</PublicKey>
+</AxLicenseCode>

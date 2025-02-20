@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>EcoResTextValue.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SC_TranslatedTextValue</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Visible>No</Visible>
+		</AxTableField>
+	</Fields>
+	<Indexes />
+	<Mappings />
+	<PropertyModifications />
+	<Relations>
+		<AxTableRelation>
+			<Name>EcoResTextValueTranslation</Name>
+			<Cardinality>ZeroOne</Cardinality>
+			<RelatedTable>EcoResTextValueTranslation</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelatedTableRole>EcoResTextValueTranslation</RelatedTableRole>
+			<RelationshipType>Aggregation</RelationshipType>
+			<Role>EcoResTextValueTranslation_EcoResTextValue</Role>
+			<Validate>No</Validate>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>SC_TranslatedTextValue</Name>
+					<Field>SC_TranslatedTextValue</Field>
+					<RelatedField>TextValueTable</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+</AxTableExtension>

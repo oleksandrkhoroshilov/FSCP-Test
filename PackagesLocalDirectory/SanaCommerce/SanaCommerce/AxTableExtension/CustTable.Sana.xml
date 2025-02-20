@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CustTable.Sana</Name>
+	<FieldGroupExtensions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>Sana</Name>
+			<Label>@SCL2</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SC_B2cCustomer</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>SC_LastModified</Name>
+			<AllowEdit>No</AllowEdit>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>CapacityValue</ExtendedDataType>
+			<Label>@SCL109</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_B2cCustomer</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@scl34</HelpText>
+			<Label>@SCL18</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SC_ImportCustNum</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>CustAccount</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL131</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SC_IsGuest</Name>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL348</HelpText>
+			<Label>@SCL347</Label>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>SanaGuestIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>SC_IsGuest</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>SanaLastModifiedDateIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>SC_LastModified</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>SanaCustNumIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>SC_ImportCustNum</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>

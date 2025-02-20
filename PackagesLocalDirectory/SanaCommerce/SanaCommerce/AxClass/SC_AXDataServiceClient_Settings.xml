@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_AXDataServiceClient_Settings</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class SC_AXDataServiceClient_Settings extends SC_AXDataServiceClient
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addCountryTranslations</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addCountryTranslations(String50 _fieldName, XmlNode _parentNode, LogisticsAddressCountryRegionId _countryId)
+    {
+        LogisticsAddressCountryRegionTranslation    countryTransalation;
+        Integer                                     localeId;        
+
+        while select ShortName, LanguageId from countryTransalation
+            index hint CountryRegionLanguageIdx
+            where countryTransalation.CountryRegionId == _countryId &&
+                  countryTransalation.ShortName && !(countryTransalation.ShortName like '*@*')
+        {
+            localeId = this.language2LocaleId(countryTransalation.LanguageId);
+
+            if(localeId)
+            {
+                this.addFieldValue(_fieldName + '_' + int2str(localeId), _parentNode, countryTransalation.ShortName);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCountries</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetCountries(XmlDocument _request)
+    {
+        LogisticsAddressCountryRegion   addressCountryRegion;
+        SC_AddressCountryRegionSetup    addressCountryRegionSetup;        
+
+        this.createHeaderXml();
+        this.getParameters(_request);
+
+        select count(RecId) from addressCountryRegionSetup;
+
+        if(!addressCountryRegionSetup.RecId && websiteId)
+        {
+            insert_recordset addressCountryRegionSetup (CountryRegionId, WebshopId)
+                select CountryRegionId, websiteId from addressCountryRegion;
+        }
+
+        while select CountryRegionId, ISOcode, AddressUseZipPlus4 from addressCountryRegion
+            join VisibleInWebshop, TemplateCustomer, B2BTemplateCustomer from addressCountryRegionSetup
+            where addressCountryRegionSetup.CountryRegionId == addressCountryRegion.CountryRegionId &&
+                  addressCountryRegionSetup.WebShopId == webShopsTable.WebShopId &&
+                 (addressCountryRegionSetup.VisibleInWebshop || !visibleOnly) &&
+                 (addressCountryRegionSetup.TemplateCustomer || addressCountryRegionSetup.B2BTemplateCustomer || !withCustomerTemplateOnly)
+        {
+            node = resultNode.appendChild(resultXml.createElement(#country));
+
+            this.initDefaultCountriesFields(addressCountryRegion, addressCountryRegionSetup);
+            this.addCountryStates(addressCountryRegion.CountryRegionId);
+            this.setWebshopDataMappingGetAPI('GetCountries', addressCountryRegion);
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultCountriesFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initDefaultCountriesFields(LogisticsAddressCountryRegion _addressCountryRegion, SC_AddressCountryRegionSetup _addressCountryRegionSetup)
+    {
+        this.addFieldValue(#id, node, _addressCountryRegion.ISOcode);
+        this.addFieldValue(#bigName, node, _addressCountryRegion.displayName());
+        this.addCountryTranslations(#bigName, node, _addressCountryRegion.CountryRegionId);
+        this.addFieldValue(#customerTemplate, node, _addressCountryRegionSetup.TemplateCustomer);
+
+        if(webShopsTable.EnableB2BCustTemplate)
+        {
+            this.addFieldValue(#businessCustomerTemplate, node, _addressCountryRegionSetup.B2BTemplateCustomer);
+        }
+        this.addFieldValue(#visible, node, _addressCountryRegionSetup.VisibleInWebshop);
+        this.addFieldValue(#addressUseZipPlus4, node, _addressCountryRegion.AddressUseZipPlus4);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCurrencies</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetCurrencies(XmlDocument _request)
+    {
+        Currency    currencyTable;
+        container   currencyList;        
+
+        this.createHeaderXml();
+        this.getParameters(_request);
+
+        while select currencyTable
+        {
+            if(!conFind(currencyList, currencyTable.CurrencyCodeISO) && (this.checkValidationRules(currencyTable) || currencyTable.CurrencyCode == Ledger::accountingCurrency()))
+            {
+                node = resultNode.appendChild(resultXml.createElement(#currency));
+
+                this.initDefaultCurrenciesFields(currencyTable);  
+                this.setWebshopDataMappingGetAPI('GetCurrencies', currencyTable);
+
+                currencyList = conIns(currencyList, conLen(currencyList) + 1, currencyTable.CurrencyCodeISO);
+            }
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultCurrenciesFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initDefaultCurrenciesFields(Currency _currencyTable)
+    {
+        this.addFieldValue(#id, node, _currencyTable.CurrencyCodeISO);
+        this.addFieldValue(#bigName, node, _currencyTable.Txt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetDefaultCurrency</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetDefaultCurrency(XmlDocument _request)
+    {        
+        this.createHeaderXml();
+        this.getParameters(_request);
+
+        resultNode.appendChild(resultXml.createElement(#id)).text(Currency::find(Ledger::accountingCurrency()).CurrencyCodeISO);
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetSettings</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetSettings(XmlDocument _request)
+    {
+        int     cultureId;        
+        
+        this.createHeaderXml();
+
+        this.getParameters(_request);
+
+        new InteropPermission(InteropKind::ClrInterop).assert();
+        cultInfo    = System.Globalization.CultureInfo::GetCultureInfo(SC_ParametersTable::find().Culture);
+        cultureId   = cultInfo.get_LCID();
+
+        resultNode.appendChild(resultXml.createElement(#cultureId)).innerText(int2str(cultureId));
+        resultNode.appendChild(resultXml.createElement(#supportsShippingMethods)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsPromotableQuotes)).innerText(isConfigurationkeyEnabled(configurationKeyNum(QuotationBasic)) && (!this.isRetailEnabled() || webShopsTable.EnableQuoteForRetail) ? #one : #zero);
+        resultNode.appendChild(resultXml.createElement(#orderCommentLineMaxLength)).innerText('2048');
+        resultNode.appendChild(resultXml.createElement(#supportsShippingOrigin)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsZipCodeValidation)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsPersistedBaskets)).innerText(this.isRetailEnabled() ? #zero : #one);
+        resultNode.appendChild(resultXml.createElement(#supportsCustomerStatistics)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsProductSuggestions)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsProductImages)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsDocBasedRma)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsDocFreeRma)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsInvoicePayment)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsSalesAgreements)).innerText(webShopsTable.OrderType == SC_SalesType::Quotation || this.isRetailEnabled() ? #zero : #one);
+        resultNode.appendChild(resultXml.createElement(#supportsAutomaticAgreementLineAssigning)).innerText(webShopsTable.OrderType == SC_SalesType::Quotation || this.isRetailEnabled() ? #zero : #one);
+        resultNode.appendChild(resultXml.createElement(#supportsRetailOffers)).innerText(webShopsTable.OrderType == SC_SalesType::Sales && this.isRetailEnabled() || (!this.isRetailEnabled() && !webShopsTable.DisableSanaDiscounts) ? #one : #zero);
+        resultNode.appendChild(resultXml.createElement(#supportsShippingAddressesManagement)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsPaymentMethods)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsCreditNotePayment)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsStoreLocations)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsDocumentEntityFields)).innerText(#one);
+        resultNode.appendChild(resultXml.createElement(#supportsShippingAddressExtraFields)).innerText(#one);
+        
+        if(SC_AXDataServiceClient::findOrCreateUrlAttachmentType())
+        {
+            resultNode.appendChild(resultXml.createElement(#supportsSalesDocumentAttachmentsUpload)).innerText(#one);
+        }
+
+        switch(webshopsTable.CompatibilityLevel)
+        {
+            case SC_CompatibilityLevel::SC935,
+                 SC_CompatibilityLevel::SC934,
+                 SC_CompatibilityLevel::SC933,
+                 SC_CompatibilityLevel::SC930:
+                    resultNode.appendChild(resultXml.createElement(#sanaVersion)).innerText(strDel("@SCL247", 1, 9));
+                 break;
+
+             default:
+                    resultNode.appendChild(resultXml.createElement(#sanaConnectorVersion)).innerText(strDel("@SCL247", 1, 9));
+                 break;   
+        }
+        resultNode.appendChild(resultXml.createElement(#compatibilityLevel)).innerText(webShopsTable.getCompatibilityLevel());
+        resultNode.appendChild(resultXml.createElement(#erpUsers)).innerText(this.convertAny2Str((select count (RecId) from UserInfo where userInfo.enable == NoYes::Yes).RecId));
+
+        Microsoft.Dynamics.BusinessPlatform.ProductInformation.Provider.ProductInfoProvider provider = Microsoft.Dynamics.BusinessPlatform.ProductInformation.Provider.ProductInfoProvider::get_Provider();
+        resultNode.appendChild(resultXml.createElement(#erpVersion)).innerText(#axVersion + '-' + xInfo::releaseVersion() +'.'+ xInfo::buildNo() + ' ' + strFmt("@SYS340809", provider.get_ApplicationVersion()));              
+
+        CodeAccessPermission::revertAssert();
+
+        this.setWebshopDataMappingGetAPI('GetSettings', null);
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCustomizationsInfo</Name>
+				<Source><![CDATA[
+    public XmlDocument GetCustomizationsInfo()
+    {        
+        var moduleEnumerator = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetInstalledModuleInfo().GetEnumerator();
+        var environment = Microsoft.Dynamics.ApplicationPlatform.Environment.EnvironmentFactory::GetApplicationEnvironment();
+        str packageDir = environment.get_Aos().get_PackageDirectory();        
+        var runtimeProviderConfiguration = New Microsoft.Dynamics.AX.Metadata.Storage.Runtime.RuntimeProviderConfiguration(packageDir);
+        var metadataProviderFactory =  New Microsoft.Dynamics.AX.Metadata.Storage.MetadataProviderFactory();
+        Microsoft.Dynamics.AX.Metadata.Providers.IMetadataProvider provider2 = metadataProviderFactory.CreateRuntimeProvider(runtimeProviderConfiguration);
+        var objList = provider2.Classes.ListObjectsForModel('');
+        boolean isSanaCustomizations;
+        XmlNode sanaNode, erpNode;
+        
+        this.createHeaderXml();  
+ 
+        sanaNode = resultNode.appendChild(resultXml.createElement('SanaCustomizations'));
+        erpNode = resultNode.appendChild(resultXml.createElement('ErpCustomizations'));
+
+        new InteropPermission(InteropKind::ClrInterop).assert();
+        
+        while (moduleEnumerator.MoveNext())
+        {
+            CLRObject module = moduleEnumerator.Current.get_Value();
+            str moduleName = moduleEnumerator.Current.get_Key();
+
+            if(moduleName != 'SanaCommerce')
+            {
+                int modelNum = module.get_Count();
+                isSanaCustomizations = false;
+
+                for (int v = 0; v < modelNum; v++)
+                {
+                    Microsoft.Dynamics.AX.Metadata.MetaModel.ModelInfo modelInfo = module.get_Item(v);
+                    int layer     = modelInfo.get_Layer();
+                    str publisher = modelInfo.get_Publisher();
+                    var refs      = modelInfo.get_ModuleReferences();
+                    int refNum    = refs ? refs.get_Count() : 0;
+
+                    for (int v2 = 0; v2 < refNum; v2++)
+                    {
+                        var refName = refs.get_Item(v2);
+
+                        if(refName == 'SanaCommerce')
+                        {
+                            objList = provider2.Tables.ListObjectsForModel(moduleName);
+
+                            for (int v3 = 0; v3 < objList.get_Count(); v3++)
+                            {                                
+                                sanaNode.appendChild(resultXml.createElement('Table')).innerText(objList.get_Item(v3));
+                            }
+
+                            objList = provider2.Classes.ListObjectsForModel(moduleName);
+
+                            for (int v3 = 0; v3 < objList.get_Count(); v3++)
+                            {
+                                sanaNode.appendChild(resultXml.createElement('Class')).innerText(objList.get_Item(v3));
+                            } 
+
+                            isSanaCustomizations = true;
+                        }
+                    }
+
+                    if(!isSanaCustomizations && layer > 8 && publisher != 'Microsoft' && publisher != 'Microsoft Corporation' && publisher != 'Microsoft Corporation Internal')
+                    {
+                        objList = provider2.Tables.ListObjectsForModel(moduleName);
+
+                        for (int v3 = 0; v3 < objList.get_Count(); v3++)
+                        {
+                            erpNode.appendChild(resultXml.createElement('Table')).innerText(objList.get_Item(v3));
+                        }
+
+                        objList = provider2.Classes.ListObjectsForModel(moduleName);
+
+                        for (int v3 = 0; v3 < objList.get_Count(); v3++)
+                        {
+                            erpNode.appendChild(resultXml.createElement('Class')).innerText(objList.get_Item(v3));
+                        }                        
+                    }
+                }
+            }
+        }        
+
+        CodeAccessPermission::revertAssert();
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetShippingMethods</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetShippingMethods(XmlDocument _request)
+    {
+        DlvMode dlvMode;        
+
+        this.createHeaderXml();
+        this.getParameters(_request);
+
+        while select dlvMode
+        {
+            if(this.checkValidationRules(dlvMode))
+            {
+                node = resultNode.appendChild(resultXml.createElement(#shippingMethod));
+
+                this.initDefaultShippingMethodsFields(dlvMode);
+                this.setWebshopDataMappingGetAPI('GetShippingMethods', dlvMode);
+            }
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultShippingMethodsFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initDefaultShippingMethodsFields(DlvMode _dlvMode)
+    {
+        this.addFieldValue(#id, node, _dlvMode.Code);
+        this.addFieldValue(#description, node, _dlvMode.ShipCarrierName ? _dlvMode.Txt + ' - ' + _dlvMode.ShipCarrierName : _dlvMode.Txt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetTaxNumberFormats</Name>
+				<Source><![CDATA[
+    //empty response required
+    [Replaceable]
+    public XmlDocument GetTaxNumberFormats(XmlDocument _request)
+    {
+        this.createHeaderXml();
+        this.getParameters(_request);
+        this.setWebshopDataMappingGetAPI('GetTaxNumberFormats', null);
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TestConnection</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument TestConnection()
+    {
+        this.createHeaderXml();
+
+        resultNode.appendChild(resultXml.createElement(#testConnection)).innerText(#ok);
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public static SC_AXDataServiceClient_Settings construct()
+    {
+        SC_AXDataServiceClient_Settings seviceclient = new SC_AXDataServiceClient_Settings();
+        
+        seviceclient.clearCache();
+
+        return seviceclient;
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetPaymentMethods</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetPaymentMethods(XmlDocument _request)
+    {
+        CustPaymModeTable           custPaymModeTable;
+        RetailStoreTenderTypeTable  retailStoreTenderTypeTable;
+        RetailChannelRecId          channel = MCRChannelUser::find().Channel;
+
+        this.createHeaderXml();
+        this.getParameters(_request);
+
+        if(channel)
+        {
+            while select retailStoreTenderTypeTable
+            where (retailStoreTenderTypeTable.function == RetailTenderFunction::Customer ||
+                  retailStoreTenderTypeTable.function == RetailTenderFunction::Normal) &&
+                  retailStoreTenderTypeTable.Channel == channel
+            {
+                if(this.checkValidationRules(retailStoreTenderTypeTable))
+                {
+                    node = resultNode.appendChild(resultXml.createElement(#paymentMethod));
+                    this.initDefaultPaymentMethodsFields(retailStoreTenderTypeTable.tenderTypeId, retailStoreTenderTypeTable.Name);
+                    this.setWebshopDataMappingGetAPI('GetPaymentMethods', retailStoreTenderTypeTable);
+                }
+            }
+        }
+        else
+        {
+            while select custPaymModeTable
+            {
+                if(this.checkValidationRules(custPaymModeTable))
+                {
+                    node = resultNode.appendChild(resultXml.createElement(#paymentMethod));
+                    this.initDefaultPaymentMethodsFields(custPaymModeTable.PaymMode, custPaymModeTable.Name);
+                    this.setWebshopDataMappingGetAPI('GetPaymentMethods', custPaymModeTable);
+                }
+            }
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultPaymentMethodsFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initDefaultPaymentMethodsFields(CustPaymMode _id, Description _name)
+    {
+        this.addFieldValue(#id, node, _id);
+        this.addFieldValue(#description, node, _name);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetStoreLocations</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public XmlDocument GetStoreLocations(XmlDocument _request)
+    {
+        InventLocation inventLocation;
+
+        this.createHeaderXml();
+        this.getParameters(_request);
+
+        while select inventLocation
+            where inventLocation.InventLocationType == InventLocationType::Standard
+        {
+            if(this.checkValidationRules(inventLocation))
+            {                
+                this.initDefaultStoreLocationsFields(inventLocation);
+                this.setWebshopDataMappingGetAPI('GetStoreLocations', inventLocation);
+            }
+        }
+
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultStoreLocationsFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initDefaultStoreLocationsFields(InventLocation _inventLocation)
+    {
+        LogisticsPostalAddress            address;
+        LogisticsLocation                 logisticsLocation;
+        LogisticsElectronicAddress        electronicAddress;
+        LogisticsAddressCountryRegionName addressCountryName;
+    
+        logisticsLocation = LogisticsLocationDefault::construct(_inventLocation).getDefaultLocation(LogisticsLocationRole::findBytype(LogisticsLocationRoleType::Delivery));
+        address = LogisticsPostalAddress::findByLocation(logisticsLocation.RecId);
+
+        if(address)
+        {
+            node = resultNode.appendChild(resultXml.createElement(#storeLocation));
+
+            this.addFieldValue(#id, node, _inventLocation.InventLocationId);
+            this.addFieldValue(#bigName, node, logisticsLocation.Description);
+            this.addFieldValue(#countryId, node, LogisticsAddressCountryRegion::find(address.CountryRegionId).ISOcode);
+
+            //short name can be like lable @SYS12345 if languageid not suppported
+            addressCountryName = LogisticsAddressCountryRegionTranslation::find(address.CountryRegionId, languageId).ShortName;
+            addressCountryName = !addressCountryName || strContains(addressCountryName, '@') ? LogisticsAddressCountryRegion::find(address.CountryRegionId).displayName() : addressCountryName;
+            this.addFieldValue(#countryName, node, addressCountryName);
+            this.addFieldValue(#state, node, address.State);
+            this.addFieldValue(#city, node, address.City);
+            this.addFieldValue(#address, node, this.splitBeforeSeparator(address.Street, '\n'));
+            this.addFieldValue(#address2, node, this.splitAfterSeparator(address.Street, '\n'));
+            this.addFieldValue(#zipCode, node, address.ZipCode);
+
+
+            select firstonly Locator from electronicAddress
+            where electronicAddress.Type == LogisticsElectronicAddressMethodType::Phone
+            exists join logisticsLocation
+                where logisticsLocation.RecId == electronicAddress.Location &&
+                        logisticsLocation.ParentLocation == address.Location;
+            this.addFieldValue(#phoneNo, node, electronicAddress.Locator);
+
+            select firstonly Locator from electronicAddress
+            where electronicAddress.Type == LogisticsElectronicAddressMethodType::Email
+            exists join logisticsLocation
+                where logisticsLocation.RecId == electronicAddress.Location &&
+                        logisticsLocation.ParentLocation == address.Location;
+            this.addFieldValue(#email, node, electronicAddress.Locator);
+
+            select firstonly Locator from electronicAddress
+            where electronicAddress.Type == LogisticsElectronicAddressMethodType::URL
+            exists join logisticsLocation
+                where logisticsLocation.RecId == electronicAddress.Location &&
+                        logisticsLocation.ParentLocation == address.Location;
+            this.addFieldValue(#homePage, node, electronicAddress.Locator);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCountryStates</Name>
+				<Source><![CDATA[
+    protected void addCountryStates(LogisticsAddressCountryRegionId _addressCountryRegionId)
+    {
+        LogisticsAddressState logisticsAddressState;
+        XmlNode               statesNode;
+
+        statesNode = node.appendChild(resultXml.createElement(#states));
+
+        while select logisticsAddressState
+            where logisticsAddressState.CountryRegionId == _addressCountryRegionId &&
+                  logisticsAddressState.SC_VisibleInWebShop
+        {
+            node = statesNode.appendChild(resultXml.createElement(#state));
+            this.addFieldValue(#id, node, logisticsAddressState.StateId);
+            this.addFieldValue(#bigName, node, logisticsAddressState.Name);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

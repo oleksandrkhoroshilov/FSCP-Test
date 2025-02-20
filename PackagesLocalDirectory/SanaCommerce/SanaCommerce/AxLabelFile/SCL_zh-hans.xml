@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLabelFile xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SCL_zh-hans</Name>
+	<LabelContentFileName>SCL.zh-hans.label.txt</LabelContentFileName>
+	<LabelFileId>SCL</LabelFileId>
+	<Language>zh-hans</Language>
+	<RelativeUriInModelStore>ApplicationSuite/ApplicationSuite.Sana/AxLabelFile/LabelResources/zh-hans/SCL.zh-hans.label.txt</RelativeUriInModelStore>
+</AxLabelFile>

@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_MixMatchDiscountTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_MixMatchDiscountTable extends common
+{
+
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validateField</Name>
+				<Source><![CDATA[
+    public boolean validateField(FieldId _fieldIdToCheck)
+    {
+        SC_MixMatchDiscountLine  mixMatchDiscountLine, mixMatchDiscountLineCopy, mixMatchDiscountLineCopy2;
+        SC_MixMatchDiscountTable mixMatchDiscountTable;
+        boolean                  ret;
+
+        ret = super(_fieldIdToCheck);
+
+        switch(_fieldIdToCheck)
+        {
+            case fieldNum(SC_MixMatchDiscountTable, Active):
+                select count(RecId) from mixMatchDiscountLine
+                    where mixMatchDiscountLine.DiscountId == this.DiscountId &&
+                          mixMatchDiscountLine.WebShopId  == this.WebShopId;
+
+                if(mixMatchDiscountLine.RecId < 2)
+                {
+                    ret = checkFailed("@SCL497");
+                }
+
+                if(ret && this.Active == DirRelationshipStatus::Active)
+                {
+                    if((select firstOnly SC_MixMatchDiscountLine
+                        where SC_MixMatchDiscountLine.DiscountId == this.DiscountId &&
+                              SC_MixMatchDiscountLine.AutoAdd).RecId)
+                    {
+                        warning("@SCL555");
+                    }
+
+                    while select DiscountId, WebShopId from mixMatchDiscountTable
+                        where mixMatchDiscountTable.WebShopId   == this.WebShopId &&
+                              mixMatchDiscountTable.Currency    == this.Currency &&
+                             (mixMatchDiscountTable.DiscGroupId == this.DiscGroupId || !mixMatchDiscountTable.DiscGroupId || !this.DiscGroupId) &&
+                              mixMatchDiscountTable.RecId       != this.RecId &&
+                              mixMatchDiscountTable.Active      == DirRelationshipStatus::Active
+                    {
+                    
+                        select firstOnly RecId from mixMatchDiscountLineCopy
+                            where mixMatchDiscountLineCopy.DiscountId == this.DiscountId &&
+                                  mixMatchDiscountLineCopy.WebShopId  == this.WebShopId
+                            notExists join mixMatchDiscountLine
+                                where mixMatchDiscountLineCopy.Category  == mixMatchDiscountLine.Category &&
+                                      mixMatchDiscountLineCopy.Product   == mixMatchDiscountLine.Product &&
+                                      mixMatchDiscountLineCopy.Variant   == mixMatchDiscountLine.Variant &&
+                                      mixMatchDiscountLineCopy.SalesUnit == mixMatchDiscountLine.SalesUnit &&
+                                      mixMatchDiscountLine.DiscountId    == mixMatchDiscountTable.DiscountId &&
+                                      mixMatchDiscountLine.WebShopId     == mixMatchDiscountTable.WebShopId;
+
+                        select firstOnly RecId from mixMatchDiscountLineCopy2
+                            where mixMatchDiscountLineCopy2.DiscountId == mixMatchDiscountTable.DiscountId &&
+                                  mixMatchDiscountLineCopy2.WebShopId  == mixMatchDiscountTable.WebShopId
+                            notExists join mixMatchDiscountLine
+                                where mixMatchDiscountLineCopy2.Category  == mixMatchDiscountLine.Category &&
+                                      mixMatchDiscountLineCopy2.Product   == mixMatchDiscountLine.Product &&
+                                      mixMatchDiscountLineCopy2.Variant   == mixMatchDiscountLine.Variant &&
+                                      mixMatchDiscountLineCopy2.SalesUnit == mixMatchDiscountLine.SalesUnit &&
+                                      mixMatchDiscountLine.DiscountId     == this.DiscountId &&
+                                      mixMatchDiscountLine.WebShopId      == this.WebShopId;
+
+                        if(!mixMatchDiscountLineCopy && !mixMatchDiscountLineCopy2)
+                        {
+                            ret = checkFailed("@SCL503");
+                            break;
+                        }
+                        else
+                        {
+                            ret = true;
+                        }
+                    }
+                }
+                break;
+
+            case fieldNum(SC_MixMatchDiscountTable, StartDate):
+            case fieldNum(SC_MixMatchDiscountTable, EndDate):
+                if(this.EndDate && this.StartDate > this.EndDate)
+                {
+                    ret = checkFailed("@SYS35812");
+                }
+                break;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    static boolean exists(SC_WebshopId _webshopId, DiscCode _discountId)
+    {        
+        return (select firstOnly SC_MixMatchDiscountTable where SC_MixMatchDiscountTable.WebShopId == _webshopId && SC_MixMatchDiscountTable.DiscountId == _discountId).RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>existsWebshopActive</Name>
+				<Source><![CDATA[
+    static boolean existsWebshopActive(SC_WebshopId _webshopId)
+    {        
+        return (select firstOnly SC_MixMatchDiscountTable where SC_MixMatchDiscountTable.WebShopId == _webshopId && SC_MixMatchDiscountTable.Active == DirRelationshipStatus::Active).RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void initValue()
+    {
+        super();
+
+        this.Active = DirRelationshipStatus::Inactive;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyFrom</Name>
+				<Source><![CDATA[
+    public void copyFrom(SC_WebshopId _webshopId, DiscCode discountId, Name discountName)
+    {
+        SC_MixMatchDiscountLine     mixMatchDiscountLineOriginal, mixMatchDiscountLineNew;
+        SC_MixMatchDiscountTable    mixMatchDiscountTableNew;
+        RecordInsertList            dataRealInsertList = new RecordInsertList(tableNum(SC_MixMatchDiscountLine));
+
+        ttsBegin;
+        mixMatchDiscountTableNew.data(this);
+
+        mixMatchDiscountTableNew.WebShopId  = _webshopId;
+        mixMatchDiscountTableNew.DiscountId = discountId;
+        mixMatchDiscountTableNew.Name       = discountName;
+        mixMatchDiscountTableNew.Active     = DirRelationshipStatus::Inactive;
+
+        mixMatchDiscountTableNew.insert();
+
+        while select mixMatchDiscountLineOriginal
+            where mixMatchDiscountLineOriginal.DiscountId == this.DiscountId &&
+                  mixMatchDiscountLineOriginal.WebShopId == this.WebShopId
+        {
+            mixMatchDiscountLineNew.clear();
+            mixMatchDiscountLineNew.data(mixMatchDiscountLineOriginal);
+
+            mixMatchDiscountLineNew.WebShopId   = _webshopId;
+            mixMatchDiscountLineNew.DiscountId  = discountId;
+
+            dataRealInsertList.add(mixMatchDiscountLineNew);
+        }
+
+        dataRealInsertList.insertDatabase();
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    static SC_MixMatchDiscountTable find(SC_WebshopId _webshopId, DiscCode _discountId)
+    {
+        SC_MixMatchDiscountTable mixMatchDiscountTable;        
+    
+        select firstOnly mixMatchDiscountTable
+            where mixMatchDiscountTable.WebShopId  == _webshopId &&
+                  mixMatchDiscountTable.DiscountId == _discountId;
+    
+        return mixMatchDiscountTable;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL498</DeveloperDocumentation>
+	<FormRef>SC_MixMatchDiscount</FormRef>
+	<Label>@SCL498</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>DiscountId</TitleField1>
+	<TitleField2>WebShopId</TitleField2>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>ActiveIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<PrimaryIndex>ShopDiscIdx</PrimaryIndex>
+	<DeleteActions>
+		<AxTableDeleteAction>
+			<Name>DeleteAction1</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation>SC_MixMatchDiscountTable</Relation>
+			<Table>SC_MixMatchDiscountLine</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+	</DeleteActions>
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Currency</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Currency</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Currency</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Currency</Name>
+			<Label>@SYS7572</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Currency</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS36186</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DiscountId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Setup</Name>
+			<Label>@SYS12687</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DiscGroupId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Status</Name>
+			<Label>@SYS319505</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Period</Name>
+			<Label>@SYS130065</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>StartDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EndDate</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>PricingPriority</Name>
+			<Label>@SCL526</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PricingPriority</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Concurrency</Name>
+			<Label>@SCL535</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DiscountConcurrencyMode</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Active</Name>
+			<HelpText>@SYS62972</HelpText>
+			<EnumType>DirRelationshipStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Currency</Name>
+			<ExtendedDataType>CurrencyCode</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DiscGroupId</Name>
+			<ExtendedDataType>CustLineDiscCode</ExtendedDataType>
+			<HelpText>@SYS316408</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS316407</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DiscountId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DiscCode</ExtendedDataType>
+			<HelpText>@SYS135299</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS12581</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WebShopId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SCL161</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>StartDate</Name>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<Label>@SYS35856</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>EndDate</Name>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<Label>@SYS35858</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>PricingPriority</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>@SCL527</HelpText>
+			<Label>@SCL526</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DiscountConcurrencyMode</Name>
+			<EnumType>SC_DiscountConcurrencyMode</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ShopDiscIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WebShopId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DiscountId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>ActiveIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Active</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Currency</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DiscGroupId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>StartDate</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>EndDate</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>PricingPriority</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>Currency</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>Currency</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Currency</Name>
+					<Field>Currency</Field>
+					<RelatedField>CurrencyCode</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>PriceDiscGroup</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>PriceDiscGroup</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DiscGroupId</Name>
+					<Field>DiscGroupId</Field>
+					<RelatedField>GroupId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>Module</Name>
+					<RelatedField>Module</RelatedField>
+					<ValueStr>ModuleInventCustVend::Cust</ValueStr>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>Type</Name>
+					<RelatedField>Type</RelatedField>
+					<ValueStr>PriceGroupType::LineDiscGroup</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>SC_WebShopsTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>SC_WebShopsTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

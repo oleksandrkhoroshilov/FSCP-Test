@@ -1,0 +1,1694 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_ProductDimensionSorting</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_ProductDimensionSorting extends FormRun
+{
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyColor</Name>
+				<Source><![CDATA[
+    public void applyColor()
+    {        
+        EcoResProductMasterColor    ecoResProductMasterColor;
+        Integer                     counter, i;
+        SysOperationProgress        progress = new SysOperationProgress();
+        TmpABC                      localColors;
+        ;
+
+        localColors.setTmpData(colors);
+        counter = int642int((select count(RecId) from ecoResProductMasterColor).RecId);
+
+        progress.setCaption('Applying sorting for product Colors...');        
+        progress.setTotal(counter);
+
+        while select forUpdate ecoResProductMasterColor
+            order by ColorProductMaster
+        {
+            select firstOnly localColors
+                where localColors.ItemName == EcoResColor::find(ecoResProductMasterColor.Color).Name;
+
+            ecoResProductMasterColor.SC_SortNumColor = real2int(localColors.Amount);
+            ecoResProductMasterColor.Update();
+
+            progress.setText(strfmt('%1 colors updated', i));
+            progress.setCount(i);
+            i++;
+        }
+
+        progress.hide();
+        Box::info('Sorting complete.');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyConfig</Name>
+				<Source><![CDATA[
+    public void applyConfig()
+    {        
+        EcoResProductMasterConfiguration ecoResProductMasterConfiguration;
+        Integer                 counter, i;
+        SysOperationProgress    progress = new SysOperationProgress();
+        TmpABC                  localConfigs;
+        ;
+
+        localConfigs.setTmpData(configurations);
+        counter = int642int((select count(RecId) from ecoResProductMasterConfiguration).RecId);
+
+        progress.setCaption('Applying sorting for product configurations...');        
+        progress.setTotal(counter);
+
+        while select forUpdate ecoResProductMasterConfiguration
+            order by ConfigProductMaster
+        {
+            select firstOnly localConfigs
+                where localConfigs.ItemName == EcoResconfiguration::find(ecoResProductMasterConfiguration.Configuration).Name;
+
+            ecoResProductMasterConfiguration.SC_SortNumConfig = real2int(localConfigs.Amount);
+            ecoResProductMasterConfiguration.Update();
+
+            progress.setText(strfmt('%1 configurations updated', i));
+            progress.setCount(i);
+            i++;
+        }
+
+        progress.hide();
+        Box::info('Sorting complete.');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applySize</Name>
+				<Source><![CDATA[
+    public void applySize()
+    {        
+        EcoResProductMasterSize ecoResProductMasterSize;
+        Integer                 counter, i;
+        SysOperationProgress    progress = new SysOperationProgress();
+        TmpABC                  localSizes;
+        String255               s;
+        ;
+
+        localSizes.setTmpData(sizes);
+        counter = int642int((select count(RecId) from ecoResProductMasterSize).RecId);
+
+        progress.setCaption('Applying sorting for product sizes...');        
+        progress.setTotal(counter);
+                
+        while select forUpdate ecoResProductMasterSize
+            order by SizeProductMaster
+        {
+            select firstOnly localSizes
+                where localSizes.ItemName == EcoResSize::find(ecoResProductMasterSize.Size).Name;
+
+            s = localSizes.ItemName;
+            ecoResProductMasterSize.SC_SortNumSize = real2int(localSizes.Amount);
+            ecoResProductMasterSize.Update();
+
+            progress.setText(strfmt('%1 sizes updated', i));
+            progress.setCount(i);
+            i++;
+        }
+
+        progress.hide();
+        Box::info('Sorting complete.');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyStyle</Name>
+				<Source><![CDATA[
+    public void applyStyle()
+    {        
+        EcoResProductMasterStyle    ecoResProductMasterStyle;
+        Integer                     counter, i;
+        SysOperationProgress        progress = new SysOperationProgress();
+        TmpABC                      localStyles;
+        ;
+
+        localStyles.setTmpData(styles);
+        counter = int642int((select count(RecId) from ecoResProductMasterStyle).RecId);
+
+        progress.setCaption('Applying sorting for product styles...');        
+        progress.setTotal(counter);
+
+        while select forUpdate ecoResProductMasterStyle
+            order by StyleProductMaster
+        {
+            select firstOnly localStyles
+                where localStyles.ItemName == EcoResStyle::find(ecoResProductMasterStyle.Style).Name;
+
+            ecoResProductMasterStyle.SC_SortNumStyle = real2int(localStyles.Amount);
+            ecoResProductMasterStyle.Update();
+
+            progress.setText(strfmt('%1 styles updated', i));
+            progress.setCount(i);
+            i++;
+        }
+
+        progress.hide();
+        Box::info('Sorting complete.');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillColorsData</Name>
+				<Source><![CDATA[
+    public void fillColorsData()
+    {
+        EcoResColor              ecoResColor, ecoResColorName;
+        EcoResProductMasterColor ecoResProductMasterColor;
+        int                      i;
+        ;
+
+        if(!colors)
+        {            
+            while select Name from ecoResColorName
+                group by Name
+                order by Name
+            {
+                select firstOnly SC_SortNumColor from EcoResProductMasterColor
+                    order by SC_SortNumColor desc
+                    join EcoResColor
+                        where EcoResProductMasterColor.Color == EcoResColor.RecId &&
+                              EcoResColor.Name == EcoResColorName.Name;
+
+                colors.ItemName = EcoResColorName.Name;
+                colors.Amount   = EcoResProductMasterColor.SC_SortNumColor;
+                colors.RefRecId = i;
+                colors.insert();
+                i++;
+            }
+
+            while select forUpdate colors
+            order by Amount desc, ItemName
+            {
+                colors.Amount = i;
+                colors.update();
+                i--;
+            }           
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillConfigData</Name>
+				<Source><![CDATA[
+    public void fillConfigData()
+    {
+        EcoResConfiguration              ecoResConfiguration, ecoResConfigurationName;
+        EcoResProductMasterConfiguration ecoResProductMasterConfiguration;
+        int                              i;
+        ;
+
+        if(!configurations)
+        {            
+            while select Name from ecoResConfigurationName
+                group by Name
+                order by Name
+            {
+                select firstOnly SC_SortNumConfig from ecoResProductMasterConfiguration
+                    order by SC_SortNumConfig desc
+                    join ecoResConfiguration
+                        where ecoResProductMasterConfiguration.Configuration == EcoResConfiguration.RecId &&
+                              ecoResConfiguration.Name == EcoResConfigurationName.Name;
+
+                configurations.ItemName = EcoResConfigurationName.Name;
+                configurations.Amount   = EcoResProductMasterConfiguration.SC_SortNumConfig;
+                configurations.RefRecId = i;
+                configurations.insert();
+                i++;
+            }
+
+            while select forUpdate configurations
+            order by Amount desc, ItemName
+            {
+                configurations.Amount = i;
+                configurations.update();
+                i--;
+            }            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillStyleData</Name>
+				<Source><![CDATA[
+    public void fillStyleData()
+    {
+        EcoResStyle              ecoResStyle, ecoResStyleName;
+        EcoResProductMasterStyle ecoResProductMasterStyle;
+        int                      i;
+        ;
+
+        if(!styles)
+        {            
+            while select Name from ecoResStyleName
+                group by Name
+                order by Name
+            {
+                select firstOnly SC_SortNumStyle from ecoResProductMasterStyle
+                    order by SC_SortNumStyle desc
+                    join ecoResStyle
+                        where ecoResProductMasterStyle.Style == EcoResStyle.RecId &&
+                              ecoResStyle.Name == EcoResStyleName.Name;
+
+                styles.ItemName = EcoResStyleName.Name;
+                styles.Amount   = EcoResProductMasterStyle.SC_SortNumStyle;
+                styles.RefRecId = i;
+                styles.insert();
+                i++;
+            }
+
+            while select forUpdate styles
+                order by Amount desc, ItemName
+            {
+                styles.Amount = i;
+                styles.update();
+                i--;
+            }            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>upDown</Name>
+				<Source><![CDATA[
+    public void upDown(NoYes _down, TmpABC _buffer)
+    {
+        TmpABC    update;
+        LineNum   newNum;
+        ;
+
+        update.setTmpData(_buffer);
+
+        if (_down == NoYes::Yes)
+        {
+            select firstonly forupdate update
+                order by Amount
+                where update.Amount > _buffer.Amount;
+        }
+        else
+        {
+            select firstonly forupdate update
+                order by Amount desc
+                where update.Amount < _buffer.Amount;
+        }
+
+        if (update && _buffer)
+        {
+            newNum          = update.Amount;
+            update.Amount   = _buffer.Amount;
+            _buffer.Amount  = newNum;
+
+            _buffer.update();
+            update.update();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>Sizes</Name>
+				<Methods>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            EcoResSize              EcoResSize, EcoResSizeName;
+            EcoResProductMasterSize EcoResProductMasterSize;
+            int                     i;
+            ;
+
+            if(!sizes)
+            {                
+                while select Name from EcoResSizeName
+                    group by Name
+                    order by Name
+                {
+                    select firstOnly SC_SortNumSize from EcoResProductMasterSize
+                    order by SC_SortNumSize desc
+                    join EcoResSize
+                        where EcoResProductMasterSize.Size == EcoResSize.RecId &&
+                              EcoResSize.Name == EcoResSizeName.Name;
+
+                    Sizes.ItemName = EcoResSizeName.Name;
+                    Sizes.Amount   = EcoResProductMasterSize.SC_SortNumSize;
+                    Sizes.RefRecId = i;
+                    Sizes.insert();
+                    i++;
+                }
+
+                while select forUpdate sizes
+                    order by Amount desc, ItemName
+                {
+                    sizes.Amount = i;
+                    sizes.update();
+                    i--;
+                }                
+            }
+                        
+            Sizes_ds.query().dataSourceTable(tableNum(TmpABC)).addOrderByField(fieldNum(TmpABC, Amount), SortOrder::Ascending);
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>Colors</Name>
+				<Methods>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            Colors_ds.query().dataSourceTable(tableNum(TmpABC)).addOrderByField(fieldNum(TmpABC, Amount));
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>Configurations</Name>
+				<Methods>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            Configurations_ds.query().dataSourceTable(tableNum(TmpABC)).addOrderByField(fieldNum(TmpABC, Amount));
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>Styles</Name>
+				<Methods>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            Styles_ds.query().dataSourceTable(tableNum(TmpABC)).addOrderByField(fieldNum(TmpABC, Amount));
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>FormButtonSizeUp</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+
+            save = sizes.data();
+
+            element.upDown(NoYes::No, sizes);
+           
+            Sizes_ds.research(false);
+            Sizes_ds.positionToRecord(save);
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonSizeDown</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+
+            save = sizes.data();
+
+            element.upDown(NoYes::Yes, sizes);
+            
+            Sizes_ds.research(false);
+            Sizes_ds.positionToRecord(save);
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonSizeApply</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+            element.applySize();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TabPageColors</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        public void pageActivated()
+        {
+            super();
+
+            if(!colors)
+            {
+                element.fillColorsData();
+                colors_ds.research();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonColorUp</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+    
+            save = colors.data();
+    
+            element.upDown(NoYes::No, colors);
+    
+            Colors_ds.research(false);
+            Colors_ds.positionToRecord(save);
+    
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonColorDown</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+    
+            save = colors.data();
+    
+            element.upDown(NoYes::Yes, colors);
+    
+            Colors_ds.research(false);
+            Colors_ds.positionToRecord(save);
+    
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonColorApply</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+            element.applyColor();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TabPageStyles</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        public void pageActivated()
+        {
+            super();
+
+            if(!styles)
+            {
+                element.fillStyleData();
+                styles_ds.research();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonStyleUp</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+            
+            save = styles.data();
+            
+            element.upDown(NoYes::No, styles);
+            
+            Styles_ds.research(false);
+            Styles_ds.positionToRecord(save);
+            
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonstyleDown</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+            
+            save = styles.data();
+            
+            element.upDown(NoYes::Yes, styles);
+            
+            Styles_ds.research(false);
+            Styles_ds.positionToRecord(save);
+            
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonStyleApply</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+            element.applyStyle();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TabPageConfigurations</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        public void pageActivated()
+        {
+            super();
+
+            if(!configurations)
+            {
+                element.fillConfigData();
+                configurations_ds.research();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonConfigurationUp</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+            
+            save = configurations.data();
+            
+            element.upDown(NoYes::No, configurations);
+            
+            Configurations_ds.research(false);
+            Configurations_ds.positionToRecord(save);
+            
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonConfigurationDown</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            TmpABC  save;
+            ;
+            
+            save = configurations.data();
+            
+            element.upDown(NoYes::Yes, configurations);
+            
+            Configurations_ds.research(false);
+            Configurations_ds.positionToRecord(save);
+            
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonConfigurationApply</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+            element.applyConfig();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>Sizes</Name>
+			<Table>TmpABC</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Amount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OldValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>Colors</Name>
+			<Table>TmpABC</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Amount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OldValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>Configurations</Name>
+			<Table>TmpABC</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Amount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OldValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>Styles</Name>
+			<Table>TmpABC</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Amount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemGroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OldValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SYS300195</Caption>
+		<Pattern xmlns="">TableOfContents</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<Style xmlns="">TableOfContents</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>TOCTab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageSizes</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1216907399</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageSizesHeader</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>PageSizesMainInstruction</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SCL335</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageSizesBody</Name>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>ActionPaneSizes</Name>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>ActionPane</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormActionPaneTabControl">
+												<Name>ActionPaneTabSizes</Name>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ActionPaneTab</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonGroupControl">
+														<Name>ButtonGroupSizes</Name>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Left>0</Left>
+														<Type>ButtonGroup</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonSizeUp</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40189</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonSizeDown</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40190</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonSeparatorControl">
+																<Name>FormButtonSeparator1</Name>
+																<Type>ButtonSeparator</Type>
+																<FormControlExtension
+																	i:nil="true" />
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonSizeApply</Name>
+																<HelpText>@SCL335</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<ButtonDisplay>TextOnly</ButtonDisplay>
+																<Text>@SYS24973</Text>
+															</AxFormControl>
+														</Controls>
+														<ArrangeMethod>Vertical</ArrangeMethod>
+													</AxFormControl>
+												</Controls>
+												<AlignChild>No</AlignChild>
+												<AlignChildren>No</AlignChildren>
+												<ArrangeMethod>Vertical</ArrangeMethod>
+												<Caption>@SYS9342</Caption>
+											</AxFormControl>
+										</Controls>
+										<AlignChild>No</AlignChild>
+										<AlignChildren>No</AlignChildren>
+										<ArrangeMethod>Vertical</ArrangeMethod>
+										<DataSource>Sizes</DataSource>
+										<Style>Strip</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>GridSizes</Name>
+										<AllowEdit>No</AllowEdit>
+										<ElementPosition>1181116005</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Sizes_ItemName</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemName</DataField>
+												<DataSource>Sizes</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>Sizes</DataSource>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<BackgroundColor>WindowBackground</BackgroundColor>
+						<Caption>@SYS73745</Caption>
+						<DataSource>Sizes</DataSource>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageColors</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1574821340</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageColorsHeader</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>PageColorsMainInstruction</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SCL336</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageColorsBody</Name>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>ActionPaneColors</Name>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>ActionPane</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormActionPaneTabControl">
+												<Name>ActionPaneTabColors</Name>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ActionPaneTab</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonGroupControl">
+														<Name>ButtonGroupColors</Name>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Left>0</Left>
+														<Type>ButtonGroup</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonColorUp</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40189</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonColorDown</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40190</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonSeparatorControl">
+																<Name>FormButtonSeparator2</Name>
+																<Type>ButtonSeparator</Type>
+																<FormControlExtension
+																	i:nil="true" />
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonColorApply</Name>
+																<HelpText>@SCL336</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS24973</Text>
+															</AxFormControl>
+														</Controls>
+														<ArrangeMethod>Vertical</ArrangeMethod>
+													</AxFormControl>
+												</Controls>
+												<AlignChild>No</AlignChild>
+												<AlignChildren>No</AlignChildren>
+												<ArrangeMethod>Vertical</ArrangeMethod>
+												<Caption>@SYS9342</Caption>
+											</AxFormControl>
+										</Controls>
+										<AlignChild>No</AlignChild>
+										<AlignChildren>No</AlignChildren>
+										<ArrangeMethod>Vertical</ArrangeMethod>
+										<DataSource>Colors</DataSource>
+										<Style>Strip</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>GridColors</Name>
+										<AllowEdit>No</AllowEdit>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1288490187</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Colors_ItemName</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemName</DataField>
+												<DataSource>Colors</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>Colors</DataSource>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<BackgroundColor>WindowBackground</BackgroundColor>
+						<Caption>@SYS73744</Caption>
+						<DataSource>Colors</DataSource>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageStyles</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1932735281</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageStylessHeader</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>PageStylesMainInstruction</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SCL337</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageStylesBody</Name>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>ActionPaneStyles</Name>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>ActionPane</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormActionPaneTabControl">
+												<Name>ActionPaneTabStyles</Name>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ActionPaneTab</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonGroupControl">
+														<Name>ButtonGroupStyles</Name>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Left>0</Left>
+														<Type>ButtonGroup</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonStyleUp</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40189</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonstyleDown</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40190</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonSeparatorControl">
+																<Name>FormButtonSeparator3</Name>
+																<Type>ButtonSeparator</Type>
+																<FormControlExtension
+																	i:nil="true" />
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonStyleApply</Name>
+																<HelpText>@SCL337</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS24973</Text>
+															</AxFormControl>
+														</Controls>
+														<ArrangeMethod>Vertical</ArrangeMethod>
+													</AxFormControl>
+												</Controls>
+												<AlignChild>No</AlignChild>
+												<AlignChildren>No</AlignChildren>
+												<ArrangeMethod>Vertical</ArrangeMethod>
+												<Caption>@SYS9342</Caption>
+											</AxFormControl>
+										</Controls>
+										<AlignChild>No</AlignChild>
+										<AlignChildren>No</AlignChildren>
+										<ArrangeMethod>Vertical</ArrangeMethod>
+										<DataSource>Styles</DataSource>
+										<Style>Strip</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>GridStyles</Name>
+										<AllowEdit>No</AllowEdit>
+										<ElementPosition>1181116005</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Styles_ItemName</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemName</DataField>
+												<DataSource>Styles</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>Styles</DataSource>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<BackgroundColor>WindowBackground</BackgroundColor>
+						<Caption>@FPK270006</Caption>
+						<DataSource>Styles</DataSource>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageConfigurations</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>858993458</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageConfigurationsHeader</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>PageConfigurationsMainInstruction</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SCL338</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PageConfigurationsBody</Name>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>ActionPaneConfigurations</Name>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>ActionPane</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormActionPaneTabControl">
+												<Name>ActionPaneTabConfigurations</Name>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ActionPaneTab</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonGroupControl">
+														<Name>ButtonGroupConfigurations</Name>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Left>0</Left>
+														<Type>ButtonGroup</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonConfigurationUp</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40189</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonConfigurationDown</Name>
+																<HelpText>@SYS76833</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS40190</Text>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonSeparatorControl">
+																<Name>FormButtonSeparator4</Name>
+																<Type>ButtonSeparator</Type>
+																<FormControlExtension
+																	i:nil="true" />
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>FormButtonConfigurationApply</Name>
+																<HelpText>@SCL338</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Text>@SYS24973</Text>
+															</AxFormControl>
+														</Controls>
+														<ArrangeMethod>Vertical</ArrangeMethod>
+													</AxFormControl>
+												</Controls>
+												<AlignChild>No</AlignChild>
+												<AlignChildren>No</AlignChildren>
+												<ArrangeMethod>Vertical</ArrangeMethod>
+												<Caption>@SYS9342</Caption>
+											</AxFormControl>
+										</Controls>
+										<AlignChild>No</AlignChild>
+										<AlignChildren>No</AlignChildren>
+										<ArrangeMethod>Vertical</ArrangeMethod>
+										<DataSource>Configurations</DataSource>
+										<Style>Strip</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>GridConfigurations</Name>
+										<AllowEdit>No</AllowEdit>
+										<ElementPosition>1181116005</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Configurations_ItemName</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemName</DataField>
+												<DataSource>Configurations</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>Configurations</DataSource>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<BackgroundColor>WindowBackground</BackgroundColor>
+						<Caption>@SYS134350</Caption>
+						<DataSource>Configurations</DataSource>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>VerticalTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

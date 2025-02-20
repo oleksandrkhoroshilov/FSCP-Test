@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_DiscountConcurrencyMode</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<Help>@SCL531</Help>
+	<Label>@SCL530</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>SanaDiscount</Name>
+			<Label>@SCL532</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Compounded</Name>
+			<Label>@SCL534</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>BestPrice</Name>
+			<Label>@SCL533</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>BestRevenue</Name>
+			<Label>@SCL599</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

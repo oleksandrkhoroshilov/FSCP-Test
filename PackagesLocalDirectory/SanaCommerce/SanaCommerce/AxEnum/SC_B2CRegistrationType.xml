@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_B2CRegistrationType</Name>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<Help>@SCL444</Help>
+	<Label>@SCL443</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Organization</Name>
+			<Label>@SYS38151</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Person</Name>
+			<Label>@SYS30119</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

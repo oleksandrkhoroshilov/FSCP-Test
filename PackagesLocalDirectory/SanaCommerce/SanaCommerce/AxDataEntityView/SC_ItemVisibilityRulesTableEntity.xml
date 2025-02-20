@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxDataEntityView xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_ItemVisibilityRulesTableEntity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_ItemVisibilityRulesTableEntity extends common
+{    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>postLoad</Name>
+				<Source><![CDATA[
+    public void postLoad()
+    {   
+        EcoResCategory   ecoResCategory;
+
+        super();        
+
+        if(this.itemCode == SC_TableGroupCategory::Category)
+        {
+            ecoResCategory     = EcoResCategory::find(str2Int64(this.itemRelation));
+            this.CategoryName  =  ecoResCategory.Name;
+            this.HierarchyName = EcoResCategoryHierarchy::find(ecoResCategory.CategoryHierarchy).Name;            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mapEntityToDataSource</Name>
+				<Source><![CDATA[
+    public void mapEntityToDataSource(DataEntityRuntimeContext entityCtx, DataEntityDataSourceRuntimeContext dataSourceCtx)
+    {
+        EcoResCategory   ecoResCategory;
+
+        super(entityCtx, dataSourceCtx);
+                
+        if(dataSourceCtx.name() == dataEntityDataSourceStr(SC_ItemVisibilityRulesTableEntity, SC_ItemVisibilityRulesTable))
+        {
+            SC_ItemVisibilityRulesTable itemVisibilityRulesTable = dataSourceCtx.getBuffer();
+                    
+            if(itemVisibilityRulesTable.itemCode == SC_TableGroupCategory::Category)
+            {
+                ecoResCategory = EcoResCategory::findByName(this.CategoryName, EcoResCategoryHierarchy::findByName(this.HierarchyName).RecId);
+
+                itemVisibilityRulesTable.ItemRelation = int642Str(ecoResCategory.RecId); 
+            }            
+        }        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<FormRef>SC_ItemVisibilityRules</FormRef>
+	<Label>@SCL181</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<DataManagementEnabled>Yes</DataManagementEnabled>
+	<DataManagementStagingTable>SC_ItemVisibilityRulesTableStaging</DataManagementStagingTable>
+	<IsPublic>Yes</IsPublic>
+	<PrimaryCompanyContext>DataAreaId</PrimaryCompanyContext>
+	<PrimaryKey>EntityKey</PrimaryKey>
+	<PublicCollectionName>SC_ItemVisibilityRulesTables</PublicCollectionName>
+	<PublicEntityName>SC_ItemVisibilityRulesTable</PublicEntityName>
+	<SupportsSetBasedSqlOperations>Yes</SupportsSetBasedSqlOperations>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>AccountCode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AccountRelation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ItemCode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ItemRelation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CategoryName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>HierarchyName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Mode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Value</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>AccountCode</Name>
+			<DataField>AccountCode</DataField>
+			<DataSource>SC_ItemVisibilityRulesTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>AccountRelation</Name>
+			<DataField>AccountRelation</DataField>
+			<DataSource>SC_ItemVisibilityRulesTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>ItemCode</Name>
+			<DataField>ItemCode</DataField>
+			<DataSource>SC_ItemVisibilityRulesTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>ItemRelation</Name>
+			<Mandatory>No</Mandatory>
+			<DataField>ItemRelation</DataField>
+			<DataSource>SC_ItemVisibilityRulesTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewUnmappedFieldString">
+			<Name>CategoryName</Name>
+			<Label>@SYS54561</Label>
+			<ExtendedDataType>EcoResCategoryName</ExtendedDataType>
+			<IsComputedField>No</IsComputedField>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewUnmappedFieldString">
+			<Name>HierarchyName</Name>
+			<Label>@SYS304849</Label>
+			<ExtendedDataType>EcoResCategoryHierarchyName</ExtendedDataType>
+			<IsComputedField>No</IsComputedField>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>Value</Name>
+			<Label>@SYS1046</Label>
+			<DataField>Value</DataField>
+			<DataSource>SC_ItemVisibilityRulesTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>Mode</Name>
+			<DataField>Mode</DataField>
+			<DataSource>SC_ItemVisibilityRulesTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>WebShopId</Name>
+			<Label>@SCL161</Label>
+			<DataField>WebShopId</DataField>
+			<DataSource>SC_ItemVisibilityRulesTable</DataSource>
+		</AxDataEntityViewField>
+	</Fields>
+	<Keys>
+		<AxDataEntityViewKey>
+			<Name>EntityKey</Name>
+			<Fields>
+				<AxDataEntityViewKeyField>
+					<DataField>AccountCode</DataField>
+				</AxDataEntityViewKeyField>
+				<AxDataEntityViewKeyField>
+					<DataField>AccountRelation</DataField>
+				</AxDataEntityViewKeyField>
+				<AxDataEntityViewKeyField>
+					<DataField>ItemCode</DataField>
+				</AxDataEntityViewKeyField>
+				<AxDataEntityViewKeyField>
+					<DataField>ItemRelation</DataField>
+				</AxDataEntityViewKeyField>
+				<AxDataEntityViewKeyField>
+					<DataField>WebShopId</DataField>
+				</AxDataEntityViewKeyField>
+			</Fields>
+		</AxDataEntityViewKey>
+	</Keys>
+	<Mappings />
+	<Ranges />
+	<Relations />
+	<StateMachines />
+	<ViewMetadata>
+		<Name>Metadata</Name>
+		<SourceCode>
+			<Methods>
+				<Method>
+					<Name>classDeclaration</Name>
+					<Source><![CDATA[
+[Query]
+public class Metadata extends QueryRun
+{
+}
+]]></Source>
+				</Method>
+			</Methods>
+		</SourceCode>
+		<DataSources>
+			<AxQuerySimpleRootDataSource>
+				<Name>SC_ItemVisibilityRulesTable</Name>
+				<DynamicFields>Yes</DynamicFields>
+				<Table>SC_ItemVisibilityRulesTable</Table>
+				<DataSources />
+				<DerivedDataSources />
+				<Fields />
+				<Ranges />
+				<GroupBy />
+				<Having />
+				<OrderBy />
+			</AxQuerySimpleRootDataSource>
+		</DataSources>
+	</ViewMetadata>
+</AxDataEntityView>

@@ -1,0 +1,1504 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_ManualProcessRequests</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_ManualProcessRequests extends FormRun
+{    
+    #SANA
+    FileUploadResultBase        file;    
+    System.IO.Stream            stream;
+    System.IO.StreamReader      streamReader;
+    XmlDocument                 doc;
+    container                   nodesCon;
+    boolean                     reqSelected, respSelected;    
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFile</Name>
+				<Source><![CDATA[
+    void addFile()
+    {
+        ;
+        SC_ManualProcessRequests.clear();
+        SC_ManualProcessRequests.FileName           = file.getFileName();
+        SC_ManualProcessRequests.FileData           = streamReader.ReadToEnd();
+        SC_ManualProcessRequests.FileType           = file.getFileContentType();
+        SC_ManualProcessRequests.FileSize           = int642int(stream.Length);
+        SC_ManualProcessRequests.FileCreatedDate    = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+        SC_ManualProcessRequests.FileModifiedDate   = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+        SC_ManualProcessRequests.FileAcessedDate    = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+        SC_ManualProcessRequests.UserId             = curUserId();
+        SC_ManualProcessRequests.insert();
+    
+        SC_ManualProcessRequests_ds.executeQuery();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOperations</Name>
+				<Source><![CDATA[
+    public void addOperations()
+    {
+        RequestTemplate.add('');
+        RequestTemplate.add('CalculateBasket');                     //1
+        RequestTemplate.add('ClearPersistedBasket');                //2
+        RequestTemplate.add('CreatePersistedBasket');               //3
+        RequestTemplate.add('SaveShippingAddress');                 //4
+        RequestTemplate.add('DeleteOrder');                         //5
+        RequestTemplate.add('GetAnonymousCustomer');                //6
+        RequestTemplate.add('GetAttachmentFile');                   //7
+        RequestTemplate.add('GetBalanceInfo');                      //8
+        RequestTemplate.add('GetContacts');                         //9
+        RequestTemplate.add('GetCountries');                        //10
+        RequestTemplate.add('GetCurrencies');                       //11
+        RequestTemplate.add('GetCustomerByContact');                //12
+        RequestTemplate.add('GetCustomers');                        //13
+        RequestTemplate.add('GetCustomerStatistics');               //14
+        RequestTemplate.add('GetCustomerStatisticsFields');         //15
+        RequestTemplate.add('GetDefaultCurrency');                  //16
+        RequestTemplate.add('GetEntities');                         //17
+        RequestTemplate.add('GetEntityFields');                     //18
+        RequestTemplate.add('GetOrderReport');                      //19
+        RequestTemplate.add('GetOrders');                           //20
+        RequestTemplate.add('GetPersistedBasket');                  //21
+        RequestTemplate.add('GetPriceInfo');                        //22
+        RequestTemplate.add('GetProductCategories');                //23
+        RequestTemplate.add('GetProductImageFile');                 //24
+        RequestTemplate.add('GetProductImages');                    //25
+        RequestTemplate.add('GetProducts');                         //26
+        RequestTemplate.add('GetProductSalesAgreementLines');       //27
+        RequestTemplate.add('GetProductSuggestions');               //28
+        RequestTemplate.add('GetRetailOffers');                     //29
+        RequestTemplate.add('GetReturnReasonCodes');                //30
+        RequestTemplate.add('GetSalesAgreements');                  //31
+        RequestTemplate.add('GetSalesPersons');                     //32
+        RequestTemplate.add('GetSettings');                         //33
+        RequestTemplate.add('GetShippingAddresses');                //34
+        RequestTemplate.add('GetShippingMethods');                  //35
+        RequestTemplate.add('GetShippingOrigin');                   //36
+        RequestTemplate.add('GetStockInfo');                        //37
+        RequestTemplate.add('GetTaxNumberFormats');                 //38
+        RequestTemplate.add('GetUnitsOfMeasure');                   //39
+        RequestTemplate.add('GetVariantComponentGroups');           //40
+        RequestTemplate.add('GetVariantComponents');                //41
+        RequestTemplate.add('GetVolumePrices');                     //42
+        RequestTemplate.add('HasVolumePrices');                     //43
+        RequestTemplate.add('PayInvoiceOrders');                    //44
+        RequestTemplate.add('PlacePersistedOrder');                 //45
+        RequestTemplate.add('PromoteQuote');                        //46
+        RequestTemplate.add('SaveContact');                         //47
+        RequestTemplate.add('SaveCustomer');                        //48
+        RequestTemplate.add('SaveOrder');                           //49
+        RequestTemplate.add('SaveReturnOrder');                     //50
+        RequestTemplate.add('TestConnection');                      //51
+        RequestTemplate.add('UpdateOrderFields');                   //52
+        RequestTemplate.add('UpdatePersistedBasket');               //53
+        RequestTemplate.add('UpdatePersistedBasketLines');          //54        
+        RequestTemplate.add('DeleteShippingAddress');               //55
+        RequestTemplate.add('GetPaymentMethods');                   //56
+        RequestTemplate.add('GetStoreLocations');                   //57
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOperationsData</Name>
+				<Source><![CDATA[
+    public void addOperationsData(Integer _idx)
+    {
+        switch(_idx)
+        {
+            case 1:
+                RequestText.text(#CalculateBasket);
+                break;
+            case 2:
+                RequestText.text(#ClearPersistedBasket);
+                break;
+            case 3:
+                RequestText.text(#CreatePersistedBasket);
+                break;
+            case 4:
+                RequestText.text(#SaveShippingAddress);
+                break;
+            case 5:
+                RequestText.text(#DeleteOrder);
+                break;
+            case 6:
+                RequestText.text(#GetAnonymousCustomer);
+                break;
+            case 7:
+                RequestText.text(#GetAttachmentFile);
+                break;
+            case 8:
+                RequestText.text(#GetBalanceInfo);
+                break;
+            case 9:
+                RequestText.text(#GetContacts);
+                break;
+            case 10:
+                RequestText.text(#GetCountries);
+                break;
+            case 11:
+                RequestText.text(#GetCurrencies);
+                break;
+            case 12:
+                RequestText.text(#GetCustomerByContact);
+                break;
+            case 13:
+                RequestText.text(#GetCustomers);
+                break;
+            case 14:
+                RequestText.text(#GetCustomerStatistics);
+                break;
+            case 15:
+                RequestText.text(#GetCustomerStatisticsFields);
+                break;
+            case 16:
+                RequestText.text(#GetDefaultCurrency);
+                break;
+            case 17:
+                RequestText.text(#GetEntities);
+                break;
+            case 18:
+                RequestText.text(#GetEntityFields);
+                break;
+            case 19:
+                RequestText.text(#GetOrderReport);
+                break;
+            case 20:
+                RequestText.text(#GetOrders);
+                break;
+            case 21:
+                RequestText.text(#GetPersistedBasket);
+                break;
+            case 22:
+                RequestText.text(#GetPriceInfo);
+                break;
+            case 23:
+                RequestText.text(#GetProductCategories);
+                break;
+            case 24:
+                RequestText.text(#GetProductImageFile);
+                break;
+            case 25:
+                RequestText.text(#GetProductImages);
+                break;
+            case 26:
+                RequestText.text(#GetProducts);
+                break;
+            case 27:
+                RequestText.text(#GetProductSalesAgreementLines);
+                break;
+            case 28:
+                RequestText.text(#GetProductSuggestions);
+                break;
+            case 29:
+                RequestText.text(#GetRetailOffers);
+                break;
+            case 30:
+                RequestText.text(#GetReturnReasonCodes);
+                break;
+            case 31:
+                RequestText.text(#GetSalesAgreements);
+                break;
+            case 32:
+                RequestText.text(#GetSalesPersons);
+                break;
+            case 33:
+                RequestText.text(#GetSettings);
+                break;
+            case 34:
+                RequestText.text(#GetShippingAddresses);
+                break;
+            case 35:
+                RequestText.text(#GetShippingMethods);
+                break;
+            case 36:
+                RequestText.text(#GetShippingOrigin);
+                break;
+            case 37:
+                RequestText.text(#GetStockInfo);
+                break;
+            case 38:
+                RequestText.text(#GetTaxNumberFormats);
+                break;
+            case 39:
+                RequestText.text(#GetUnitsOfMeasure);
+                break;
+            case 40:
+                RequestText.text(#GetVariantComponentGroups);
+                break;
+            case 41:
+                RequestText.text(#GetVariantComponents);
+                break;
+            case 42:
+                RequestText.text(#GetVolumePrices);
+                break;
+            case 43:
+                RequestText.text(#HasVolumePricesReq);
+                break;
+            case 44:
+                RequestText.text(#PayInvoiceOrders);
+                break;
+            case 45:
+                RequestText.text(#PlacePersistedOrder);
+                break;
+            case 46:
+                RequestText.text(#PromoteQuote);
+                break;
+            case 47:
+                RequestText.text(#SaveContact);
+                break;
+            case 48:
+                RequestText.text(#SaveCustomer);
+                break;
+            case 49:
+                RequestText.text(#SaveOrder);
+                break;
+            case 50:
+                RequestText.text(#SaveReturnOrder);
+                break;
+            case 51:
+                RequestText.text(#TestConnectionReq);
+                break;
+            case 52:
+                RequestText.text(#UpdateOrderFields);
+                break;
+            case 53:
+                RequestText.text(#UpdatePersistedBasket);
+                break;
+            case 54:
+                RequestText.text(#UpdatePersistedBasketLines);
+                break;            
+            case 55:
+                RequestText.text(#DeleteShippingAddress);
+                break;
+            case 56:
+                RequestText.text(#GetPaymentMethods);
+                break;
+            case 57:
+                RequestText.text(#GetStoreLocations);
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>filenameLookupFileName</Name>
+				<Source><![CDATA[
+    public SC_LargeText filenameLookupFileName()
+    {
+        ;
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>filenameLookupFilter</Name>
+				<Source><![CDATA[
+    public container filenameLookupFilter()
+    {
+        ;
+        return ['XML data','*.xml', 'Text file', '*.txt'];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>filenameLookupInitialPath</Name>
+				<Source><![CDATA[
+    public SC_LargeText filenameLookupInitialPath()
+    {
+        ;
+        return 'C:\\';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fileNameLookupTitle</Name>
+				<Source><![CDATA[
+    public SC_LargeText fileNameLookupTitle()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findNodes</Name>
+				<Source><![CDATA[
+    public void findNodes(XmlNode _parentNode, str _path, boolean _isRequest = false)
+    {
+        XmlNamedNodeMap attributes;
+        XmlNodeList     children;
+        XmlNode         nodeLocal;
+        str             path = _path;
+        int             a;
+
+        if(_parentNode.nodeType() == XmlNodeType::Text)
+        {
+            nodesCon += [[RequestTemplate.valueStr(), path, _parentNode.Value(), _isRequest]];
+        }
+        else
+        {
+            path    += '/' + _parentNode.Name();
+            children = doc.selectNodes(path);
+
+            if(children.length() > 1)
+            {
+                nodeLocal = _parentNode.previousSibling();
+
+                while(nodeLocal)
+                {
+                    if(_parentNode.name() == nodeLocal.name())
+                    {
+                        a++;
+                    }
+                    nodeLocal = nodeLocal.previousSibling();
+                }
+                path += strFmt('[%1]', a+1);
+            }
+        }
+
+        attributes = _parentNode.attributes();
+
+        if(attributes && attributes.length())
+        {
+            for(a=0;a<attributes.length();a++)
+            {
+                nodeLocal = attributes.item(a);
+                nodesCon += [[RequestTemplate.valueStr(), path + '/@' + nodeLocal.name(), nodeLocal.Value(), _isRequest]];
+                path += '[@' + nodeLocal.name() + '=\"' + nodeLocal.Value() + '\"]';
+            }
+        }
+
+        children = _parentNode.childNodes();
+
+        for(a=0;a<children.length();a++)
+        {
+            nodeLocal = children.item(a);
+            element.findNodes(nodeLocal, path, _isRequest);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatXML</Name>
+				<Source><![CDATA[
+    public XML formatXML(XML s)
+    {
+        container con, spaces;
+        Integer   i;
+        XML    ret;
+
+        s = strReplace(s, '><', '>\n<');
+        con  = str2con(s, '\n');
+
+        for(i=1;i<=conLen(con);i++)
+        {
+            s = conPeek(con, i);
+
+            if(strContains(s, '?'))
+            {
+                ret += s + '\n';
+                continue;
+            }
+
+            if(!strContains(s, '</') && !strContains(s, '/>'))
+            {
+                spaces += '  ';
+            }
+
+            if(strStartsWith(s, '</'))
+            {
+                spaces = conDel(spaces, 1, 1);
+            }
+
+            ret += s + '\n' + con2Str(spaces, '');
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {        
+        super();
+        doc = new XmlDocument();  
+        FileProcess.collapse();
+    
+        SC_ManualProcessRequests_ds.query().dataSourceTable(tablenum(SC_ManualProcessRequestsTable)).addRange(fieldnum(SC_ManualProcessRequestsTable, UserId)).value(curUserId());
+    
+        SC_ManualRequestsTable_ds.query().dataSourceTable(tablenum(SC_ManualRequestsDataTable)).addRange(fieldnum(SC_ManualRequestsDataTable, UserId)).value(curUserId());
+        SC_ManualRequestsTable_ds.query().dataSourceTable(tablenum(SC_ManualRequestsDataTable)).addRange(fieldnum(SC_ManualRequestsDataTable, RequestParam)).value(queryValue(NoYes::Yes));
+        SC_ManualRequestsTable_ds.query().dataSourceTable(tablenum(SC_ManualRequestsDataTable)).addRange(fieldnum(SC_ManualRequestsDataTable, Operation)).value(SysQuery::valueEmptyString());
+
+        SC_ManualResponseTable_ds.query().dataSourceTable(tablenum(SC_ManualRequestsDataTable)).addRange(fieldnum(SC_ManualRequestsDataTable, UserId)).value(curUserId());
+        SC_ManualResponseTable_ds.query().dataSourceTable(tablenum(SC_ManualRequestsDataTable)).addRange(fieldnum(SC_ManualRequestsDataTable, RequestParam)).value(queryValue(NoYes::No));
+        SC_ManualResponseTable_ds.query().dataSourceTable(tablenum(SC_ManualRequestsDataTable)).addRange(fieldnum(SC_ManualRequestsDataTable, Operation)).value(SysQuery::valueEmptyString());
+
+        element.addOperations();
+
+        this.updateDesign();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDesign</Name>
+				<Source><![CDATA[
+    void updateDesign()
+    {   
+        SC_ManualProcessRequests_ds.allowDelete(SC_ManualProcessRequests_ds.cursor().RecId);
+        ViewRequest.enabled(SC_ManualProcessRequests_ds.cursor().RecId && FileProcess.isExpanded());
+        Process.enabled(SC_ManualProcessRequests_ds.cursor().RecId || TemplateProcess.isExpanded());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateParamValue</Name>
+				<Source><![CDATA[
+    public void updateParamValue(boolean _isRequest = false)
+    {
+        SC_ManualRequestsDataTable manualRequestsDataTableLocal;
+        XmlNode                    node;
+        System.Decimal             clrDecimal;
+
+        if(_isRequest)
+        {
+            doc = XmlDocument::newXml(RequestText.text());
+            node = doc.DocumentElement().selectSingleNode(SC_ManualRequestsTable.ParamPath);
+
+            if(node)
+            {
+                node.text(SC_ManualRequestsTable.ParamValue);
+                RequestText.text(element.formatXML(doc.innerXml()));
+            }
+        }
+        else
+        {            
+            doc = XmlDocument::newXml(ResponseText.text());
+
+            if(!doc.DocumentElement())
+            {
+                return;
+            }
+
+            ttsBegin;
+            while select forUpdate manualRequestsDataTableLocal
+                where manualRequestsDataTableLocal.UserId == curUserId() &&
+                      manualRequestsDataTableLocal.Operation == RequestTemplate.valueStr() &&
+                      manualRequestsDataTableLocal.RequestParam == _isRequest
+            {
+                node = doc.DocumentElement().selectSingleNode(manualRequestsDataTableLocal.ParamPath);
+
+                manualRequestsDataTableLocal.ParamValue = node ? node.text() : '';
+
+                if(str2numOK(manualRequestsDataTableLocal.ParamValue) && !strFind(manualRequestsDataTableLocal.ParamValue, '0', 0, 1)) //remove obsolete zero in the end
+                {
+                    clrDecimal = any2real(System.String::Format('{0:G29}', any2Real(manualRequestsDataTableLocal.ParamValue)));
+                    manualRequestsDataTableLocal.ParamValue = clrDecimal.ToString();
+                }
+
+                manualRequestsDataTableLocal.update();
+            }
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>SC_ManualProcessRequests</Name>
+				<Methods>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        public void delete()
+        {
+            super();
+            element.updateDesign();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+        
+            element.updateDesign();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>SC_ManualRequestsTable</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+            SC_ManualRequestsTable.RequestParam = NoYes::Yes;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>SC_ManualResponseTable</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+
+            if(!SC_ManualResponseTable.RequestParam)
+            {
+                SC_ManualResponseTable.ParamValue = 'null';
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>Open</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            
+            file = File::GetFileFromUser();
+
+            if (file && file.getUploadStatus())
+            {
+                stream = file.openResult();
+                streamReader = new System.IO.StreamReader(stream);
+            }
+            else
+            {
+                throw error(strfmt("@SYS19312", file.getFileName()));
+            }
+            
+            element.addFile();            
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ViewRequest</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            ;
+            super();
+        
+            SC_ManualProcessRequests.FileModifiedDate = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+            SC_ManualProcessRequests.update();
+            SC_ManualProcessRequests_ds.reread();
+                                
+            File::SendStringAsFileToUser(SC_ManualProcessRequests.FileData, SC_ManualProcessRequests.FileName);                            
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Process</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            #File
+            #macrolib.SANA    
+            SC_AXDataServiceClient AXDataServiceClient;
+            str response;
+            
+            if(TemplateProcess.isExpanded())
+            {
+                AXDataServiceClient = SC_AXDataServiceClient::construct();
+                response            = element.formatXML(AXDataServiceClient.ProcessRequest(RequestText.text()));
+
+                ResponseText.text(response);
+                infolog.clear();
+                element.updateParamValue();
+                SC_ManualResponseTable_ds.executeQuery();
+            }
+            else if(SC_ManualProcessRequests.FileData)
+            {
+                response = SC_ManualProcessRequestsTable::performManualRequest(SC_ManualProcessRequests.FileData, SC_ManualProcessRequests);
+
+                SC_LargeText fileName = SC_ManualProcessRequests.FileName;
+
+                if(strScan(fileName, 'Request', 1, strLen(fileName)))
+                {
+                    fileName = strReplace(fileName, 'Request', 'Respose');
+                }
+                else if(strScan(fileName, '.', strLen(fileName) - 4, 4))
+                {
+                    fileName = subStr(fileName, 1, strLen(fileName) - 4) + '_Response' + subStr(fileName, strLen(fileName) - 3, 4);
+                }
+                else
+                {
+                    fileName += '_Response';
+                }                      
+
+                File::SendStringAsFileToUser(response, fileName);
+            }
+            else
+            {
+                throw error(strfmt("@SCL122", SC_ManualProcessRequests.FileName + SC_ManualProcessRequests.FileType));
+            }            
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TemplateProcess</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>expand</Name>
+						<Source><![CDATA[
+        public void expand()
+        {
+            super();
+            FileProcess.collapse();
+            element.updateDesign();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RequestTemplate</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+
+            ret = super();
+
+            element.addOperationsData(this.selection());
+
+            SysQuery::findOrCreateRange(SC_ManualRequestsTable_ds.query().dataSourceTable(tableNum(SC_ManualRequestsDataTable)), fieldNum(SC_ManualRequestsDataTable, Operation)).value(RequestTemplate.valueStr() ? RequestTemplate.valueStr() : SysQuery::valueEmptyString());
+            SysQuery::findOrCreateRange(SC_ManualResponseTable_ds.query().dataSourceTable(tableNum(SC_ManualRequestsDataTable)), fieldNum(SC_ManualRequestsDataTable, Operation)).value(RequestTemplate.valueStr() ? RequestTemplate.valueStr() : SysQuery::valueEmptyString());
+            SC_ManualRequestsTable_ds.executeQuery();
+            SC_ManualResponseTable_ds.executeQuery();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AutoScanRequest</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            if(RequestText.text())
+            {
+                nodesCon = conNull();
+                doc.LoadXml(RequestText.text());
+                element.findNodes(doc.DocumentElement(), '', true);
+
+                SC_ManualRequestsTable.clearParams(RequestTemplate.valueStr(), true);
+                SC_ManualRequestsTable.addParam(nodesCon);
+                SC_ManualRequestsTable_ds.executeQuery();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SC_ManualRequestsTable_ParamValue</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+
+            ret = super();
+
+            element.updateParamValue(true);
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AutoScanResponse</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            if(ResponseText.text())
+            {
+                nodesCon = conNull();
+                doc.LoadXml(ResponseText.text());
+                element.findNodes(doc.DocumentElement(), '');
+
+                SC_ManualRequestsTable.clearParams(RequestTemplate.valueStr());
+                SC_ManualRequestsTable.addParam(nodesCon);
+                SC_ManualResponseTable_ds.executeQuery();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FileProcess</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>expand</Name>
+						<Source><![CDATA[
+        public void expand()
+        {
+            super();
+            TemplateProcess.collapse();
+            element.updateDesign();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>SC_ManualProcessRequests</Name>
+			<Table>SC_ManualProcessRequestsTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileAcessedDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileCreatedDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileData</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileModifiedDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileSize</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCheck>No</AllowCheck>
+			<AllowCreate>No</AllowCreate>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_ManualRequestsTable</Name>
+			<Table>SC_ManualRequestsDataTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Operation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParamPath</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParamValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RequestParam</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>SC_ManualResponseTable</Name>
+			<Table>SC_ManualRequestsDataTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Operation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParamPath</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParamValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RequestParam</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL113</Caption>
+		<DataSource xmlns="">SC_ManualProcessRequests</DataSource>
+		<Pattern xmlns="">SimpleDetails-FastTabsContainer</Pattern>
+		<PatternVersion xmlns="">1.4</PatternVersion>
+		<TitleDataSource xmlns="">SC_ManualProcessRequests</TitleDataSource>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>268435455</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>Control</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>Open</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+								<NormalImage>Add</NormalImage>
+								<Text>@SYS133030</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonSeparatorControl">
+								<Name>Separator</Name>
+								<Type>ButtonSeparator</Type>
+								<FormControlExtension
+									i:nil="true" />
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ViewRequest</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>858993458</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@SCL128</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<NormalImage>View</NormalImage>
+								<Text>@SCL126</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>Process</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1288490187</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@SCL129</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+								<NormalImage>Next</NormalImage>
+								<Text>@SYS605</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>SC_ManualProcessRequests</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TemplateProcess</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Pattern>Custom</Pattern>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Request</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>RequestXML</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>RequestTemplate</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SCL541</Label>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>RequestText</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FilterExpression>%1</FilterExpression>
+												<Height>500</Height>
+												<Type>String</Type>
+												<Width>700</Width>
+												<WidthMode>Manual</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DisplayHeight>15</DisplayHeight>
+												<DisplayHeightMode>Fixed</DisplayHeightMode>
+												<DisplayLength>500</DisplayLength>
+												<ExtendedDataType>XML</ExtendedDataType>
+												<MultiLine>Yes</MultiLine>
+												<ShowLabel>No</ShowLabel>
+												<ViewEditMode>Edit</ViewEditMode>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>RequestParamGridGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormActionPaneControl">
+												<Name>RequestActionPane</Name>
+												<Type>ActionPane</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonGroupControl">
+														<Name>RequestButtonGroup</Name>
+														<Type>ButtonGroup</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormCommandButtonControl">
+																<Name>NewRequestParam</Name>
+																<Type>CommandButton</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Command>New</Command>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCommandButtonControl">
+																<Name>DeleteRequestParam</Name>
+																<Type>CommandButton</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Command>DeleteRecord</Command>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>AutoScanRequest</Name>
+																<HelpText>@SYS4081609</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+																<NormalImage>Find</NormalImage>
+																<Text>@SCL542</Text>
+															</AxFormControl>
+														</Controls>
+													</AxFormControl>
+												</Controls>
+												<DataSource>SC_ManualRequestsTable</DataSource>
+												<Style>Strip</Style>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGridControl">
+												<Name>RequestParamGrid</Name>
+												<Height>345</Height>
+												<HeightMode>Manual</HeightMode>
+												<Type>Grid</Type>
+												<Width>430</Width>
+												<WidthMode>SizeToContent</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SC_ManualRequestsTable_ParamPath</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ParamPath</DataField>
+														<DataSource>SC_ManualRequestsTable</DataSource>
+														<DisplayLength>50</DisplayLength>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SC_ManualRequestsTable_ParamValue</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ParamValue</DataField>
+														<DataSource>SC_ManualRequestsTable</DataSource>
+														<DisplayLength>15</DisplayLength>
+													</AxFormControl>
+												</Controls>
+												<DataSource>SC_ManualRequestsTable</DataSource>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+								<Caption>@SCL539</Caption>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Response</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>ResponseXML</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>ResponseText</Name>
+												<AllowEdit>No</AllowEdit>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FilterExpression>%1</FilterExpression>
+												<Height>500</Height>
+												<Type>String</Type>
+												<Width>700</Width>
+												<WidthMode>Manual</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DisplayHeight>15</DisplayHeight>
+												<DisplayHeightMode>Fixed</DisplayHeightMode>
+												<DisplayLength>500</DisplayLength>
+												<ExtendedDataType>XML</ExtendedDataType>
+												<LookupOnly>Yes</LookupOnly>
+												<MultiLine>Yes</MultiLine>
+												<ShowLabel>No</ShowLabel>
+												<ViewEditMode>Edit</ViewEditMode>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>ResponseParamGridGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormActionPaneControl">
+												<Name>ResponseActionPane</Name>
+												<Type>ActionPane</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonGroupControl">
+														<Name>ResponseButtonGroup</Name>
+														<Type>ButtonGroup</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormCommandButtonControl">
+																<Name>NewResponseParam</Name>
+																<Type>CommandButton</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Command>New</Command>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCommandButtonControl">
+																<Name>DeleteResponseParam</Name>
+																<Type>CommandButton</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<Command>DeleteRecord</Command>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormButtonControl">
+																<Name>AutoScanResponse</Name>
+																<HelpText>@SYS4081609</HelpText>
+																<Type>Button</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+																<NormalImage>Find</NormalImage>
+																<Text>@SCL542</Text>
+															</AxFormControl>
+														</Controls>
+													</AxFormControl>
+												</Controls>
+												<DataSource>SC_ManualResponseTable</DataSource>
+												<Style>Strip</Style>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGridControl">
+												<Name>ResponseParamGrid</Name>
+												<Height>285</Height>
+												<HeightMode>Manual</HeightMode>
+												<Type>Grid</Type>
+												<Width>430</Width>
+												<WidthMode>SizeToContent</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SC_ManualResponseTable_ParamPath</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ParamPath</DataField>
+														<DataSource>SC_ManualResponseTable</DataSource>
+														<DisplayLength>50</DisplayLength>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SC_ManualResponseTable_ParamValue</Name>
+														<AllowEdit>No</AllowEdit>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ParamValue</DataField>
+														<DataSource>SC_ManualResponseTable</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataSource>SC_ManualResponseTable</DataSource>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+								<Caption>@SCL540</Caption>
+							</AxFormControl>
+						</Controls>
+						<AllowUserSetup>No</AllowUserSetup>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@SCL538</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FileProcess</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FilterGroup</Name>
+								<Pattern>CustomFilters</Pattern>
+								<PatternVersion>1.1</PatternVersion>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl>
+										<Name>QuickFilterControl</Name>
+										<FormControlExtension>
+											<Name>QuickFilterControl</Name>
+											<ExtensionComponents />
+											<ExtensionProperties>
+												<AxFormControlExtensionProperty>
+													<Name>targetControlName</Name>
+													<Type>String</Type>
+													<Value>Grid</Value>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>defaultColumnName</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>placeholderText</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+											</ExtensionProperties>
+										</FormControlExtension>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+								<FrameType>None</FrameType>
+								<Style>CustomFilter</Style>
+								<ViewEditMode>Edit</ViewEditMode>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Grid_FileName</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileName</DataField>
+										<DataSource>SC_ManualProcessRequests</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Grid_FileType</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileType</DataField>
+										<DataSource>SC_ManualProcessRequests</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>Grid_FileSize</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Integer</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileSize</DataField>
+										<DataSource>SC_ManualProcessRequests</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateControl">
+										<Name>Grid_FileCreatedDate</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Date</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileCreatedDate</DataField>
+										<DataSource>SC_ManualProcessRequests</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateControl">
+										<Name>Grid_FileModifiedDate</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Date</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileModifiedDate</DataField>
+										<DataSource>SC_ManualProcessRequests</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateControl">
+										<Name>Grid_FileAcessedDate</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Date</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileAcessedDate</DataField>
+										<DataSource>SC_ManualProcessRequests</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Identification</DataGroup>
+								<DataSource>SC_ManualProcessRequests</DataSource>
+								<Style>Tabular</Style>
+							</AxFormControl>
+						</Controls>
+						<AllowUserSetup>No</AllowUserSetup>
+						<Caption>@SCL537</Caption>
+						<FastTabExpanded>No</FastTabExpanded>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

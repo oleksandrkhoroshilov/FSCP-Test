@@ -1,0 +1,3819 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_AXDataServiceClient</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Main Sana Commerce class
+/// Solution architect: Yaroslav Korzun (y.korzun@sana-commerce.com;yaroslav.korzun@gmail.com) 
+/// Senior software developer: Evgeniy Petryshyn (e.petryshyn@sana-commerce.com;epmaill@gmail.com)
+/// Lead test engineer: Halyna Bilotska (h.bilotska@sana-commerce.com)
+/// Lead test engineer: Irina Moskalyk (i.moskalyk@sana-commerce.com)
+/// Test engineer: Anastasiia Yaremchuk (a.yaremchuk@sana-commerce.com)
+/// Test engineer: Antonina Savchuk (a.savchuk@sana-commerce.com)
+/// </summary>
+class SC_AXDataServiceClient
+{
+    #SANA
+
+    InventTable                     inventTable;
+    CustTable                       custTable;
+    SC_WebShopsTable                webShopsTable;
+
+    XmlDocument                     parameters,resultXml;
+    XmlNode                         node, responseNode, resultNode, errorsNode;
+    XmlNodeList                     extraFields, filterFields, productsList, shipAddressFields, contactFields, customerFields, billingAddressFields;
+    XMLNodeList                     salesLinesList, updSalesLinesList, delSalesLinesList, orderFields, attachments, shippingAddressExtraFields;
+
+    HcmPersonnelNumberId            salesPersonId;
+    SalesId                         originalOrderId, originalQuoteId;
+    CustInvoiceId                   documentId;
+    CreatedDateTime                 startDate, endDate, startOrderDate, endOrderDate;
+    LanguageId                      languageId;
+    Email                           shopAccountEmail, adminUserEmail;
+    UnitOfMeasureSymbol             parmUnitId;
+    SC_LargeText                    categoryName;
+    AccountName                     accountType, shopAccountType;
+    AccountNum                      accountId, addressAccountId;
+    ContactPersonId                 contactId;
+    ItemId                          productId;
+    FieldId                         fieldId;
+    FieldName                       sortField, groupId;
+    boolean                         sortAsc, withCustomerTemplateOnly, visibleOnly, loadRelatedSkus, loadVisibilityRules, calculatePrices;
+    boolean                         calculateInventory, calculateSkuPrices, calculateSkuInventory, checkStock, multiCurrency, isOrderable;    
+    boolean                         validOnly, loadShippingAddresses, loadOrderLines, loadRelatedCustomers, calculateTotals, checkPaymentStatus, returnMultipleDocuments; 
+    boolean                         loadForThisYear, loadForLastYear, loadForToDate, activeOnly, sanaLocationIdExists;
+    Counter                         pageIndex, pageSize, maxOrderLinesToLoad;
+    CustDlvModeId                   shippingMethodCode;
+    Name                            tableName;
+    ErrorMsg                        errorMsg;    
+    String50                        callFunction, documentType, basketType, syncOrderType, b2bOnlinePayments, paymentStatus;
+    SysGlobalCache                  globalCache;
+    SysGlobalObjectCache            globalCacheV2;
+    InventDimId                     variantId;
+    Filename                        fileName;    
+    container                       attributeCon, customAddressFieldsIds, customAddressFieldsValues, customFieldsIds, customFieldsValues; 
+    SalesAgreementId                salesAgreementId;
+    CurrencyCode                    currencyId;
+    SC_WebshopId                    websiteId;
+    LogisticsLocationRecId          addressId;
+    CustPaymMode                    paymentMethodCode;
+    SysGuidString                   sanaLocationId;
+    SalesInventLocationId           storeLocationCode;
+    CustRef                         referenceNo;
+    ContactPersonName               contactName, shippingStatus, status;
+    SC_Comments                     comment;
+    LogisticsDeliveryName           shipToName;
+    CustName                        billToName;
+    TransDate                       startDueDate, endDueDate;
+
+    Integer                         i, k;
+
+    System.Globalization.CultureInfo        cultInfo;
+    System.Globalization.DateTimeFormatInfo format;
+    System.Diagnostics.Stopwatch            stopwatch;
+        
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ProcessRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Access point for web service. Method which process all requests and generate responses.
+    /// </summary>
+    /// <param name="_request">Request in XML formated string</param>
+    /// <returns>
+    /// XML formated string with response to request.
+    /// </returns>
+    public str ProcessRequest(str _request)
+    {
+        #macrolib.SANA
+
+        XmlDocument         request;
+        SC_ParametersTable  parametersTable = SC_ParametersTable::find();        
+        SC_LargeText        infoLines;
+        EventHandlerResult  customResult = new EventHandlerResult();   
+        UserInfo            userInfo;
+        
+        try
+        {
+            infolog.clear(0);            
+            request          = XmlDocument::newXml(_request);
+            node             = request.documentElement().getNamedElement(#operation);
+            callFunction     = node ? node.innerText() : '';
+
+            //check if we are working in user default company
+            select firstOnly company from userInfo
+                where userInfo.id == curUserId();
+            
+            if(userInfo.company && userInfo.company != curext())            
+            {
+                appl.setDefaultCompany(userInfo.company);                
+            }
+
+            //logging request
+            if(parametersTable.EnableLog)
+            {
+                this.saveLogFile(true, _request, callFunction);
+            }
+
+            //save processing time
+            if(parametersTable.IncludeProcessDuration)
+            {
+                this.addProcessingTime();
+            }
+
+            if(callFunction)
+            {
+                switch(callFunction)
+                {
+                    //product
+                    case 'GetProducts':                     resultXml = SC_AXDataServiceClient_Product::construct().GetProducts(request); break;
+                    case 'GetProductCategories':            resultXml = SC_AXDataServiceClient_Product::construct().GetProductCategories(request); break;
+                    case 'GetUnitsOfMeasure':               resultXml = SC_AXDataServiceClient_Product::construct().GetUnitsOfMeasure(request); break;
+                    case 'GetVariantComponentGroups':       resultXml = SC_AXDataServiceClient_Product::construct().GetVariantComponentGroups(request); break;
+                    case 'GetVariantComponents':            resultXml = SC_AXDataServiceClient_Product::construct().GetVariantComponents(request); break;
+                    case 'GetVolumePrices':                 resultXml = SC_AXDataServiceClient_Product::construct().GetVolumePrices(request); break;
+                    case 'GetPriceInfo':                    resultXml = SC_AXDataServiceClient_Product::construct().GetPriceInfo(request); break;
+                    case 'GetStockInfo':                    resultXml = SC_AXDataServiceClient_Product::construct().GetStockInfo(request); break;
+                    case 'GetRetailOffers':                 resultXml = SC_AXDataServiceClient_Product::construct().GetRetailOffers(request); break;
+                    case 'HasVolumePrices':                 resultXml = SC_AXDataServiceClient_Product::construct().HasVolumePrices(request); break;
+                    case 'GetProductSuggestions':           resultXml = SC_AXDataServiceClient_Product::construct().GetProductSuggestions(request); break; 
+                    case 'GetProductImages':                resultXml = SC_AXDataServiceClient_Product::construct().GetProductImages(request); break;  
+                    case 'GetProductSalesAgreementLines':   resultXml = SC_AXDataServiceClient_Product::construct().GetProductSalesAgreementLines(request); break;  
+                    case 'Addon_GetDueDates':               resultXml = SC_AXDataServiceClient_Product::construct().Addon_GetDueDates(request); break;
+                    //customer
+                    case 'GetAnonymousCustomer':            resultXml = SC_AXDataServiceClient_Customer::construct().GetAnonymousCustomer(request); break;
+                    case 'GetCustomers':                    resultXml = SC_AXDataServiceClient_Customer::construct().GetCustomers(request); break;
+                    case 'GetShippingAddresses':            resultXml = SC_AXDataServiceClient_Customer::construct().GetShippingAddresses(request); break;
+                    case 'GetContacts':                     resultXml = SC_AXDataServiceClient_Customer::construct().GetContacts(request); break;
+                    case 'GetCustomerByContact':            resultXml = SC_AXDataServiceClient_Customer::construct().GetCustomerByContact(request); break;
+                    case 'GetSalesPersons':                 resultXml = SC_AXDataServiceClient_Customer::construct().GetSalesPersons(request); break;
+                    case 'SaveContact':                     resultXml = SC_AXDataServiceClient_Customer::construct().SaveContact(request); break;
+                    case 'SaveCustomer':                    resultXml = SC_AXDataServiceClient_Customer::construct().SaveCustomer(request); break;
+                    case 'GetShippingOrigin':               resultXml = SC_AXDataServiceClient_Customer::construct().GetShippingOrigin(request); break;
+                    case 'GetCustomerStatistics':           resultXml = SC_AXDataServiceClient_Customer::construct().GetCustomerStatistics(request); break;
+                    case 'GetCustomerStatisticsFields':     resultXml = SC_AXDataServiceClient_Customer::construct().GetCustomerStatisticsFields(request); break;
+                    case 'GetBalanceInfo':                  resultXml = SC_AXDataServiceClient_Customer::construct().GetBalanceInfo(request); break;
+                    case 'SaveShippingAddress':             resultXml = SC_AXDataServiceClient_Customer::construct().SaveShippingAddress(request); break;
+                    case 'DeleteShippingAddress':           resultXml = SC_AXDataServiceClient_Customer::construct().DeleteShippingAddress(request); break;
+                    //order
+                    case 'CalculateBasket':                 resultXml = SC_AXDataServiceClient_Order::construct().CalculateBasket(request); break;
+                    case 'GetOrders':                       resultXml = SC_AXDataServiceClient_Order::construct().GetOrders(request); break;
+                    case 'SaveOrder',
+                         'UpdateOrderFields':               resultXml = SC_AXDataServiceClient_Order::construct().SaveOrder(request); break;
+                    case 'CreatePersistedBasket':           resultXml = SC_AXDataServiceClient_Order::construct().CreatePersistedBasket(request); break;
+                    case 'GetPersistedBasket':              resultXml = SC_AXDataServiceClient_Order::construct().GetPersistedBasket(request); break;
+                    case 'PlacePersistedOrder':             resultXml = SC_AXDataServiceClient_Order::construct().PlacePersistedOrder(request); break;
+                    case 'UpdatePersistedBasketLines':      resultXml = SC_AXDataServiceClient_Order::construct().UpdatePersistedBasketLines(request); break;
+                    case 'UpdatePersistedBasket':           resultXml = SC_AXDataServiceClient_Order::construct().UpdatePersistedBasket(request); break;
+                    case 'ClearPersistedBasket':            resultXml = SC_AXDataServiceClient_Order::construct().ClearPersistedBasket(request); break;
+                    case 'PromoteQuote':                    resultXml = SC_AXDataServiceClient_Order::construct().PromoteQuote(request); break;                        
+                    case 'GetOrderReport':                  resultXml = SC_AXDataServiceClient_Order::construct().GetOrderReport(request); break;
+                    case 'SaveReturnOrder':                 resultXml = SC_AXDataServiceClient_Order::construct().SaveReturnOrder(request); break;
+                    case 'GetReturnReasonCodes':            resultXml = SC_AXDataServiceClient_Order::construct().GetReturnReasonCodes(request); break;
+                    case 'PayInvoiceOrders':                resultXml = SC_AXDataServiceClient_Order::construct().PayInvoiceOrders(request); break;
+                    case 'GetSalesAgreements':              resultXml = SC_AXDataServiceClient_Order::construct().GetSalesAgreements(request); break;
+                    case 'DeleteOrder':                     resultXml = SC_AXDataServiceClient_Order::construct().DeleteOrder(request); break;
+                    //settings
+                    case 'GetSettings':                     resultXml = SC_AXDataServiceClient_Settings::construct().GetSettings(request); break;
+                    case 'GetDefaultCurrency':              resultXml = SC_AXDataServiceClient_Settings::construct().GetDefaultCurrency(request); break;
+                    case 'GetCountries':                    resultXml = SC_AXDataServiceClient_Settings::construct().GetCountries(request); break;
+                    case 'GetCurrencies':                   resultXml = SC_AXDataServiceClient_Settings::construct().GetCurrencies(request); break;
+                    case 'GetShippingMethods':              resultXml = SC_AXDataServiceClient_Settings::construct().GetShippingMethods(request); break;
+                    case 'GetTaxNumberFormats':             resultXml = SC_AXDataServiceClient_Settings::construct().GetTaxNumberFormats(request); break;
+                    case 'TestConnection':                  resultXml = SC_AXDataServiceClient_Settings::construct().TestConnection(); break;
+                    case 'GetCustomizationsInfo':           resultXml = SC_AXDataServiceClient_Settings::construct().GetCustomizationsInfo(); break;
+                    case 'GetPaymentMethods':               resultXml = SC_AXDataServiceClient_Settings::construct().GetPaymentMethods(request); break;
+                    case 'GetStoreLocations':               resultXml = SC_AXDataServiceClient_Settings::construct().GetStoreLocations(request); break;
+                    //common
+                    case 'GetEntities':                     resultXml = SC_AXDataServiceClient_Common::construct().GetEntities(request); break;
+                    case 'GetEntityFields':                 resultXml = SC_AXDataServiceClient_Common::construct().GetEntityFields(request); break;                    
+                    case 'GetAttachmentFile':               resultXml = SC_AXDataServiceClient_Common::construct().GetAttachmentFile(request); break;
+                    case 'GetProductImageFile':             resultXml = SC_AXDataServiceClient_Common::construct().GetAttachmentFile(request, true); break;
+                    //webTests
+                    case 'SaveWebshop':                     resultXml = SC_AXDataServiceClient_WebTests::construct().SaveWebshop(request); break;
+                    case 'DeleteWebshop':                   resultXml = SC_AXDataServiceClient_WebTests::construct().DeleteWebshop(request); break;
+                    case 'SaveWebshopFilters':              resultXml = SC_AXDataServiceClient_WebTests::construct().SaveWebshopFilters(request); break;
+                    case 'DeleteWebshopFilters':            resultXml = SC_AXDataServiceClient_WebTests::construct().DeleteWebshopFilters(request); break;
+                    case 'SaveCustomerAssortment':          resultXml = SC_AXDataServiceClient_WebTests::construct().SaveCustomerAssortment(request); break;
+
+                    default:                        
+                        this.customMethodDelegate(callFunction, request, customResult);
+
+                        resultXml = customResult.result();
+                        
+                        if(!resultXml)
+                        {
+                            this.errorHandler(strfmt(#error0002, node.innerText()));
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                this.errorHandler(#error0003);
+            }
+        }
+        catch(Exception::CLRError)
+        {
+            this.errorHandler(#error0004 + AifUtil::getClrErrorMessage());
+        }
+        catch
+        {
+            for(i=1;i<=infologLine();i++)
+            {
+                infoLines += infolog.text(i);
+            }
+
+            if(custTable)
+            {
+                infoLines += ' ' + "@SCL275" + ' ' + custTable.AccountNum;
+            }
+
+            if(inventTable)
+            {
+                infoLines += ' ' + "@SCL276" + ' ' + inventTable.ItemId;
+            }
+
+            this.errorHandler(#error0004 + infoLines);
+        }            
+
+        //save processing time
+        if(parametersTable.IncludeProcessDuration)
+        {
+            this.addProcessingTime(true);
+            this.addProcessingAOSName();
+        }
+
+        //logging response
+        if(parametersTable.EnableLog)
+        {
+            this.saveLogFile(false, resultXml.innerXml(), callFunction);
+        }
+
+        return resultXml.innerXml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customMethodDelegate</Name>
+				<Source><![CDATA[
+    //delegate for custom extension methods
+    delegate void customMethodDelegate(String50 _callFunction, XmlDocument _request, EventHandlerResult _result){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAttachments</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method generate node with attachements to response.
+    /// </summary>
+    /// <param name="_parentNode">1</param>
+    /// <param name="_refRecId">2</param>
+    /// <param name="_refTableId">3</param>
+    [HookableAttribute(true), Replaceable]
+    protected void addAttachments(XmlNode _parentNode, RecId _refRecId, TableId _refTableId)
+    {
+        DocuRef             docuRef;
+        DocuType            docuType;
+        ecoResProductImage  ecoResProductImage;
+        XmlNode             attachmentNode, attachmentsNode;              
+
+        while select docuRef
+            where docuRef.RefRecId   == _refRecId &&
+                  docuRef.RefTableId == _refTableId &&
+                  docuRef.ActualCompanyId == curExt() &&
+                  docuRef.SC_VisibleInWebShop
+                join TableId, TypeGroup from docuType
+                    where docuType.TypeId == docuRef.TypeId &&
+                          (docuType.TypeGroup == DocuTypeGroup::File ||
+                          docuType.TypeGroup == DocuTypeGroup::URL)
+            notExists join RefRecId from ecoResProductImage
+                where ecoResProductImage.RefRecId == docuRef.RecId
+        {
+            if(!attachmentsNode)
+            {
+                attachmentsNode = _parentNode.appendChild(resultXml.createElement(#attachments));
+            }
+            attachmentNode = attachmentsNode.appendChild(resultXml.createElement(#attachment));
+                        
+            this.initAttachmentDefaultFields(attachmentNode, docuRef, docuType.TypeGroup);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initAttachmentDefaultFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initAttachmentDefaultFields(XmlNode _attachmentNode, DocuRef _docuRef, DocuTypeGroup _type)
+    {
+        this.addFieldValue(#description, _attachmentNode, _docuRef.Name);
+            
+        if(_type == DocuTypeGroup::URL)
+        {
+            this.addFieldValue(#bigType, _attachmentNode, #URL);
+            this.addFieldValue(#bigValue, _attachmentNode, _docuRef.Notes);
+        }
+        else
+        {
+            this.addFieldValue(#bigType, _attachmentNode, #fileSimple);
+            this.addFieldValue(#bigValue, _attachmentNode, _docuRef.docuValue().fileName());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAttributeField</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addAttributeField(XmlNode _parentNode, InventTable _inventTable)
+    {
+        Integer b;
+
+        EcoResCategoryHierarchy     ecoResCategoryHierarchy;
+        EcoResProduct               ecoResProduct = EcoResProduct::find(_inventTable.Product);
+        EcoResProductCategory       ecoResProductCategory;
+        Query                       query;
+        QueryBuildDataSource        queryBuildDataSource, queryBuildDataSource2, queryBuildDataSource3, queryBuildDataSource4, queryBuildDataSource5;
+        QueryRun                    queryRun;
+        EcoResProductAttributeValue ecoResProductAttributeValue;
+        EcoResAttribute             ecoResAttribute;        
+
+        ecoResCategoryHierarchy = EcoResCategoryHierarchy::find(webShopsTable.CategoryHierarchy);
+
+        query = new Query();
+        queryBuildDataSource = query.addDataSource(tablenum(EcoResProductAttributeValue));
+        queryBuildDataSource.addSelectionField(fieldNum(EcoResProductAttributeValue, Value));
+        queryBuildDataSource.addSelectionField(fieldNum(EcoResProductAttributeValue, Attribute));
+
+        for(b=1; b <= conLen(attributeCon); b++)
+        {
+            queryBuildDataSource.addRange(fieldnum(EcoResProductAttributeValue, Attribute)).value(queryValue(conPeek(attributeCon,b)));
+        }
+
+        queryBuildDataSource.addRange(fieldnum(EcoResProductAttributeValue, Product)).value(queryValue(_inventTable.Product));
+
+        queryBuildDataSource2 = queryBuildDataSource.addDataSource(tablenum(EcoResAttribute));
+        queryBuildDataSource2.addSelectionField(fieldNum(EcoResAttribute, RecId));
+        queryBuildDataSource2.addLink(fieldnum(EcoResProductAttributeValue, Attribute), fieldnum(EcoResAttribute, RecId));
+
+        queryBuildDataSource3 = queryBuildDataSource2.addDataSource(tablenum(EcoResCategoryAttributeLookup));
+        queryBuildDataSource3.addSelectionField(fieldNum(EcoResCategoryAttributeLookup, Category));
+        queryBuildDataSource3.addLink(fieldnum(EcoResAttribute, RecId), fieldnum(EcoResCategoryAttributeLookup, Attribute));
+        
+        while select Category from ecoResProductCategory
+            where ecoResProductCategory.CategoryHierarchy == ecoResCategoryHierarchy.RecId &&
+                  ecoResProductCategory.Product           == ecoResProduct.RecId
+        {
+            queryBuildDataSource3.addRange(fieldnum(EcoResCategoryAttributeLookup, Category)).value(queryValue(ecoResProductCategory.Category));
+        }
+
+        queryBuildDataSource4 = queryBuildDataSource3.addDataSource(tablenum(EcoResCategory));
+        queryBuildDataSource4.addSelectionField(fieldNum(EcoResCategory, RecId));
+        queryBuildDataSource4.addLink(fieldnum(EcoResCategoryAttributeLookup, Category), fieldnum(EcoResCategory, RecId));
+
+        queryBuildDataSource5 = queryBuildDataSource4.addDataSource(tablenum(EcoResProductCategory));
+        queryBuildDataSource5.addSelectionField(fieldNum(EcoResProductCategory, Category));
+        queryBuildDataSource5.addSelectionField(fieldNum(EcoResProductCategory, Product));
+        queryBuildDataSource5.addLink(fieldnum(EcoResCategory, RecId), fieldnum(EcoResProductCategory, Category));
+        queryBuildDataSource5.addRange(fieldnum(EcoResProductCategory, Product)).value(queryValue(_inventTable.Product));
+
+        queryRun = new QueryRun(query);
+
+        while(queryRun.next())
+        {
+            ecoResProductAttributeValue = queryRun.get(tablenum(EcoResProductAttributeValue));
+            ecoResAttribute             = ecoResAttribute::find(ecoResProductAttributeValue.Attribute);
+
+            if(ecoResAttribute)
+            {
+                this.initAttributeDefaultFields(ecoResProductAttributeValue.Attribute, ecoResProductAttributeValue.Value, ecoResAttribute.AttributeType, _parentNode);
+                attributeCon = conDel(attributeCon, conFind(attributeCon, ecoResAttribute.RecId),1);
+            }
+        }
+
+        if(attributeCon)
+        {
+            this.addCategoryAttribute(_parentNode, _inventTable, ecoResCategoryHierarchy);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCustAttributeField</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addCustAttributeField(XmlNode _parentNode, CustTable _custTable)
+    {        
+        EcoResAttributeValue    ecoResAttributeValue;
+        Query                   query;
+        QueryBuildDataSource    queryBuildDataSource, queryBuildDataSource2;
+        QueryRun                queryRun;
+        RefRecId                defaultAttribute, defaultAttributeValue;
+
+        query = new Query();
+        queryBuildDataSource = query.addDataSource(tablenum(EcoResAttributeValue));
+        queryBuildDataSource.addSelectionField(fieldNum(EcoResAttributeValue, Value));
+        queryBuildDataSource.addSelectionField(fieldNum(EcoResAttributeValue, Attribute));
+
+        for(i=1; i<=conLen(attributeCon); i++)
+        {
+            queryBuildDataSource.addRange(fieldnum(EcoResAttributeValue, Attribute)).value(queryValue(conPeek(attributeCon,i)));
+        }
+
+        queryBuildDataSource2 = queryBuildDataSource.addDataSource(tablenum(CustomerInstanceValue));        
+        queryBuildDataSource2.addLink(fieldnum(EcoResAttributeValue, InstanceValue), fieldnum(CustomerInstanceValue, RecId));
+        queryBuildDataSource2.addRange(fieldnum(CustomerInstanceValue, AccountNum)).value(_custTable.AccountNum);
+        queryBuildDataSource2.addRange(fieldnum(CustomerInstanceValue, CustomerDataAreaId)).value(curExt());
+        queryRun = new QueryRun(query);
+
+        while(queryRun.next())
+        {
+            ecoResAttributeValue = queryRun.get(tablenum(EcoResAttributeValue));
+            this.initAttributeDefaultFields(ecoResAttributeValue.Attribute, ecoResAttributeValue.Value, EcoResAttribute::find(ecoResAttributeValue.Attribute).AttributeType, _parentNode);        
+            attributeCon = conDel(attributeCon, conFind(attributeCon, ecoResAttributeValue.Attribute), 1);
+        }       
+
+        if(attributeCon) //search default values
+        {
+            for(i=1; i<=conLen(attributeCon); i++)
+            {
+                defaultAttribute = conPeek(attributeCon, i);
+                defaultAttributeValue = EcoResAttributeDefaultValue::findByAttribute(defaultAttribute).Value;
+
+                this.initAttributeDefaultFields(defaultAttribute, defaultAttributeValue, EcoResAttribute::find(defaultAttribute).AttributeType, _parentNode);
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCategoryAttribute</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addCategoryAttribute(XmlNode _parentNode, InventTable _inventTable, EcoResCategoryHierarchy _ecoResCategoryHierarchy)
+    {        
+        Integer b;
+
+        EcoResAttribute                 ecoResAttribute;
+        EcoResProductCategory           ecoResProductCategory;
+        EcoResAttributeValue            ecoResAttributeValue;
+        EcoResAttributeGroupAttribute   ecoResAttributeGroupAttribute;
+        container                       categoryAttributeCon;
+        Array                           ecoResAttributesArray = new Array(Types::Record);
+        Query                           query;
+        QueryBuildDataSource            queryBuildDataSource, queryBuildDataSource2;
+        QueryRun                        queryRun;
+        RefRecId                        defaultAttribute, defaultAttributeValue;        
+
+        while select Category from ecoResProductCategory
+            where ecoResProductCategory.Product == _inventTable.Product &&
+                  ecoResProductCategory.CategoryHierarchy == _ecoResCategoryHierarchy.RecId
+        {
+            //Check if attribute exists in category
+            ecoResAttributesArray = EcoResCategory::getProcCategoryAttributes(ecoResProductCategory.Category);
+            for(b=1; b<=ecoResAttributesArray.lastIndex(); b++)
+            {
+                ecoResAttribute = ecoResAttributesArray.value(b);
+
+                if(conFind(attributeCon,ecoResAttribute.RecId))
+                {
+                    categoryAttributeCon += ecoResAttribute.RecId;
+                }
+            }
+
+            //check category attribute groups
+            ecoResAttributesArray = this.getCategoryAttributeGroups(ecoResProductCategory.Category);
+            for(b=1; b<=ecoResAttributesArray.lastIndex(); b++)
+            {
+                ecoResAttributeGroupAttribute = ecoResAttributesArray.value(b);
+
+                if(conFind(attributeCon, ecoResAttributeGroupAttribute.Attribute))
+                {
+                    categoryAttributeCon += ecoResAttributeGroupAttribute.Attribute;
+                }
+            }
+ 
+            if(categoryAttributeCon)
+            {
+                //find category attribute value
+                query = new Query();
+                queryBuildDataSource = query.addDataSource(tablenum(EcoResAttributeValue));
+                queryBuildDataSource.addSelectionField(fieldNum(EcoResAttributeValue, Value));
+                queryBuildDataSource.addSelectionField(fieldNum(EcoResAttributeValue, Attribute));
+
+                for(b=1; b<=conLen(categoryAttributeCon); b++)
+                {
+                    queryBuildDataSource.addRange(fieldnum(EcoResAttributeValue, Attribute)).value(queryValue(conPeek(categoryAttributeCon,b)));
+                }
+
+                queryBuildDataSource2 = queryBuildDataSource.addDataSource(tablenum(EcoResCategoryInstanceValue));
+                queryBuildDataSource2.addSelectionField(fieldNum(EcoResCategoryInstanceValue, RecId));
+                queryBuildDataSource2.addLink(fieldnum(EcoResAttributeValue, InstanceValue), fieldnum(EcoResCategoryInstanceValue, RecId));
+                queryBuildDataSource2.addRange(fieldnum(EcoResCategoryInstanceValue, Category)).value(queryValue(ecoResProductCategory.Category));
+                queryBuildDataSource2.addRange(fieldnum(EcoResCategoryInstanceValue, BuyingLegalEntity)).value(queryValue(0) + ',' + queryValue(CompanyInfo::find().RecId));
+                queryRun = new QueryRun(query);
+
+                while(queryRun.next())
+                {
+                    ecoResAttributeValue = queryRun.get(tablenum(EcoResAttributeValue));
+                    this.initAttributeDefaultFields(ecoResAttributeValue.Attribute, ecoResAttributeValue.Value, EcoResAttribute::find(ecoResAttributeValue.Attribute).AttributeType, _parentNode);
+                    categoryAttributeCon = conDel(categoryAttributeCon, conFind(categoryAttributeCon, ecoResAttributeValue.Attribute), 1);
+                }
+
+                if(categoryAttributeCon) //search default values
+                {
+                    for(b=1; b<=conLen(categoryAttributeCon); b++)
+                    {
+                        defaultAttribute = conPeek(categoryAttributeCon, b);
+                        defaultAttributeValue = EcoResAttributeDefaultValue::findByAttribute(defaultAttribute).Value;
+
+                        this.initAttributeDefaultFields(defaultAttribute, defaultAttributeValue, EcoResAttribute::find(defaultAttribute).AttributeType, _parentNode);
+                    }
+                }
+            }
+            categoryAttributeCon = conNull();
+        }
+        attributeCon = conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCategoryAttributeGroups</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Array getCategoryAttributeGroups(EcoResCategoryId _categoryId)
+    {
+        QueryBuildDataSource            qbds, qbds2;
+        ProcCategoryModifier            procCategoryModifier;
+        EcoResCategory                  ecoResCategory;
+        Query                           query = new Query();
+        QueryRun                        queryRun;
+        Array                           ecoResAttributesArray  = new Array(Types::Record);
+        Counter                         arrayCount             = 0;                
+
+        ecoResCategory       = EcoResCategory::find(_categoryId);
+        procCategoryModifier = ProcCategoryModifier::find(_categoryId);
+        qbds                 = query.addDataSource(tableNum(EcoResAttributeGroupAttribute));
+        qbds.addSelectionField(fieldNum(EcoResAttributeGroupAttribute, Attribute));
+
+        qbds2 = qbds.addDataSource(tableNum(EcoResCategoryAttributeGroup));
+        qbds2.relations(false);
+        qbds2.addLink(fieldNum(EcoResAttributeGroupAttribute, AttributeGroup), fieldNum(EcoResCategoryAttributeGroup, AttributeGroup));
+        qbds2.joinMode(JoinMode::ExistsJoin);
+
+        if(procCategoryModifier.IsProductAttributesInherited || ecoResCategory.IsCategoryAttributesInherited)
+        {
+            qbds2.addRange(fieldNum(ecoResCategoryAttributeGroup, Category)).value(this.getInheritedCategoriesList(_categoryId, ecoResCategory.IsCategoryAttributesInherited));
+        }
+        else
+        {
+            qbds2.addRange(fieldNum(ecoResCategoryAttributeGroup, Category)).value(queryValue(_categoryId));
+        }
+
+        queryRun = new QueryRun(query);
+
+        while(queryRun.next())
+        {
+            arrayCount++;
+            ecoResAttributesArray.value(arrayCount, queryRun.get(tableNum(EcoResAttributeGroupAttribute)));
+        }
+
+        return ecoResAttributesArray;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInheritedCategoriesList</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected SC_LargeText getInheritedCategoriesList(EcoResCategoryId _categoryId, boolean _searchCategoryAttr = false)
+    {
+        ProcCategoryExpanded procCategoryExpanded;
+        SC_LargeText         categoryList = int642str(_categoryId);        
+
+        select firstOnly IsCategoryAttributesInherited, IsProductAttributesInherited, ParentCategory from procCategoryExpanded
+            where procCategoryExpanded.CategoryId == _categoryId &&
+                  procCategoryExpanded.IsActive == NoYes::Yes;
+
+        if(((_searchCategoryAttr && procCategoryExpanded.IsCategoryAttributesInherited) || procCategoryExpanded.IsProductAttributesInherited) && 
+            procCategoryExpanded.ParentCategory)
+        {
+            categoryList  +=  ',' + this.getInheritedCategoriesList(procCategoryExpanded.ParentCategory, _searchCategoryAttr);
+        }
+
+        return categoryList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addExtraFields</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method generate node with ExtraFields to response.
+    /// </summary>
+    /// <param name="_parentNode">1</param>
+    /// <param name="_buffer">2</param>    
+    /// <returns>
+    /// true if extra fields exist
+    /// </returns>
+    [HookableAttribute(true), Replaceable]
+    protected boolean addExtraFields(XmlNode _parentNode, Common _buffer)
+    {
+        SC_LargeText fieldName;
+        XmlNode      extraNode;
+        Integer      b;
+
+        if(extraFields)
+        {
+            for(b=0;b<extraFields.length();b++)
+            {
+                extraNode = extraFields.item(b);
+                fieldName = extraNode.attributes().getNamedItem(#name).value();
+
+                if(strContains(fieldName, ';'))
+                {
+                    this.addRelatedField(fieldName, _parentNode, _buffer);
+                }
+                else if(strContains(fieldName, 'Attribute__'))
+                {
+                    attributeCon += str2int64(subStr(fieldName, 12, strLen(fieldName)));
+                }
+                else
+                {
+                    this.addField(fieldName, _parentNode, _buffer, true);
+                }
+            }
+        }
+        if(attributeCon)
+        {
+            if(_buffer.TableId == tableNum(CustTable))
+            {
+                this.addCustAttributeField(_parentNode, _buffer);
+            }
+
+            if(_buffer.TableId == tableNum(InventTable))
+            {
+                this.addAttributeField(_parentNode, _buffer);
+            }
+        }
+
+        return extraFields && extraFields.length();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addExtraFieldsGlobal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method generate nodes for any ExtraFields list to response.
+    /// </summary>
+    /// <param name="_parentNode">1</param>
+    /// <param name="_extraFields">2</param>
+    /// <param name="_buffer">3</param>
+    /// <returns>
+    /// returns true if extra fields exist
+    /// </returns>
+    [HookableAttribute(true), Replaceable]
+    protected boolean addExtraFieldsGlobal(XmlNode _parentNode, XmlNodeList _extraFields, Common _buffer)
+    {
+        SC_LargeText fieldName;
+        XmlNode      extraNode;
+        Integer      b;
+
+        if(_extraFields)
+        {
+            for(b=0;b<_extraFields.length();b++)
+            {
+                extraNode = _extraFields.item(b);
+                fieldName = extraNode.attributes().getNamedItem(#name).value();
+
+                if(strContains(fieldName, ';'))
+                {
+                    this.addRelatedField(fieldName, _parentNode, _buffer);
+                }
+                else
+                {
+                    this.addField(fieldName, _parentNode, _buffer, true);
+                }
+            }
+        }
+
+        return _extraFields && _extraFields.length();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Main method to add any field from buffer to response.
+    /// </summary>
+    /// <param name="_fieldName">1</param>
+    /// <param name="_parentNode">2</param>
+    /// <param name="_buffer">3</param>
+    /// <param name="_addType">4</param>    
+    [HookableAttribute(true), Replaceable]
+    protected void addField(str _fieldName, XmlNode _parentNode, Common _buffer, boolean _addType=false)
+    {
+        boolean                 boolValue;
+        EcoResProductCategory   ecoResProductCategory;
+        InventTable             inventTableLocal;
+        CustTable               custTableLocal;
+        InventDim               storageDim;        
+        XmlNode                 categoryNode;
+        EventHandlerResult      customResult = new EventHandlerResult();             
+
+        try
+        {
+            switch(_buffer.TableId)
+            {
+                case tableNum(InventTable):
+                    inventTableLocal = _buffer as InventTable;
+                    switch(_fieldName)
+                    {
+                        case #categoryId:                        
+                            categoryNode  = _parentNode.appendChild(resultXml.createElement(#categories));
+
+                            if(webShopsTable.EnableProdCategories)
+                            {
+                                while select Category from ecoResProductCategory
+                                    where ecoResProductCategory.CategoryHierarchy   == webShopsTable.CategoryHierarchy &&
+                                          ecoResProductCategory.Product             == inventTableLocal.Product
+                                {
+                                    categoryName = '';
+                                    this.mergeCategoryHierarchyNames(ecoResProductCategory.Category);
+                                    categoryNode.appendChild(resultXml.createElement(#id)).innerText(categoryName);
+                                }
+                            }
+                            else
+                            {
+                                categoryNode.appendChild(resultXml.createElement(#id)).innerText(InventItemGroupItem::findByItemIdLegalEntity(inventTableLocal.ItemId).ItemGroupId);
+                            }
+                            break;
+
+                        case #blocked:
+                            storageDim = InventDim::findDim(this.setProductStorageDim());
+                            boolValue  = inventTableLocal.inventItemSalesSetup(storageDim.inventDimId).stopped() || inventTableLocal.inventItemInventSetup(storageDim.inventDimId).stopped();
+                            this.addFieldValue(_fieldName, _parentNode, boolValue);
+                            break;
+
+                        default:
+                            this.addUnknownField(_fieldName, _parentNode, _buffer, _addType);
+                            break;
+                    }
+                    break;
+
+                case tableNum(CustTable):
+                    custTableLocal = _buffer as CustTable;
+                    switch(_fieldName)
+                    {
+                        case fieldStr(CustTable, CreditMax):
+                            this.addFieldValue(_fieldName, _parentNode, CurrencyExchangeHelper::curAmount(custTableLocal.CreditMax, custTableLocal.Currency));
+                            break;
+
+                        default:
+                            this.addUnknownField(_fieldName, _parentNode, _buffer, _addType);
+                            break;
+                    }
+                    break;
+
+                default:
+                    this.customAddFieldDelegate(_fieldName, _parentNode, _buffer, _addType, this, customResult);
+
+                    if(customResult.result())
+                    {
+                        _parentNode = customResult.result();
+                    }
+                    else
+                    {
+                        this.addUnknownField(_fieldName, _parentNode, _buffer, _addType);
+                    }
+                    break;
+            }
+        }
+        catch
+        {
+            this.addFieldValue(_fieldName, _parentNode, '');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customAddFieldDelegate</Name>
+				<Source><![CDATA[
+    delegate void customAddFieldDelegate(SC_LargeText _fieldName, XmlNode _parentNode, Common _buffer, boolean _addType, Object _object, EventHandlerResult _result){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFieldValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Main method to add any custom field to response.
+    /// </summary>
+    /// <param name="_fieldName">1</param>
+    /// <param name="_parentNode">2</param>
+    /// <param name="_value">3</param>
+    /// <param name="_addType">4</param>
+    /// <param name="_specialType">5</param>
+    [HookableAttribute(true), Replaceable]
+    protected void addFieldValue(SC_LargeText _fieldName, XmlNode _parentNode, Anytype _value, boolean _addType=false, SC_LargeText _specialType = '')
+    {
+        Xmlelement   fieldNameNode;
+        SC_LargeText typeName;
+        
+        fieldNameNode = _parentNode.appendChild(resultXml.createElement(#field));
+        fieldNameNode.setAttribute(#name, _fieldName);
+        fieldNameNode.setAttribute(#value, this.convertAny2Str(_value));
+
+        if(_addType)
+        {
+            switch(typeof(_value))
+            {
+                case Types::Integer:
+                    typeName = 'Integer';
+                    break;
+
+                case Types::Int64:
+                    typeName = 'BigInteger';
+                    break;
+
+                case Types::Real:
+                    typeName = 'Decimal';
+                    break;
+
+                case Types::Enum:
+                    if(enumnum(NoYes) == DictEnum::value2id(_value))
+                    {
+                        typeName = 'Boolean';
+                    }
+                    else
+                    {
+                        typeName = 'Enum';
+                    }
+                    break;
+
+                case Types::UtcDateTime:
+                    typeName = 'DateTime';
+                    break;
+
+                case Types::Date:
+                    typeName = 'Date';
+                    break;
+
+                case Types::Guid:
+                    typeName = 'GUID';
+                    break;
+
+                case Types::Container:
+                    typeName = 'Array';
+                    break;
+
+                default:
+                    typeName = 'String';
+                    break;
+            }
+            fieldNameNode.setAttribute(#type, _specialType ? _specialType : typeName);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addNodeValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Main method to add any custom field as node to the response.
+    /// </summary>
+    /// <param name="_fieldName">1</param>
+    /// <param name="_parentNode">2</param>
+    /// <param name="_value">3</param>    
+    [HookableAttribute(true), Replaceable]
+    protected void addNodeValue(str _fieldName, XmlNode _parentNode, Anytype _value)
+    {
+        XmlNode  newNode;
+        
+        newNode = _parentNode.appendChild(resultXml.createElement(_fieldName));
+        newNode.text(this.convertAny2Str(_value));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFilters2Query</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method add filters from request for specified query.
+    /// </summary>
+    /// <param name="_queryBuildDS">1</param>
+    /// <param name="_tableId">2</param>
+    /// <param name="_mapTableFields">3</param>
+    /// /// <returns>
+    /// query build datasource with firters applied
+    /// </returns>  
+    [HookableAttribute(true), Replaceable]
+    protected QueryBuildDataSource addFilters2Query(QueryBuildDataSource _queryBuildDS, TableId _tableId, boolean _mapTableFields = true)
+    {
+        XmlNodeList  conditionNodes;
+        FieldName    filterFieldName;
+        XmlNode      filterNode;
+        SC_LargeText minValue, maxValue;   
+        Integer      b;
+
+        if(filterFields && _queryBuildDS)
+        {
+            for(b=0;b<filterFields.length();b++)
+            {
+                node            = filterFields.item(b);
+                filterFieldName = node.attributes().getNamedItem(#field).value();
+                filterFieldName = _mapTableFields ? this.mapTableFields(filterFieldName, _tableId) : filterFieldName;
+                fieldId         = fieldname2id(_tableId, filterFieldName);
+
+                this.setSpecificNodeValues(_tableId, fieldId, node);
+
+                if(!fieldId)
+                {
+                    continue;
+                }
+                conditionNodes  = node.childNodes();
+
+                for(k=0;k<conditionNodes.length();k++)
+                {
+                    filterNode = conditionNodes.item(k);
+
+                    if(this.validateFilterName(filterNode))
+                    {
+                        filterNode.innerText(this.mapFieldValues(filterFieldName, filterNode.innerText()));
+                    }
+
+                    switch(filterNode.name())
+                    {
+                        case #greater:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('>%1', filterNode.innerText()));
+                            break;
+
+                        case #greaterOrEqual:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('%1..', filterNode.innerText()));
+                            break;
+
+                        case #less:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('<%1', filterNode.innerText()));
+                            break;
+
+                        case #lessOrEqual:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('..%1', filterNode.innerText()));
+                            break;
+
+                        case #equal:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('%1', filterNode.innerText()));
+                            break;
+
+                        case #notEqual:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('!%1', filterNode.innerText()));
+                            break;
+
+                        case #contains:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('*%1*', SysQuery::value(filterNode.innerText())));
+                            break;
+
+                        case #notContains:
+                            _queryBuildDS.addRange(fieldId).value(strFmt('!*%1*', SysQuery::value(filterNode.innerText())));
+                            break;
+
+                        case #between:
+                            minValue = this.mapFieldValues(filterFieldName, filterNode.getNamedElement(#min).innerText());
+                            maxValue = this.mapFieldValues(filterFieldName, filterNode.getNamedElement(#max).innerText());
+                            _queryBuildDS.addRange(fieldId).value(strFmt('%1..%2', minValue, maxValue));
+                            break;
+                    }
+                }
+            }
+        }
+
+        return _queryBuildDS;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateFilterName</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean validateFilterName(XmlNode _filterNode)
+    {
+        return _filterNode.name() != #between && _filterNode.name() != #contains && _filterNode.name() != #notContains;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRelatedField</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addRelatedField(SC_LargeText _fieldName, XmlNode _parentNode, Common _buffer)
+    {
+        DictRelation    dictRelation;
+        SysDictField    sysDictField;
+        SysDictTable    sysDictTable;
+        SysDictType     sysDictType;
+        Common          common;
+        AnyType         fieldValue;
+        container       con = str2con(_fieldName, ';');
+        
+        fieldId = conLen(con) ? fieldname2id(_buffer.TableId, conPeek(con, 1)) : 0;
+
+        if(fieldId)
+        {
+            fieldValue   = _buffer.(fieldId);
+            sysDictField = new SysDictField(_buffer.TableId, fieldId);
+            sysDictType  = new SysDictType(sysDictField.typeId());
+            if(sysDictType)
+            {
+                dictRelation = sysDictType.getLookupRelation();
+            }
+
+            if(dictRelation)
+            {
+                sysDictField = new SysDictField(dictRelation.table(), dictRelation.lineExternTableValue(1));
+                sysDictTable = new SysDictTable(dictRelation.table());
+                common       = sysDictTable.makeRecord();
+                fieldId      = conLen(con) == 2 ? fieldname2id(sysDictTable.id(), conPeek(con, 2)) : 0;
+                if(fieldId)
+                {
+                    select firstonly common
+                        where common.(sysDictField.id()) == fieldValue;
+                    if(common)
+                    {
+                        this.addFieldValue(_fieldName, _parentNode, common.(fieldId));
+                    }
+                }
+            }
+        }
+        else
+        {
+            if(_buffer.TableId == tableNum(SalesTable) || _buffer.TableId == tableNum(SalesQuotationTable))
+            {
+                this.errorHandler(strfmt(#error0404, _fieldName, tableId2name(_buffer.TableId)), #errorCode3);
+            }
+            else
+            {
+                this.errorHandler(strfmt(#error0404, _fieldName, tableId2name(_buffer.TableId)));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addSavedCustomFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addSavedCustomFields(XmlNode _parentNode, Common _buffer, boolean _isAddressFields = false)
+    {
+        Integer b;
+
+        if(_buffer)
+        {
+            for(b=1;b<=conLen(_isAddressFields ? customAddressFieldsIds : customFieldsIds);b++)
+            {
+                fieldId = fieldName2id(_buffer.tableId, conPeek(_isAddressFields ? customAddressFieldsIds : customFieldsIds, b));
+
+                if(fieldId)
+                {
+                    this.addFieldValue(conPeek(_isAddressFields ? customAddressFieldsIds : customFieldsIds, b), _parentNode, _buffer.(fieldId));
+                }
+                else if(!_isAddressFields && (_buffer.TableId == tableNum(SalesTable) || _buffer.TableId == tableNum(SalesQuotationTable)))
+                {
+                    this.errorHandler(strfmt(#error0404, conPeek(customFieldsIds, b), tableId2name(_buffer.TableId)), #errorCode3);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSavedCustomFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void setSavedCustomFields(Common _buffer)
+    {
+        Integer b;
+
+        for(b=1;b<=conLen(customFieldsIds);b++)
+        {
+            fieldId = fieldName2id(_buffer.TableId, conPeek(customFieldsIds, b));
+            if(fieldId)
+            {
+                _buffer.(fieldId) = this.convert2Type(conPeek(customFieldsValues, b), typeof(_buffer.(fieldId)));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addProcessingTime</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addProcessingTime(boolean _finish = false)
+    {
+        XmlElement timeNode;
+        int64      elapsedTime;       
+    
+        new InteropPermission(InteropKind::ClrInterop).assert();
+    
+        if(!stopwatch)
+        {
+            stopwatch = new System.Diagnostics.Stopwatch();
+        }
+    
+        if(_finish)
+        {
+            if(!resultXml)
+            {
+                this.createHeaderXml();
+            }
+        
+            timeNode    = resultXml.getNamedElement(#response);
+            timeNode = timeNode.appendChild(resultXml.createElement('ElapsedMs'));
+        
+            stopwatch.Stop();
+            elapsedTime = stopwatch.get_ElapsedMilliseconds();
+            timeNode.text(int642str(elapsedTime));
+        }
+        else
+        {
+            stopwatch.Start();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addProcessingAOSName</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addProcessingAOSName()
+    {
+        XmlElement  aosNode;
+        xSession    currentSession = new xSession();
+
+        if(!resultXml)
+        {
+            this.createHeaderXml();
+        }        
+        
+        aosNode = resultXml.getNamedElement(#response);
+        aosNode = aosNode.appendChild(resultXml.createElement('AOS'));
+        aosNode.text(currentSession.AOSName());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addUnknownField</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void addUnknownField(SC_LargeText _fieldName, XmlNode _parentNode, Common _buffer, boolean _addType)
+    {
+        DictField dictfield;
+        
+        fieldId = fieldname2id(_buffer.TableId, _fieldName);
+
+        if(fieldId)
+        {
+            dictfield = new DictField(_buffer.TableId, fieldId); //typeof func now worked in addFieldValue method, extra param added
+            this.addFieldValue(_fieldName, _parentNode, _buffer.(fieldId), _addType, enumNum(NoYes) == dictField.enumId() ? 'Boolean' : '');
+        }
+        else
+        {
+            if(_buffer.TableId == tableNum(SalesTable) || _buffer.TableId == tableNum(SalesQuotationTable))
+            {
+                this.errorHandler(strfmt(#error0404, _fieldName, tableId2name(_buffer.TableId)), #errorCode3);
+            }
+            else
+            {
+                this.errorHandler(strfmt(#error0404, _fieldName, tableId2name(_buffer.TableId)));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcInventory</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public Qty calcInventory(InventDim _inventDim = null)
+    {
+        InventDim           inventDimStorage;
+        Qty                 available;        
+        SC_LargeText        cacheKey = strFmt('%1%2%3%4%5', webShopsTable.WebShopId, custTable.AccountNum, inventTable.ItemId, _inventDim.inventDimId, (parmUnitId ? parmUnitId : inventTable.salesUnitId()));
+        container           cachedValues;
+
+        cachedValues = globalCache.get(classId2Name(classIdGet(this)), cacheKey, conNull());
+
+        if(cachedValues == conNull())
+        {
+            this.calcBOMComponentsInventory(_inventDim);
+            cachedValues = globalCache.get(classId2Name(classIdGet(this)), cacheKey, conNull());
+        }
+        
+        if(cachedValues == conNull())
+        {
+            try
+            {
+                inventDimStorage = this.setProductStorageDim();
+                inventDimStorage.mergeUsedDim(InventDimGroupSetup::newItemId(inventTable.ItemId), _inventDim);
+                inventDimStorage.initFromInventTable(inventTable, InventItemOrderSetupType::Sales, inventDimStorage);
+
+                if(inventDimStorage.InventSiteId && !inventDimStorage.InventLocationId) //retry to search default location if site found
+                {
+                    inventDimStorage.initFromInventTable(inventTable, InventItemOrderSetupType::Sales, inventDimStorage);
+                }
+
+                if(webShopsTable.StockCalculationType == SC_InventCalcType::ATP)
+                {
+                    available = this.calcInventoryATP(inventDimStorage);
+                }
+                else
+                {
+                    available = this.calcInventoryDefault(inventDimStorage);
+                }
+
+                if(parmUnitId || inventTable.inventUnitId() != inventTable.salesUnitId())
+                {
+                    available = EcoResProductUnitConverter::convertForReleasedProduct(inventTable.ItemId, InventDim::findOrCreate(inventDimStorage).inventDimId, available,
+                                                                                 UnitOfMeasure::unitOfMeasureIdBySymbol(inventTable.inventUnitId()),
+                                                                                 UnitOfMeasure::unitOfMeasureIdBySymbol(parmUnitId ? parmUnitId : inventTable.salesUnitId()),
+                                                                                 NoYes::Yes);
+                }
+            }
+            catch
+            {
+                available = 0;
+            }
+            globalCache.set(classId2Name(classIdGet(this)), cacheKey, [available]);
+        }
+        else
+        {
+            [available] = cachedValues;
+        }
+
+        return available;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcInventoryDefault</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Qty calcInventoryDefault(InventDim _inventDim)
+    {
+        Qty                 available;
+        WHSInventStatus     WHSInventStatus;
+        InventIAvailability inventIAvailability;
+
+        if(webShopsTable.EnableInventoryStatuses && WHSInventEnabled::exist(inventTable.ItemId)) //warehouse management products per statuses
+        {
+            while select InventStatusId from WHSInventStatus
+                where WHSInventStatus.SC_VisibleInWebShop
+            {
+                _inventDim.InventStatusId = WHSInventStatus.InventStatusId;
+                inventIAvailability = InventAvailabilityProvider::findByItemDim(inventTable, _inventDim).parmInventAvailability();
+                
+                if(webShopsTable.StockCalculationType == SC_InventCalcType::Financial)
+                {
+                    available += inventIAvailability.availTotal();
+                }
+                else
+                {
+                    available += inventIAvailability.availPhysical();
+                }
+            }
+        }
+        else //standard products or statuses disabled
+        {
+            inventIAvailability = InventAvailabilityProvider::findByItemDim(inventTable, _inventDim).parmInventAvailability();
+
+            if(webShopsTable.StockCalculationType == SC_InventCalcType::Financial)
+            {
+                available = inventIAvailability.availTotal();
+            }
+            else
+            {
+                available = inventIAvailability.availPhysical();
+            }
+        }
+
+        return available;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcInventoryATP</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Qty calcInventoryATP(InventDim _inventDim)
+    {
+        Qty                     available;
+        WHSInventStatus         WHSInventStatus;
+        SC_SalesATPCalculation  salesATPCalculation;
+
+        if(webShopsTable.EnableInventoryStatuses && WHSInventEnabled::exist(inventTable.ItemId)) //warehouse management products per statuses
+        {
+            while select InventStatusId from WHSInventStatus
+                where WHSInventStatus.SC_VisibleInWebShop
+            {
+                _inventDim.InventStatusId = WHSInventStatus.InventStatusId;
+                salesATPCalculation = SC_SalesATPCalculation::newSalesCalculation(inventTable.ItemId, InventDim::findOrCreate(_inventDim).inventDimId, custTable.AccountNum);                
+                available += salesATPCalculation.calcSalesATPQty();
+            }
+        }
+        else //standard products or statuses disabled
+        {
+            salesATPCalculation = SC_SalesATPCalculation::newSalesCalculation(inventTable.ItemId, InventDim::findOrCreate(_inventDim).inventDimId, custTable.AccountNum);
+            available = salesATPCalculation.calcSalesATPQty();
+        }
+
+        return available;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkValidationRules</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public boolean checkValidationRules(Common _buffer, boolean _throwError = false, boolean _setError = false)
+    {
+        SC_DataValidationRulesTable dataValidationRulesTable;
+        SC_DataValidationRulesLine  dataValidationRulesLine;
+        boolean                     ret = true;
+        DictClass                   dc = new DictClass(className2Id(classStr(SC_AXDataServiceClient_Common)));                
+
+        select firstOnly dataValidationRulesTable
+            where dataValidationRulesTable.ValidationTableId == _buffer.TableId;
+
+        if(dataValidationRulesTable && dataValidationRulesTable.Active)
+        {
+            while select dataValidationRulesLine
+                where dataValidationRulesLine.ValidationTableId == dataValidationRulesTable.ValidationTableId
+            {
+                switch(dataValidationRulesLine.Operator)
+                {
+                    case SC_ValidationOperator::Equal:
+                        ret = ret && _buffer.(dataValidationRulesLine.ValidationFieldId) == this.convert2Type(dataValidationRulesLine.Value, typeOf(_buffer.(dataValidationRulesLine.ValidationFieldId)));
+                        break;
+                    case SC_ValidationOperator::Greater:
+                        ret = ret && _buffer.(dataValidationRulesLine.ValidationFieldId) > this.convert2Type(dataValidationRulesLine.Value, typeOf(_buffer.(dataValidationRulesLine.ValidationFieldId)));
+                        break;
+                    case SC_ValidationOperator::GreaterOrEqual:
+                        ret = ret && _buffer.(dataValidationRulesLine.ValidationFieldId) >= this.convert2Type(dataValidationRulesLine.Value, typeOf(_buffer.(dataValidationRulesLine.ValidationFieldId)));
+                        break;
+                    case SC_ValidationOperator::Less:
+                        ret = ret && _buffer.(dataValidationRulesLine.ValidationFieldId) < this.convert2Type(dataValidationRulesLine.Value, typeOf(_buffer.(dataValidationRulesLine.ValidationFieldId)));
+                        break;
+                    case SC_ValidationOperator::LessOrEqual:
+                        ret = ret && _buffer.(dataValidationRulesLine.ValidationFieldId) <= this.convert2Type(dataValidationRulesLine.Value, typeOf(_buffer.(dataValidationRulesLine.ValidationFieldId)));
+                        break;
+                    case SC_ValidationOperator::NotEqual:
+                        ret = ret && _buffer.(dataValidationRulesLine.ValidationFieldId) != this.convert2Type(dataValidationRulesLine.Value, typeOf(_buffer.(dataValidationRulesLine.ValidationFieldId)));
+                        break;
+                    case SC_ValidationOperator::CustomFunction:
+                        new ExecutePermission().assert();                                                
+                        ret = ret && dataValidationRulesLine.Value && dc.callObject(dataValidationRulesLine.Value, dc.makeObject(), _buffer.(dataValidationRulesLine.ValidationFieldId));
+                        CodeAccessPermission::revertAssert();
+                        break;
+                }
+
+                if(!ret)
+                {
+                    if(_throwError)
+                    {
+                        throw error(dataValidationRulesLine.ErrorTxt ? dataValidationRulesLine.ErrorTxt : strFmt("@SCL195", tableId2name(_buffer.TableId)));
+                    }
+
+                    if(_setError)
+                    {
+                        errorMsg = dataValidationRulesLine.ErrorTxt ? dataValidationRulesLine.ErrorTxt : strFmt("@SCL195", tableId2name(_buffer.TableId));
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convert2Type</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected anytype convert2Type(SC_Code _value, Types _type)
+    {
+        anytype         ret;
+        RealBase        realValue;
+        BaseDate        dateValue;
+        System.String   strValue;
+        System.DateTime clrDateTime;
+        System.Decimal  clrDecimal;        
+
+        try
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+            if(!cultInfo)
+            {
+                cultInfo = System.Globalization.CultureInfo::GetCultureInfo(SC_ParametersTable::find().Culture);
+            }
+
+            switch(_type)
+            {
+                case Types::Enum:
+                    ret             = enum2int(_value);
+                    break;
+                case Types::Date:
+                    if(_value)
+                    {
+                        strValue    = _value;
+                        clrDateTime = strValue.ToDateTime(cultInfo);
+                        dateValue   = clrDateTime;
+                        ret         = dateValue;
+                    }
+                    else
+                    {
+                        ret         = dateNull();
+                    }
+                    break;
+                case Types::UtcDateTime:
+                    if(_value)
+                    {
+                        strValue    = _value;
+                        clrDateTime = strValue.ToDateTime(cultInfo);
+                        ret         = clrDateTime;
+                    }
+                    else
+                    {
+                        ret         = utcDateTimeNull();
+                    }
+                    break;
+                case Types::Integer:
+                    ret             = str2int(_value);
+                    break;
+                case Types::Real:
+                    strValue        = _value ? _value : #zero;
+                    clrDecimal      = strValue.ToDecimal(cultInfo);
+                    realValue       = clrDecimal;
+                    ret             = realValue;
+                    break;
+                case Types::Time:
+                    if(_value)
+                    {
+                        ret         = str2time(_value);
+                    }
+                    break;
+                case Types::Guid:
+                    ret             = str2guid(_value);
+                    break;
+                case Types::Int64:
+                    ret             = str2int64(_value);
+                    break;
+                case Types::Container:
+                    if(_value)
+                    {
+                        ret         = str2con(_value);
+                    }
+                    break; 
+                default:
+                    ret             = _value;
+                    break;
+            }
+        }
+        catch(Exception::CLRError)
+        {
+            ret = _value;
+        }
+
+        CodeAccessPermission::revertAssert();
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertAny2Str</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected DirMemo convertAny2Str(AnyType _value)
+    {
+        DirMemo         strVar;
+        System.Decimal  clrDecimal;
+        System.DateTime clrDateTime;        
+
+        try
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+            if(!cultInfo || !format)
+            {
+                cultInfo = System.Globalization.CultureInfo::GetCultureInfo(SC_ParametersTable::find().Culture);
+                format   = cultInfo.get_DateTimeFormat();
+            }
+
+            switch(typeof(_value))
+            {
+                case Types::Integer:
+                    strVar          = int2str(_value);
+                    break;
+                case Types::Real:
+                    clrDecimal      = _value ? any2real(_value) : 0;
+                    strVar          = clrDecimal.ToString(cultInfo);
+                    break;
+                case Types::String:
+                    strVar          = _value;
+                    break;
+                case Types::Time:
+                if(_value)
+                    {
+                        clrDateTime = _value;
+                        strVar      = format.get_ShortTimePattern();
+                        strVar      = clrDateTime.ToString(strVar, cultInfo);
+                    }
+                    break;
+                case Types::Date:
+                if(_value)
+                    {
+                        clrDateTime = _value;
+                        strVar      = format.get_ShortDatePattern();
+                        strVar      = clrDateTime.ToString(strVar, cultInfo);
+                    }
+                    break;
+                case Types::UtcDateTime, Types::Class:
+                if(_value)
+                    {
+                        clrDateTime = _value;
+                        strVar      = clrDateTime.ToString(cultInfo);
+                    }
+                    break;
+                case Types::Enum:
+                    strVar          = int2str(enum2int(_value));
+                    break;
+                case Types::Container:
+                    strVar          = con2str(_value);
+                    break;
+                case Types::Guid:
+                    strVar          = guid2str(_value);
+                    break;
+                case Types::Int64:
+                    strVar          = int642str(_value);
+                    break;
+                default:
+                    strVar          = '';
+                    break;
+            }
+        }
+        catch(Exception::CLRError)
+        {
+            strVar = '';
+        }
+
+        CodeAccessPermission::revertAssert();
+
+        return strVar;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countQueryTotal</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Counter countQueryTotal(container _queryPack)
+    {
+        Query                   countQuery;
+        QueryRun                countQueryRun;
+        QueryBuildDataSource    qbds;
+        QueryBuildFieldList     qbfl;
+        Common                  common;
+        Integer                 counter;
+        
+        countQueryRun   = new QueryRun(_queryPack);
+        countQuery      = countQueryRun.query();
+
+        if(countQuery.dataSourceCount())
+        {
+            qbds = countQuery.dataSourceNo(1);
+
+            qbds.update(false);
+            qbds.sortClear();
+            countQuery.clearGroupBy();
+            countQuery.clearOrderBy();
+            qbfl = qbds.fields();
+            qbfl.dynamic(false);
+            qbfl.clearFieldList();
+            qbds.addSelectionField(fieldNum(Common,RecId),SelectionField::Count);
+
+            countQueryRun   = new QueryRun(countQuery);
+
+            while (countQueryRun.next())
+            {
+                common  = countQueryRun.get(countQuery.dataSourceNo(1).table());
+                counter += int642int(common.RecId);
+            }
+        }
+
+        return counter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countryISO2Id</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected LogisticsAddressCountryRegionId countryISO2Id(LogisticsAddressCountryRegionISOCode _ISO)
+    {        
+        return (select firstOnly CountryRegionId from LogisticsAddressCountryRegion
+                where LogisticsAddressCountryRegion.ISOcode == _ISO).CountryRegionId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createHeaderXml</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void createHeaderXml()
+    {        
+        resultXml    = XmlDocument::newBlank();
+        responseNode = resultXml.appendChild(resultXml.createElement(#response));
+        resultNode   = responseNode.appendChild(resultXml.createElement(#result));
+        errorsNode   = responseNode.appendChild(resultXml.createElement(#errors));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>errorHandler</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void errorHandler(SC_LargeText _error, String50 _errorCode='')
+    {
+        XmlElement errorNode;
+        
+        if(resultXml)
+        {
+            errorsNode = resultXml.documentElement().getNamedElement(#errors);
+            if(errorsNode)
+            {
+                errorNode = errorsNode.appendChild(resultXml.createElement(#error));
+                errorNode.text(_error);
+            }
+        }
+        else
+        {
+            this.createHeaderXml();
+            errorNode     = errorsNode.appendChild(resultXml.createElement(#error));
+            errorNode.text(_error);
+        }
+
+        if(_errorCode && errorNode)
+        {
+            errorNode.setAttribute(#codeSmall, _errorCode);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findAttributeType</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected AttributeValueText findAttributeType(EcoResAttributeType _ecoResAttributeType)
+    {
+        AttributeValueText  value;        
+
+        switch(_ecoResAttributeType.DataType)
+        {
+            case AttributeDataType::Integer:
+                value = 'Integer';
+                break;
+
+            case AttributeDataType::DateTime:
+                value = 'DateTime';
+                break;
+
+            case AttributeDataType::Decimal:
+                value = 'Decimal';
+                break;
+
+            case AttributeDataType::TrueFalse:
+                value = 'Boolean';
+                break;
+
+            default:
+                value = 'String';
+                break;
+        }
+
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findAttributeValue</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected AttributeValueText findAttributeValue(EcoResValue _ecoResValue)
+    {
+        Common              buffer;
+        SysDictTable        sysDictTable;
+        AttributeValueText  value;        
+
+        sysDictTable = new SysDictTable(int642int(_ecoResValue.InstanceRelationType));
+        buffer       = sysDictTable ? sysDictTable.makeRecord() : null;
+
+        select firstOnly buffer where buffer.RecId == _ecoResValue.RecId;
+
+        if(buffer)
+        {
+            switch(int642int(_ecoResValue.InstanceRelationType))
+            {
+                case tableNum(EcoResTextValue):
+                    value = this.convertAny2Str(buffer.(fieldNum(EcoResTextValue, TextValue)));
+                    break;
+                case tableNum(EcoResBooleanValue):
+                    value = this.convertAny2Str(buffer.(fieldNum(EcoResBooleanValue, BooleanValue)));
+                    break;
+                case tableNum(EcoResIntValue):
+                    value = this.convertAny2Str(buffer.(fieldNum(EcoResIntValue, IntValue)));
+                    break;
+                case tableNum(EcoResCurrencyValue):
+                    value = this.convertAny2Str(buffer.(fieldNum(EcoResCurrencyValue, CurrencyValue)));
+                    break;
+                case tableNum(EcoResDateTimeValue):
+                    value = this.convertAny2Str(buffer.(fieldNum(EcoResDateTimeValue, DateTimeValue)));
+                    break;
+                case tableNum(EcoResFloatValue):
+                    value = this.convertAny2Str(buffer.(fieldNum(EcoResFloatValue, FloatValue)));
+                    break;
+            }
+        }
+
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findBOMRouteCombinations</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected container findBOMRouteCombinations(BOMConfigRoute _BOMConfigRoute, Counter _pos = 0, container _oneRoute = conNull(), container _allRoutes = conNull())
+    {
+        BOM             BOMLocal;
+        BOMConfigRoute  BOMConfigRoute, BOMConfigRouteLocal;
+        container       oneRoute = _oneRoute, allRoutes = _allRoutes;
+        Counter         pos = _pos;
+
+        pos++;
+
+        while select ItemId, BOMId from BOMLocal
+        exists join BOMConfigRoute
+        where BOMConfigRoute.BOMId == BOMLocal.BOMId &&
+                BOMConfigRoute.ConfigGroupId == BOMLocal.ConfigGroupId &&
+                BOMConfigRoute.LineNum == _BOMConfigRoute.LineNum &&
+                BOMConfigRoute.BOMId == _BOMConfigRoute.BOMId
+        {
+            oneRoute = conPoke(oneRoute, pos, BOMLocal.ItemId);
+
+            select firstOnly BOMConfigRouteLocal
+            order by LineNum
+            where BOMConfigRouteLocal.BOMId == BOMLocal.BOMId &&
+                  BOMConfigRouteLocal.LineNum > _BOMConfigRoute.LineNum;
+
+            if(BOMConfigRouteLocal)
+            {
+                allRoutes = this.findBOMRouteCombinations(BOMConfigRouteLocal, pos, oneRoute, allRoutes);
+            }
+            else
+            {
+                if(this.checkBOMConfigRule(oneRoute, _BOMConfigRoute.BOMId))
+                {
+                    allRoutes += [oneRoute];
+                }
+            }
+        }
+
+        pos--;
+
+        return allRoutes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findVariantDescription</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected SC_LargeText findVariantDescription(InventDimCombination _inventDimCombination)
+    {
+        SC_LargeText    strVar;
+        InventDim       inventDimWithVariant;        
+
+        if(_inventDimCombination)
+        {
+            strVar = EcoResProductTranslation::findByProductLanguage(_InventDimCombination.DistinctProductVariant, languageId ? languageId : CompanyInfo::languageId()).Name;
+
+            if(!strVar)
+            {
+                inventDimWithVariant = _inventDimCombination.inventDim();
+                strVar               = inventDimWithVariant.ConfigId ? inventDimWithVariant.ConfigId : '';
+                if(inventDimWithVariant.InventSizeId)
+                {
+                    strVar           = strVar ? strVar + #spaceLine + inventDimWithVariant.InventSizeId : inventDimWithVariant.InventSizeId;
+                }
+                if(inventDimWithVariant.InventColorId)
+                {
+                    strVar           = strVar ? strVar + #spaceLine + inventDimWithVariant.InventColorId : inventDimWithVariant.InventColorId;
+                }
+                if(inventDimWithVariant.InventStyleId)
+                {
+                    strVar           = strVar ? strVar + #spaceLine + inventDimWithVariant.InventStyleId : inventDimWithVariant.InventStyleId;
+                }
+            }
+        }
+
+        return strVar;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initAttributeDefaultFields</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void initAttributeDefaultFields(RefRecId _attribute, RefRecId _ecoResValue, RefRecId _ecoResAttributeType, XmlNode _parentNode)
+    {
+        EcoResValue                         ecoResValue;
+        EcoResAttributeType                 ecoResAttributeType;
+        EcoResTextValue                     ecoResTextValue, ecoResTextValueLocal;
+        EcoResTextValueTranslation          ecoResTextValueTranslation;
+        AttributeValueText                  value, type;
+        EcoResEnumerationAttributeTypeValue enumerationAttributeTypeValue;
+        SC_LargeText                        locale, textValue;
+        Xmlelement                          fieldNameNode;
+        container                           cachedValues, cachedTranslationsValues;        
+
+        if(_attribute)
+        {
+            cachedValues = globalCache.get(classId2Name(classIdGet(this)), int642str(_attribute) + int642str(_ecoResValue) + int642str(_ecoResAttributeType), conNull());
+
+            if(cachedValues == conNull())
+            {
+                ecoResValue         = EcoResValue::find(_ecoResValue);
+                ecoResAttributeType = EcoResAttributeType::find(_ecoResAttributeType);
+
+                if(ecoResValue)
+                {
+                    if(ecoResValue.InstanceRelationType == tableNum(EcoResTextValue))
+                    {
+                        ecoResTextValue = EcoResTextValue::find(ecoResValue.RecId);
+                        
+                        select firstOnly Value from enumerationAttributeTypeValue
+                            where enumerationAttributeTypeValue.AttributeType == ecoResAttributeType.RecId
+                            join TableId from ecoResTextValueLocal
+                                where ecoResTextValueLocal.TextValue == ecoResTextValue.TextValue &&
+                                      ecoResTextValueLocal.RecId == enumerationAttributeTypeValue.Value;
+
+                        while select ecoResTextValueTranslation
+                            where ecoResTextValueTranslation.TextValueTable == ecoResValue.RecId || ecoResTextValueTranslation.TextValueTable == ecoResTextValue.SC_TranslatedTextValue ||
+                                  ecoResTextValueTranslation.TextValueTable == enumerationAttributeTypeValue.Value
+                        {
+                            locale    = int2str(this.language2LocaleId(ecoResTextValueTranslation.Language));
+                            textValue = ecoResTextValueTranslation.TextValue;
+
+                            fieldNameNode = _parentNode.appendChild(resultXml.createElement(#field));
+                            fieldNameNode.setAttribute(#name, 'Attribute__' + int642str(_attribute) + '_' + locale);
+                            fieldNameNode.setAttribute(#value, textValue);
+
+                            if(ecoResTextValueTranslation.Language == CompanyInfo::languageId())
+                            {
+                                value = textValue;
+                            }
+
+                            cachedTranslationsValues += [[locale, textValue]];
+                        }
+                    }
+
+                    value = value ? value : this.findAttributeValue(ecoResValue);
+
+                    if(value)
+                    {
+                        fieldNameNode = _parentNode.appendChild(resultXml.createElement(#field));
+                        fieldNameNode.setAttribute(#name, 'Attribute__' + int642str(_attribute));
+
+                        fieldNameNode.setAttribute(#value, value);
+
+                        type = this.findAttributeType(ecoResAttributeType);
+                        fieldNameNode.setAttribute(#type, type);
+
+                        cachedValues += [[value, type, cachedTranslationsValues]];
+                        globalCache.set(classId2Name(classIdGet(this)), int642str(_attribute) + int642str(_ecoResValue) + int642str(_ecoResAttributeType), cachedValues);
+                    }
+                }
+            }
+            else
+            {
+                [value, type, cachedTranslationsValues] = conPeek(cachedValues, 1);
+
+                fieldNameNode = _parentNode.appendChild(resultXml.createElement(#field));
+                fieldNameNode.setAttribute(#name, 'Attribute__' + int642str(_attribute));
+                fieldNameNode.setAttribute(#value, value);
+                fieldNameNode.setAttribute(#type, type);
+
+                if(cachedTranslationsValues != conNull())
+                {
+                    for(k=1;k<=conLen(cachedTranslationsValues);k++)
+                    {
+                        [locale, textValue] = conPeek(cachedTranslationsValues, k);
+                        fieldNameNode = _parentNode.appendChild(resultXml.createElement(#field));
+                        fieldNameNode.setAttribute(#name, 'Attribute__' + int642str(_attribute) + '_' + locale);
+                        fieldNameNode.setAttribute(#value, textValue);
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNumberSeq</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Num getNumberSeq(boolean _quote = false, boolean _guest = false)
+    {
+        Num                     number;
+        NumberSequenceTable     numberSequenceTable;
+        NumberSequenceReference numberSequenceReference;
+        NumberSequenceCode      numberSequenceCode  = _guest ? webShopsTable.GuestNumberSequence : _quote ? webShopsTable.QuoteNumberSequence : webShopsTable.OrderNumberSequence;        
+        RecId                   numberSequenceRecId = _guest ? webShopsTable.GuestNumberSequenceRefRecId : _quote ? webShopsTable.QuoteNumberSequenceRefRecId : webShopsTable.OrderNumberSequenceRefRecId;
+
+        if(numberSequenceRecId)
+        {
+            select firstOnly numberSequenceReference
+            join numberSequenceTable
+                where numberSequenceTable.RecId == numberSequenceReference.NumberSequenceId &&
+                      numberSequenceTable.NumberSequenceScope == numberSequenceReference.NumberSequenceScope &&
+                      numberSequenceTable.RecId == numberSequenceRecId;
+
+            if(numberSequenceReference.NumberSequenceId)
+            {
+                number = NumberSeq::newGetNum(numberSequenceReference).num();
+            }
+            else
+            {
+                number = NumberSeq::newGetNumFromId(numberSequenceRecId, true).num();
+            }
+        }
+        else if(numberSequenceCode)
+        {
+            numberSequenceReference = NumberSeqReference::findNumberSeqReference(numberSequenceCode);
+
+            if(numberSequenceReference.NumberSequenceId)
+            {
+                number = NumberSeq::newGetNum(numberSequenceReference).num();
+            }
+            else
+            {
+                select firstOnly RecId from numberSequenceTable
+                    where numberSequenceTable.NumberSequence == numberSequenceCode;
+
+                number = NumberSeq::newGetNumFromId(numberSequenceTable.RecId, true).num();
+            }
+        }
+        else if(_guest)
+        {
+            number = '';
+        }
+        else
+        {
+            number = NumberSeq::newGetNum(_quote ? SalesParameters::numRefSalesQuotationId() : SalesParameters::numRefSalesId()).num();
+        }    
+        
+        return number;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParameters</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void getParameters(XmlDocument _request, boolean _checksWebsite = true)
+    {
+        XmlNodeList paramList;                
+
+        //set default parameters values
+        loadOrderLines = 1;
+        checkPaymentStatus = 1;
+
+        paramList = _request.documentElement().getNamedElement(#params).childNodes();
+
+        for(i=0;paramList && i<paramList.length();i++)
+        {
+            node = paramList.item(i);
+
+            switch(node.name())
+            {
+                case #shippingMethodCode:
+                    shippingMethodCode  = node.innerText();
+                    break;
+
+                case #maxOrderLinesToLoad:
+                    maxOrderLinesToLoad = str2int(node.innerText());
+                    break;
+
+                case #originalQuoteId:
+                    originalQuoteId = node.innerText();
+                    break;
+
+                case #variantId:
+                    variantId = node.innerText();
+                    break;
+
+                case #imageName, #fileName:
+                    fileName = node.innerText();
+                    break;
+                    
+                case #paymentStatus:
+                    paymentStatus = node.innerText();
+                    break;
+
+                case #loadForThisYear:
+                    loadForThisYear = str2int(node.innerText());
+                    break;
+
+                case #loadForLastYear:
+                    loadForLastYear = str2int(node.innerText());
+                    break;
+
+                case #loadForToDate:
+                    loadForToDate = str2int(node.innerText());
+                    break;
+
+                case #checkPaymentStatus:
+                    checkPaymentStatus = str2int(node.innerText());
+                    break;
+
+                case #loadRelatedCustomers:
+                    loadRelatedCustomers = str2int(node.innerText());
+                    break;
+
+                case #added:
+                    salesLinesList = node.childNodes();
+                    break;
+
+                case #updated:
+                    updSalesLinesList = node.childNodes();
+                    break;
+
+                case #deleted:
+                    delSalesLinesList = node.childNodes();
+                    break;
+
+                case #calculateTotals:
+                    calculateTotals = str2int(node.innerText());
+                    break;
+
+                case #productId:
+                    productId = node.innerText();
+                    break;
+
+                case #order:
+                    orderFields = node.childNodes();
+                    break;
+
+                case #salesPersonId:
+                    salesPersonId = node.innerText();
+                    break;
+
+                case #originalOrderId, #basketId:
+                    originalOrderId = node.innerText();
+                    break;
+
+                case #documentId:
+                    documentId = node.innerText();
+                    break;
+
+                case #endDate:
+                    endDate = this.convert2Type(node.innerText(), Types::UtcDateTime);
+                    break;
+
+                case #startDate:
+                    startDate = this.convert2Type(node.innerText(), Types::UtcDateTime);
+                    break;
+
+                case #documentType:
+                    documentType = node.innerText();
+                    break;
+
+                case #loadOrderLines, #loadLines:
+                    loadOrderLines = str2int(node.innerText());
+                    break;
+
+                case #basket:
+                    salesLinesList = node.getNamedElement(#salesLines).childNodes();
+                    this.getBasketParams(node);
+                    break;
+
+                case #basketType:
+                    basketType = node.innerText();
+                    break;
+
+                case #languageId:
+                    languageId = this.locale2LanguageId(str2int(node.innerText()));
+                    break;
+
+                case #shopAccountEmail:
+                    shopAccountEmail = node.innerText();
+                    break;
+
+                case #shopAccountType:
+                    shopAccountType = node.innerText();
+                    break;
+
+                case #b2bOnlinePayments:
+                    b2bOnlinePayments = node.innerText();
+                    break;
+
+                case #customer:
+                    customerFields = node.childNodes();
+                    break;
+
+                case #contact:
+                    contactFields = node.childNodes();
+                    break;
+
+                case #shippingAddress:
+                    shipAddressFields = node.childNodes();
+                    break;
+
+                case #contactId:
+                    contactId = node.innerText();
+                    break;
+
+                case #validOnly:
+                    validOnly = str2int(node.innerText());
+                    break;
+
+                case #loadShippingAddresses:
+                    loadShippingAddresses = str2int(node.innerText());
+                    break;
+
+                case #groupId:
+                    groupId = node.innerText();
+                    break;
+
+                case #unitOfMeasureId:
+                    parmUnitId = node.innerText();
+                    break;
+
+                case #multiCurrency:
+                    multiCurrency = str2int(node.innerText());
+                    break;
+
+                case #accountType:
+                    accountType = node.innerText();
+                    break;
+
+                case #accountId, #customerId:
+                    accountId = node.innerText();
+                    break;
+
+                case #checkStock:
+                    checkStock = str2int(node.innerText());
+                    break;
+
+                case #calculateSkuPrices:
+                    calculateSkuPrices = str2int(node.innerText());
+                    break;
+
+                case #calculateSkuInventory:
+                    calculateSkuInventory = str2int(node.innerText());
+                    break;
+
+                case #calculateInventory:
+                    calculateInventory = str2int(node.innerText());
+                    break;
+
+                case #calculatePrices:
+                    calculatePrices = str2int(node.innerText());
+                    break;
+
+                case #loadVisibilityRules:
+                    loadVisibilityRules = str2int(node.innerText());
+                    break;
+
+                case #loadRelatedSkus:
+                    loadRelatedSkus = str2int(node.innerText());
+                    break;
+
+                case #visibleOnly:
+                    visibleOnly = str2int(node.innerText());
+                    break;
+
+                case #withCustomerTemplateOnly:
+                    withCustomerTemplateOnly = str2int(node.innerText());
+                    break;
+
+                case #sortField:
+                    sortField = node.innerText();
+                    break;
+
+                case #sortAscending:
+                    sortAsc = str2int(node.innerText());
+                    break;
+
+                case #pagesize:
+                    pagesize = str2int(node.innerText());                    
+                    break;
+
+                case #pageIndex:
+                    pageIndex = str2int(node.innerText());
+                    break;
+
+                case #table:
+                    tableName = node.innerText();
+                    break;
+
+                case #salesAgreementId:
+                    salesAgreementId = node.innerText();
+                    break;
+
+                case #activeOnly:
+                    activeOnly = str2int(node.innerText());
+                    break;
+ 
+                case #websiteId:
+                    websiteId     = node.innerText();
+                    webShopsTable = SC_WebShopsTable::find(websiteId);
+                    if(_checksWebsite && !webShopsTable)
+                    {
+                        throw error(strfmt(#error0010, websiteId));
+                    }
+                    break;
+
+                case #extraFields:
+                    extraFields = node.childNodes();
+                    break;
+
+                case #filter:
+                    filterFields = node.childNodes();
+                    break;
+
+                case #currencyId:
+                    currencyId = node.innerText();
+                    break;
+
+                case #adminUserEmail:
+                    adminUserEmail = node.innerText();
+                    break;
+
+                case #addressId:
+                    addressId = str2int64(node.innerText());
+                    break;
+
+                case #paymentMethodCode:
+                    paymentMethodCode = node.innerText();
+                    break;
+
+                case #sanaLocationId:
+                    sanaLocationId = node.innerText();
+                    sanaLocationIdExists = true;
+                    break;
+
+                case #storeLocationCode:
+                    storeLocationCode = node.innerText();                    
+                    break;
+
+                case #attachments:
+                    attachments = node.childNodes();
+                    break;
+
+                case #shippingAddressExtraFields:
+                    shippingAddressExtraFields = node.childNodes();
+                    break;
+
+                case #referenceNo:
+                    referenceNo = node.innerText();
+                    break;
+
+                case #contactName:
+                    contactName = node.innerText();
+                    break;
+
+                case #shippingStatus:
+                    shippingStatus = node.innerText();
+                    break;
+
+                case #status:
+                    status = node.innerText();
+                    break;
+
+                case #comments:
+                    comment = node.innerText();
+                    break;
+
+                case #billToName:
+                    billToName = node.innerText();
+                    break;
+
+                case #shipToName:
+                    shipToName = node.innerText();
+                    break;
+
+                case #startOrderDate:
+                    startOrderDate = this.convert2Type(node.innerText(), Types::UtcDateTime);
+                    break;
+
+                case #endOrderDate:
+                    endOrderDate = this.convert2Type(node.innerText(), Types::UtcDateTime);
+                    break;
+
+                case #startDueDate:
+                    startDueDate = this.convert2Type(node.innerText(), Types::UtcDateTime);
+                    break;
+
+                case #endDueDate:
+                    endDueDate = this.convert2Type(node.innerText(), Types::UtcDateTime);
+                    break;
+
+                case #returnMultipleDocuments:
+                    returnMultipleDocuments = str2int(node.innerText());
+                    break;
+ 
+                default:
+                    this.customParamsDelegate(node, this);                    
+                    break;
+            }
+        }
+
+        if(!documentType)
+        {
+            documentType = webShopsTable.OrderType == SC_SalesType::Quotation ? #quote : #order;
+        }
+
+        syncOrderType = basketType ? basketType : (webShopsTable.SyncOrderType == SC_SalesType::Quotation ? #quote : #order);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customParamsDelegate</Name>
+				<Source><![CDATA[
+    delegate void customParamsDelegate(XmlNode _node, Object _object){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetailEnabled</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean isRetailEnabled()
+    {        
+        return (isConfigurationkeyEnabled(configurationKeyNum(Retail)) && webShopsTable.EnableRetail) || this.isCallCenterUser(); 
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isProductBelongCategory</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean isProductBelongCategory(EcoResCategoryId _category, EcoResProductRecId _product)
+    {
+        EcoResCategory ecoResCategory, prodCategory = EcoResCategory::find(_category);
+        EcoResProductCategory EcoResProductCategory;
+
+        select firstonly RecId from ecoResCategory
+            where ecoResCategory.CategoryHierarchy == prodCategory.CategoryHierarchy &&
+                  ecoResCategory.NestedSetLeft >= prodCategory.NestedSetLeft &&
+                  ecoResCategory.NestedSetRight <= prodCategory.NestedSetRight
+            exists join EcoResProductCategory
+                where EcoResProductCategory.Category == ecoResCategory.RecId &&
+                      EcoResProductCategory.Product == _product;
+
+        return ecoResCategory.RecId ? true : false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isCallCenterUser</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean isCallCenterUser()
+    {
+        return isConfigurationkeyEnabled(configurationKeyNum(MCRCallCenter)) && MCRChannelUser::find();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>language2LocaleId</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Integer language2LocaleId(LanguageId _language)
+    {
+        return SC_LanguageParametersTable::find(_language).LocaleId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>locale2LanguageId</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected LanguageId locale2LanguageId(Integer _localeId)
+    {
+        if(_localeId)
+        {
+            languageId = SC_LanguageParametersTable::findByLocale(_localeId).LanguageId;
+
+            if(!languageId)
+            {
+                throw error(strfmt("@SCL105", _localeId));
+            }
+        }
+        else
+        {
+            languageId = CompanyInfo::find().LanguageId;
+        }
+
+        return languageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mapFieldValues</Name>
+				<Source><![CDATA[
+    //Map values, for some fields its need to be calculated or converted.
+    [HookableAttribute(true), Replaceable]
+    protected String255 mapFieldValues(FieldName _filterFieldName, String255 _value)
+    {
+        String255           ret;
+        System.String       strValue;
+        System.DateTime     dateTime;
+        System.Decimal      clrDecimal;  
+        EventHandlerResult  customResult = new EventHandlerResult();
+
+        switch(_filterFieldName)
+        {
+            case 'SC_LastModified':
+                new InteropPermission(InteropKind::ClrInterop).assert();
+                if(!cultInfo)
+                {
+                    cultInfo = System.Globalization.CultureInfo::GetCultureInfo(SC_ParametersTable::find().Culture);
+                }
+                strValue    = _value;
+                dateTime    = strValue.ToDateTime(cultInfo);
+                clrDecimal  = dateTime.ToOADate();
+                ret         = clrDecimal.ToString(cultInfo);
+                ret         = SysQuery::value(ret);
+                CodeAccessPermission::revertAssert();
+                break;
+
+            case #id, 'ItemId', 'ContactPersonId', 'AccountNum', 'PersonnelNumber':
+                ret = this.normalizeValue(_value);
+                break;
+
+            case 'modifiedDateTime':
+                new InteropPermission(InteropKind::ClrInterop).assert();
+                if(!cultInfo)
+                {
+                    cultInfo = System.Globalization.CultureInfo::GetCultureInfo(SC_ParametersTable::find().Culture);
+                }
+                if(System.Decimal::TryParse(strRem(_value, '\\'), byRef clrDecimal)) //parse decimal format
+                {   
+                    dateTime = System.DateTime::FromOADate(Global::real2double(clrDecimal));
+                    ret      = dateTime.ToString();
+                }
+                else //parse datetime format
+                {
+                    strValue = _value;
+                    dateTime = strValue.ToDateTime(cultInfo);
+                    ret      = datetime2str(Global::clrSystemDateTime2UtcDateTime(dateTime), -1);
+                }
+                break;
+
+            default:
+                this.mapFieldValuesDelegate(_filterFieldName, _value, customResult);
+
+                if(customResult.result())
+                {
+                    ret = customResult.result();
+                }
+                else
+                {
+                    ret = SysQuery::value(_value);
+                }
+                break;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mapFieldValuesDelegate</Name>
+				<Source><![CDATA[
+    delegate void mapFieldValuesDelegate(FieldName _filterFieldName, String255 _value, EventHandlerResult _result){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mapTableFields</Name>
+				<Source><![CDATA[
+    //Map fields for provider. Used for field convertion in request filters
+    [HookableAttribute(true), Replaceable]
+    protected FieldName mapTableFields(FieldName _fieldName, TableId _tableId)
+    {
+        FieldName fieldName = _fieldName;        
+
+        switch(_tableId)
+        {
+            case tableNum(InventTable):
+                switch(_fieldName)
+                {
+                    case fieldStr(InventTable, SC_VisibleInWebshop):
+                        fieldName = #visible;
+                        break;
+                    case #visible:
+                        fieldName = fieldStr(InventTable, SC_VisibleInWebshop);
+                        break;
+                    case fieldStr(InventTable, ItemId):
+                        fieldName = #id;
+                        break;
+                    case #id:
+                        fieldName = fieldStr(InventTable, ItemId);
+                        break;
+                    case fieldStr(InventTable, SC_LastModified):
+                        fieldName = #modifiedDate;
+                    case #modifiedDate:
+                        fieldName = fieldStr(InventTable, SC_LastModified);
+                        break;
+                }
+                break;
+
+            case tableNum(CustTable):
+                switch(_fieldName)
+                {
+                    case fieldStr(CustTable, AccountNum):
+                        fieldName = #id;
+                        break;
+                    case #id:
+                        fieldName = fieldStr(CustTable, AccountNum);
+                        break;
+                    case #modifiedDate:
+                        fieldName = fieldStr(CustTable, SC_LastModified);
+                        break;
+                    case fieldStr(CustTable, SC_LastModified):
+                        fieldName = #modifiedDate;
+                        break;
+                    case #pricesInclTax:
+                        fieldName = fieldStr(CustTable, InclTax);
+                        break;
+                    case fieldStr(CustTable, InclTax):
+                        fieldName = #pricesInclTax;
+                        break;
+                    case #B2cCustomer:
+                        fieldName = fieldStr(CustTable, SC_B2cCustomer);
+                        break;
+                    case fieldStr(CustTable, SC_B2cCustomer):
+                        fieldName = #B2cCustomer;
+                        break;
+                }
+                break;
+
+            case tableNum(ContactPerson):
+                switch(_fieldName)
+                {
+                    case #id:
+                        fieldName = fieldStr(ContactPerson, ContactPersonId);
+                        break;
+                    case fieldStr(ContactPerson, ContactPersonId):
+                        fieldName = #id;
+                        break;
+                    case #modifiedDate:
+                        fieldName = fieldStr(ContactPerson, SC_LastModified);
+                        break;
+                    case fieldStr(ContactPerson, SC_LastModified):
+                        fieldName = #modifiedDate;
+                        break;
+                }
+                break;
+
+            case tableNum(HcmWorker):
+                switch(_fieldName)
+                {
+                    case #id:
+                        fieldName = fieldStr(HcmWorker, PersonnelNumber);
+                        break;
+                    case fieldStr(HcmWorker, PersonnelNumber):
+                        fieldName = #id;
+                        break;
+                    case fieldStr(HcmWorker, SC_LastModified):
+                        fieldName = #modifiedDate;
+                        break;
+                    case #modifiedDate:
+                        fieldName = fieldStr(HcmWorker, SC_LastModified);
+                        break;
+                }
+                break;
+
+            case tableNum(LogisticsPostalAddress):
+                switch(_fieldName)
+                {
+                    case #CountryId:
+                        fieldName = fieldStr(LogisticsPostalAddress, CountryRegionId);
+                        break;
+                    case fieldStr(LogisticsPostalAddress, CountryRegionId):
+                        fieldName = #CountryId;
+                        break;
+                }
+                break;
+
+            case tableNum(EcoResCategory):
+                switch(_fieldName)
+                {
+                    case fieldStr(EcoResCategory, Name):
+                        fieldName = #id;
+                        break;
+                    case #id:
+                        fieldName = fieldStr(EcoResCategory, Name);
+                        break;
+                    case fieldStr(EcoResCategory, modifiedDateTime):
+                        fieldName = #modifiedDate;
+                        break;
+                    case #modifiedDate:
+                        fieldName = fieldStr(EcoResCategory, modifiedDateTime);
+                        break;
+                }
+                break;
+        }
+
+        return fieldName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeCategoryHierarchyNames</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void mergeCategoryHierarchyNames(EcoResCategoryId _categoryId)
+    {
+        EcoResCategory  ecoResCategory;        
+
+        select firstOnly ecoResCategory
+            where ecoResCategory.RecId == _categoryId;
+
+        categoryName = categoryName ? '__' + categoryName : '';
+        categoryName = ecoResCategory ? ecoResCategory.Name + categoryName : categoryName;
+
+        if(ecoResCategory.ParentCategory && ecoResCategory.ParentCategory != EcoResCategory::getRoot(webShopsTable.CategoryHierarchy).RecId)
+        {
+            this.mergeCategoryHierarchyNames(ecoResCategory.ParentCategory);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearAgreementsStorageDim</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public void clearAgreementsStorageDim(RecId _agreementHeaderRecId)
+    {
+        AgreementLine   agreementLineLocal;
+        InventDim       inventDimLocal;        
+
+        //clear storage dim for next query performance (variants search)
+        while select forupdate agreementLineLocal
+            where agreementLineLocal.Agreement == _agreementHeaderRecId
+        {
+            inventDimLocal = agreementLineLocal.inventDim();
+
+            if(this.checkInventSiteLocationId(inventDimLocal))
+            {
+                inventDimLocal.InventLocationId = InventDim::emptyDimField(fieldNum(InventDim, InventLocationId));
+                inventDimLocal.InventSiteId     = InventDim::emptyDimField(fieldNum(InventDim, InventSiteId));
+            }
+            else
+            {
+                continue;
+            }
+
+            agreementLineLocal.InventDimId  = InventDim::findOrCreate(inventDimLocal).inventDimId;
+            agreementLineLocal.doUpdate();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearCache</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void clearCache()
+    {        
+        System.DateTime     dateTimeClr;
+        utcDateTime         dateTime;
+        Real                dReal, cacheRecyclingTime;
+        SC_ParametersTable  parametersTable;
+        SC_DataCacheTable   dataCacheTable;
+
+        globalCache     = ClassFactory.globalCache();
+        globalCache.clear(classId2Name(classIdGet(this)));
+        globalCache.clear(ClassStr(SC_AXDataServiceClient));        
+
+        globalCacheV2   = ClassFactory.globalObjectCache();
+        [cacheRecyclingTime] = globalCacheV2.find(classId2Name(classIdGet(this)), [#one, 'SanaGlobalCacheTime']);
+
+        if(cacheRecyclingTime)
+        {
+            dateTimeClr = System.DateTime::FromOADate(Global::real2double(cacheRecyclingTime));
+            parametersTable  = SC_ParametersTable::find();
+            parametersTable.CacheRecycling = parametersTable.CacheRecycling ? parametersTable.CacheRecycling : 120;
+            dateTime    = dateTimeClr.AddMinutes(parametersTable.CacheRecycling);
+
+            if(DateTimeUtil::utcNow() > dateTime)
+            {
+                globalCacheV2.clear(classId2Name(classIdGet(this)));
+                globalCacheV2.clear(ClassStr(SC_AXDataServiceClient));
+
+                delete_from dataCacheTable;
+            }
+        }
+        else
+        {
+            dateTimeClr = DateTimeUtil::utcNow();
+            dReal       = dateTimeClr.ToOADate();
+            globalCacheV2.insert(classId2Name(classIdGet(this)), [#one, 'SanaGlobalCacheTime'], [dReal]);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>normalizeValue</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected SC_LargeText normalizeValue(SC_LargeText _value)
+    {
+        SC_LargeText quotableStr = ' *",.()<>!=\\?';
+        int          pos, n;
+        int          len = strLen(_value);
+        SC_LargeText result;
+        
+        n   = 1;
+        pos = strFind(_value, quotableStr, 1, len);
+
+        while (pos)
+        {
+            result += subStr(_value, n, pos - n) + '\\' + subStr(_value, pos, 1);
+            n       = pos + 1;
+            pos     = strFind(_value, quotableStr, n, len);
+
+            if(!pos && n<=len)
+            {
+                result += subStr(_value, n, len - n + 1);
+            }
+        }
+
+        return result ? result : _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveLogFile</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void saveLogFile(boolean _request, Notes _data, SC_LargeText _callFunction)
+    {
+        SC_LargeText    path          = SC_ParametersTable::find().FileLogPath;
+        SC_LargeText    dateTimeStamp = date2str(DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()),-1,-1,0,-1,0,-1, -1) + strrem(time2str(DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone()),3,1),' ');
+        BinData         binData       = new BinData();        
+
+        if(!System.IO.Directory::Exists(path))
+        {
+            try
+            {
+                System.IO.Directory::CreateDirectory(path);
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        binData.setAsciiData(_data, 65001);
+        path += '\\' + dateTimeStamp + '_' + _callFunction;
+        path += _request ? #logRequest : #logResponse;
+
+        new FileIOPermission(path, #write).assert();
+        //BP deviation documented
+        binData.saveFile(path);
+        CodeAccessPermission::revertAssert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setAddressFromParams</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected LogisticsPostalAddressView setAddressFromParams(XmlNodeList _fieldsList)
+    {
+        LogisticsPostalAddressView addressView;        
+        Integer                    b;
+
+        for(b=0;_fieldsList && b<_fieldsList.length();b++)
+        {
+            node = _fieldsList.item(b);
+
+            if(!node.attributes().getNamedItem(#value))
+            {
+                continue;
+            }
+
+            switch(node.attributes().getNamedItem(#name).innerText())
+            {
+                case #id:
+                    addressView.RecId = str2int64(node.attributes().getNamedItem(#value).innerText());
+                    break;
+
+                case #bigName:
+                    addressView.LocationName = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #address:
+                    addressView.Street = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #address2:
+                    addressView.Street += node.attributes().getNamedItem(#value).innerText() ? '\n' + node.attributes().getNamedItem(#value).innerText() : '';
+                    break;
+
+                case #zipCode:
+                    addressView.ZipCode = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #city:
+                    addressView.City = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #countryId:
+                    addressView.CountryRegionId = this.countryISO2Id(node.attributes().getNamedItem(#value).innerText());
+                    break;
+
+                case #state:
+                    addressView.State = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                case #customerId:
+                    addressAccountId = node.attributes().getNamedItem(#value).innerText();
+                    break;
+
+                default:
+                    if(this.validateCustomAddressField(node))
+                    {
+                        customAddressFieldsIds    += node.attributes().getNamedItem(#name).innerText();
+                        customAddressFieldsValues += node.attributes().getNamedItem(#value).innerText();
+                    }
+                    break;
+            }
+        }
+
+        //set address extra fields
+        for(b=1;b<=conLen(customAddressFieldsIds);b++)
+        {
+            fieldId = fieldName2id(tableNum(LogisticsPostalAddressView), conPeek(customAddressFieldsIds, b));
+            if(fieldId)
+            {
+                addressView.(fieldId) = this.convert2Type(conPeek(customAddressFieldsValues, b), typeof(addressView.(fieldId)));
+            }
+        }
+
+        return addressView;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateCustomAddressField</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean validateCustomAddressField(XmlNode _node)
+    {
+        return !_node.childNodes().length() && fieldname2id(tablenum(LogisticsPostalAddressView), _node.attributes().getNamedItem(#name).innerText());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDefaultSiteWarehouse</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected InventDim setDefaultSiteWarehouse(InventTable _inventTable, InventDim _inventDim)
+    {
+        if(!_inventDim.InventSiteId)
+        {
+            _inventDim.InventSiteId  = webShopsTable.DefaultSiteId;
+        }
+
+        if(!_inventDim.InventLocationId)
+        {
+            //try to find default warehouse for site (default site settings on item)
+            if(_inventDim.InventSiteId)
+            {
+                _inventDim.InventLocationId = _inventTable.inventItemOrderSetupMap(InventItemOrderSetupType::Sales,
+                                                                               InventDim::findOrCreate(_inventDim).InventDimId).inventLocationId(_inventDim.InventLocationId,
+                                                                                                                                                 _inventTable,
+                                                                                                                                                 _inventDim.InventSiteId);
+            }
+            if(!_inventDim.InventLocationId)
+            {
+                _inventDim.InventLocationId = webShopsTable.DefaultLocationId;
+            }
+        }
+
+        return _inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setProductStorageDim</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public InventDim setProductStorageDim()
+    {
+        InventDim   inventDimDefault;
+        container   cachedValues;                
+
+        cachedValues = globalCacheV2.find(classId2Name(classIdGet(this)), [#one, webShopsTable.WebShopId + custTable.AccountNum + inventTable.ItemId]);
+
+        if(cachedValues == conNull())
+        {
+            if(webshopsTable.OverrideCustDim)
+            {
+                inventDimDefault.InventSiteId         = webshopsTable.DefaultSiteId;
+                inventDimDefault.InventLocationId     = webshopsTable.DefaultLocationId;
+            }
+            else
+            {
+                //take from customer
+                inventDimDefault.InventSiteId         = custTable.InventSiteId;
+                inventDimDefault.InventLocationId     = custTable.InventLocation;
+            }
+
+            //override site if invent setting is mandatory
+            inventDimDefault.InventSiteId         = inventTable.inventItemOrderSetupMap(InventItemOrderSetupType::Sales).inventSiteId(inventDimDefault.InventsiteId, inventTable);
+
+            //take specific warehouse for site or mandatory from invent setting
+            if(inventDimDefault.InventSiteId)
+            {
+                inventDimDefault.InventLocationId = inventTable.inventItemOrderSetupMap(InventItemOrderSetupType::Sales,
+                                                                                    InventDim::findOrCreate(inventDimDefault).InventDimId).inventLocationId(inventDimDefault.InventLocationId,
+                                                                                                                                                            inventTable,
+                                                                                                                                                            inventDimDefault.InventSiteId);
+            }
+            else
+            {
+                inventDimDefault.InventLocationId = inventTable.inventItemOrderSetupMap(InventItemOrderSetupType::Sales,
+                                                                                    InventDim::inventDimIdBlank()).inventLocationId(inventDimDefault.InventLocationId, inventTable);
+            }
+
+            //if no site warehouse settings on item, take default from Sana parameters
+            if(!inventDimDefault.InventSiteId || !inventDimDefault.InventLocationId)
+            {
+                inventDimDefault = this.setDefaultSiteWarehouse(inventTable, inventDimDefault);
+            }
+
+            globalCacheV2.insert(classId2Name(classIdGet(this)), [#one, webShopsTable.WebShopId + custTable.AccountNum + inventTable.ItemId], [inventDimDefault.InventSiteId, inventDimDefault.InventLocationId]);
+        }
+        else
+        {
+            [inventDimDefault.InventSiteId, inventDimDefault.InventLocationId] = cachedValues;
+        }
+
+        return inventDimDefault;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setWebsite</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public void setWebsite(SC_WebshopId _websiteId)
+    {        
+        webShopsTable = SC_WebshopsTable::find(_websiteId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setWebshopDataMapping</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void setWebshopDataMapping(container _sourceTables, container _targetTables)
+    {
+        SC_WebshopDataMappingTable  webshopDataMappingTable;
+        Counter                     bufferNum;
+        Query                       query = new Query();
+        QueryBuildDataSource        queryBuildDataSource;
+        QueryRun                    queryRun;
+        Common                      sourceBuffer, targetBuffer;
+
+        if(!webShopsTable.DisableDataMapping)
+        {
+            SC_WebshopDataMappingTable::upgradeWebshopDataMappingData();
+
+            queryBuildDataSource = query.addDataSource(tablenum(SC_WebshopDataMappingTable));
+            queryBuildDataSource.addOrderByField(fieldNum(SC_WebshopDataMappingTable, Priority));
+            queryBuildDataSource.addOrderByField(fieldNum(SC_WebshopDataMappingTable, RecId));
+            queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, WebShopId)).value(webShopsTable.WebShopId);
+            queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, Active)).value(queryValue(NoYes::Yes));
+            queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, isMapped)).value(queryValue(NoYes::No));
+        
+            for(bufferNum=1;bufferNum<=conLen(_targetTables);bufferNum++)
+            {
+                queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, DataTableId)).value(queryValue(conPeek(_targetTables, bufferNum)));
+            }
+
+            queryRun = new QueryRun(query);
+
+            while(queryRun.next()) //init value only
+            {
+                webshopDataMappingTable = queryRun.get(tablenum(SC_WebshopDataMappingTable));
+                sourceBuffer = this.getActiveBuffer(webshopDataMappingTable.DataTableId);
+
+                if(sourceBuffer.TableId != tableNum(Common) && (!sourceBuffer.(webshopDataMappingTable.DataFieldId) || webshopDataMappingTable.Override))
+                {
+                    sourceBuffer.(webshopDataMappingTable.DataFieldId) = this.convert2Type(webshopDataMappingTable.DefaultValue, typeOf(sourceBuffer.(webshopDataMappingTable.DataFieldId)));
+                }
+            }
+        
+            queryBuildDataSource.clearRanges();
+            queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, WebShopId)).value(webShopsTable.WebShopId);
+            queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, Active)).value(queryValue(NoYes::Yes));
+            queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, isMapped)).value(queryValue(NoYes::Yes));
+
+            for(bufferNum=1;bufferNum<=conLen(_sourceTables);bufferNum++)
+            {
+                queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, DataTableId)).value(queryValue(conPeek(_sourceTables, bufferNum)));
+            }
+
+            for(bufferNum=1;bufferNum<=conLen(_targetTables);bufferNum++)
+            {
+                queryBuildDataSource.addRange(fieldnum(SC_WebshopDataMappingTable, MappedTableId)).value(queryValue(conPeek(_targetTables, bufferNum)));
+            }
+
+            queryRun = new QueryRun(query);
+
+            while(queryRun.next()) //mapping only
+            {
+                webshopDataMappingTable = queryRun.get(tablenum(SC_WebshopDataMappingTable));
+                sourceBuffer = this.getActiveBuffer(webshopDataMappingTable.DataTableId);
+                targetBuffer = this.getActiveBuffer(webshopDataMappingTable.MappedTableId);
+
+                if(sourceBuffer.(webshopDataMappingTable.DataFieldId))
+                {
+                    targetBuffer.(webshopDataMappingTable.MappedFieldId) = sourceBuffer.(webshopDataMappingTable.DataFieldId);
+
+                    if(webshopDataMappingTable.Move)
+                    {
+                        sourceBuffer.(webshopDataMappingTable.DataFieldId) = nullValue(sourceBuffer.(webshopDataMappingTable.DataFieldId));
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitAfterSeparator</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected SC_LargeText splitAfterSeparator(SC_LargeText _input, SC_LargeText _separator)
+    {
+        container       inputCon = Global::str2con(_input, _separator);
+        SC_LargeText    inputText;        
+
+        if(conLen(inputCon) >= 2)
+        {
+            inputText = conPeek(inputCon, 2);
+        }
+
+        return inputText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitBeforeSeparator</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected SC_LargeText splitBeforeSeparator(SC_LargeText _input, SC_LargeText _separator)
+    {
+        return conPeek(Global::str2con(_input, _separator), 1);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkBOMConfigRule</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean checkBOMConfigRule(container _configItems, BOMId _BOMConfigId)
+    {
+        BOMConfigRoute BOMConfigRouteLocal;
+        BOMConfigRule  rule;
+        Integer        pos1, pos2;
+        container      configRoutes;
+        boolean        ret = true;
+
+        while select ConfigGroupId from BOMConfigRouteLocal
+        order by LineNum
+        where BOMConfigRouteLocal.BOMId == _BOMConfigId
+        {
+            configRoutes += BOMConfigRouteLocal.ConfigGroupId;
+        }
+
+        while select rule
+        where rule.BOMId == _BOMConfigId
+        {
+            pos1 = conFind(configRoutes, rule.ChosenGroupId);
+            pos2 = conFind(configRoutes, rule.DerivedGroupId);
+
+            if(conPeek(_configItems, pos1) != rule.ChosenItemId &&
+           conPeek(_configItems, pos2) != rule.DerivedItemId)
+            {
+                continue;
+            }
+
+            if(rule.Method == ConfigRuleMethod::Choose)
+            {
+                ret = ret && ((conPeek(_configItems, pos1) == rule.ChosenItemId &&
+                           conPeek(_configItems, pos2) == rule.DerivedItemId) || conPeek(_configItems, pos1) != rule.ChosenItemId);
+            }
+            else
+            {
+                ret = ret && (!(conPeek(_configItems, pos1) == rule.ChosenItemId &&
+                            conPeek(_configItems, pos2) == rule.DerivedItemId) || conPeek(_configItems, pos1) != rule.ChosenItemId);
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkDefaultValidationRules</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    public static void checkDefaultValidationRules()
+    {
+        if(!(select firstOnly SC_DataValidationRulesTable).RecId)
+        {
+            if(Box::yesNo("@SCL198", DialogButton::Yes) == DialogButton::Yes)
+            {
+                SC_AXDataServiceClient::setValidationRulesDefaults();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkInventSiteLocationId</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean checkInventSiteLocationId(InventDim _inventDim = InventDim::findOrCreateBlank())
+    {
+        boolean                 ok = true;
+        InventItemOrderSetupMap inventItemOrderSetupMap;
+
+        //Site checks
+        inventItemOrderSetupMap = inventTable.inventItemOrderSetupMap(InventItemOrderSetupType::Sales);
+
+        if(inventItemOrderSetupMap.Stopped() || inventTable.inventItemInventSetup().stopped() ||
+          (inventItemOrderSetupMap.MandatoryInventSite && inventItemOrderSetupMap.inventSiteId('', inventTable) != _inventDim.InventSiteId))
+        {
+            ok = false; //Item transaction must be for specific site
+        }
+        //Location checks
+        if(ok && _inventDim.InventLocationId)
+        {
+            inventItemOrderSetupMap = inventTable.inventItemOrderSetupMap(InventItemOrderSetupType::Sales, _inventDim.inventDimId);
+
+            if(inventItemOrderSetupMap.Stopped() || inventTable.inventItemInventSetup(_inventDim.inventDimId).stopped() ||
+              (inventItemOrderSetupMap.MandatoryInventLocation && inventItemOrderSetupMap.inventLocationId(_inventDim.InventLocationId, inventTable) != _inventDim.InventLocationId))
+            {
+                ok = false; //Item transaction must be for specific warehouse
+            }
+        }
+
+        return ok;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public static SC_AXDataServiceClient construct()
+    {
+        SC_AXDataServiceClient seviceclient = new SC_AXDataServiceClient();
+        
+        seviceclient.clearCache();
+
+        return seviceclient;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRetailChannelTable</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected RetailChannelTable getRetailChannelTable()
+    {
+        RetailChannelTable  retailChannelTable;
+        RefRecId            retailChannelId;
+
+        retailChannelId  = MCRChannelUser::find().Channel;
+
+        if(retailChannelId)
+        {
+            retailChannelTable = RetailChannelTable::findByRecId(retailChannelId);
+        }
+        else
+        {
+            retailChannelTable = RetailChannelTable::findByRecId(RetailStoreTable::find(webShopsTable.RetailStore).RecId);
+        }
+
+        return retailChannelTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWebshopDiscountPct</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected DiscPct getWebshopDiscountPct()
+    {
+        SC_WebshopDiscountTable webshopDiscountTable;
+
+        if(!webShopsTable.DisableSanaDiscounts)
+        {
+            if(accountType == #customer)
+            {
+                custTable = custTable ? custTable : CustTable::find(accountId);
+            }
+        
+            if(accountType == #contact)
+            {
+                custTable.Currency = smmBusRelTable::findByParty(ContactPerson::find(accountId).ContactForParty).Currency;
+            }
+            webshopDiscountTable = SC_WebshopDiscountTable::findActive(webShopsTable.WebShopId, custTable.Currency, custTable.LineDisc);
+        }
+
+        return webshopDiscountTable.DiscPercent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRequest</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public static str getRequest(str _request)
+    {
+        SC_AXDataServiceClient  AXDataServiceClient = SC_AXDataServiceClient::construct();        
+
+        return AXDataServiceClient.ProcessRequest(_request);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setValidationRulesDefaults</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    server public static void setValidationRulesDefaults(RefTableId _tableId = 0)
+    {
+        SC_DataValidationRulesTable dataValidationRulesTable;
+        SC_DataValidationRulesLine  dataValidationRulesLine;
+
+        //Currency
+        void addCurrencyDefaults()
+        {
+            delete_from dataValidationRulesTable where dataValidationRulesTable.ValidationTableId == tableNum(Currency);
+
+            dataValidationRulesTable.clear();
+            dataValidationRulesTable.initValue();
+            dataValidationRulesTable.ValidationTableId = tableNum(Currency);
+            dataValidationRulesTable.Active = NoYes::Yes;
+            dataValidationRulesTable.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(Currency);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(Currency, SC_VisibleinWebshop);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::NotEqual;
+            dataValidationRulesLine.Value             = '0';
+            dataValidationRulesLine.ErrorTxt          = 'Only visible in webshop currency available.';
+            dataValidationRulesLine.insert();
+        }
+
+        //CustTable
+        void addCustTableDefaults()
+        {
+            delete_from dataValidationRulesTable where dataValidationRulesTable.ValidationTableId == tableNum(CustTable);
+
+            dataValidationRulesTable.clear();
+            dataValidationRulesTable.initValue();
+            dataValidationRulesTable.ValidationTableId = tableNum(CustTable);
+            dataValidationRulesTable.Active            = NoYes::Yes;
+            dataValidationRulesTable.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(CustTable);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(CustTable, DlvMode);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::NotEqual;
+            dataValidationRulesLine.Value             = '';
+            dataValidationRulesLine.ErrorTxt          = 'Delivery mode should be filled in.';
+            dataValidationRulesLine.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(CustTable);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(CustTable, Blocked);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::Equal;
+            dataValidationRulesLine.Value             = '0';
+            dataValidationRulesLine.ErrorTxt          = 'Customer is blocked.';
+            dataValidationRulesLine.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(CustTable);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(CustTable, Currency);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::CustomFunction;
+            dataValidationRulesLine.Value             = 'vr_validateCurrency';
+            dataValidationRulesLine.ErrorTxt          = 'Customer currency exchange rate is invalid.';
+            dataValidationRulesLine.insert();
+        }
+
+        //WebShop
+        void addWebShopDefaults()
+        {
+            delete_from dataValidationRulesTable where dataValidationRulesTable.ValidationTableId == tableNum(SC_WebShopsTable);
+
+            dataValidationRulesTable.clear();
+            dataValidationRulesTable.initValue();
+            dataValidationRulesTable.ValidationTableId = tableNum(SC_WebShopsTable);
+            dataValidationRulesTable.Active            = NoYes::Yes;
+            dataValidationRulesTable.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(SC_WebShopsTable);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(SC_WebShopsTable, PaymentLedgerDimension);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::NotEqual;
+            dataValidationRulesLine.Value             = '';
+            dataValidationRulesLine.ErrorTxt          = 'Payment cost account should not be empty on webshop.';
+            dataValidationRulesLine.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(SC_WebShopsTable);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(SC_WebShopsTable, ShippingLedgerDimension);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::NotEqual;
+            dataValidationRulesLine.Value             = '';
+            dataValidationRulesLine.ErrorTxt          = 'Shipping cost account should not be empty on webshop.';
+            dataValidationRulesLine.insert();
+        }
+
+        //InventTable
+        void addInventTableDefaults()
+        {
+            delete_from dataValidationRulesTable where dataValidationRulesTable.ValidationTableId == tableNum(InventTable);
+
+            dataValidationRulesTable.clear();
+            dataValidationRulesTable.initValue();
+            dataValidationRulesTable.ValidationTableId = tableNum(InventTable);
+            dataValidationRulesTable.Active            = NoYes::Yes;
+            dataValidationRulesTable.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(InventTable);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(InventTable, ItemId);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::CustomFunction;
+            dataValidationRulesLine.Value             = 'vr_checkInventSalesUnits';
+            dataValidationRulesLine.ErrorTxt          = 'Inventory and sales units should be filled in.';
+            dataValidationRulesLine.insert();
+        }
+
+        //UnitOfMeasure
+        void addUOMDefaults()
+        {
+            delete_from dataValidationRulesTable where dataValidationRulesTable.ValidationTableId == tableNum(UnitOfMeasure);
+
+            dataValidationRulesTable.clear();
+            dataValidationRulesTable.initValue();
+            dataValidationRulesTable.ValidationTableId = tableNum(UnitOfMeasure);
+            dataValidationRulesTable.Active            = NoYes::Yes;
+            dataValidationRulesTable.insert();
+
+            dataValidationRulesLine.clear();
+            dataValidationRulesLine.initValue();
+            dataValidationRulesLine.ValidationTableId = tableNum(UnitOfMeasure);
+            dataValidationRulesLine.ValidationFieldId = fieldNum(UnitOfMeasure, SC_VisibleinWebshop);
+            dataValidationRulesLine.Operator          = SC_ValidationOperator::NotEqual;
+            dataValidationRulesLine.Value             = '0';
+            dataValidationRulesLine.ErrorTxt          = 'Only visible in webshop unit of measure available.';
+            dataValidationRulesLine.insert();
+        }
+        ;
+
+        ttsBegin;
+        if(_tableId)
+        {
+            switch(_tableId)
+            {
+                case tableNum(CustTable):
+                    addCustTableDefaults();
+                    break;
+                case tableNum(SC_WebShopsTable):
+                    addWebShopDefaults();
+                    break;
+                case tableNum(InventTable):
+                    addInventTableDefaults();
+                    break;
+                case tableNum(UnitOfMeasure):
+                    addUOMDefaults();
+                    break;
+                case tableNum(Currency):
+                    addCurrencyDefaults();
+                    break;
+                default:
+                    info(strFmt("@SCL197", tableId2name(_tableId)));
+            }
+        }
+        else
+        {
+            delete_from dataValidationRulesTable;
+
+            addCustTableDefaults();
+            addWebShopDefaults();
+            addInventTableDefaults();
+            addUOMDefaults();
+            addCurrencyDefaults();
+        }
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateItemVisibilitySilent</Name>
+				<Source><![CDATA[
+    [Replaceable]
+    public static void updateItemVisibilitySilent(InventTable _inventTable, NoYes _value)
+    {
+        ttsBegin;
+        _inventTable.SC_VisibleInWebShop = _value;
+        _inventTable.doUpdate();
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isCheckStock</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected boolean isCheckStock()
+    {
+        boolean ret;
+
+        ret = checkStock && !inventTable.SC_AllowForPreOrders;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcBOMComponentsInventory</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void calcBOMComponentsInventory(InventDim _inventDim = InventDim::findOrCreateBlank())
+    {
+        BOM             BOM;
+        InventDim       inventDim, inventDimCriteria;
+        BOMVersion      bomVersion;
+        ItemId          origItemId = inventTable.ItemId;
+        Qty             componentQty, availableBOMQty = maxInt();
+        SC_LargeText    cacheKey = strFmt('%1%2%3%4%5', webShopsTable.WebShopId, custTable.AccountNum, inventTable.ItemId, _inventDim.inventDimId, (parmUnitId ? parmUnitId : inventTable.salesUnitId()));
+        SC_LargeText    cacheBOMKey = strFmt('%1%2%3', inventTable.ItemId, _inventDim.inventDimId, (parmUnitId ? parmUnitId : inventTable.salesUnitId()));
+        boolean         isBOMcalculated;
+    
+        [isBOMcalculated] = globalCache.get(classId2Name(classIdGet(this)), cacheBOMKey, [0]);
+
+        if(webShopsTable.CalcBOMlinesInventory && !webShopsTable.DisableBOM && inventTable.isBOMAllowed() && !isBOMcalculated)
+        {
+            globalCache.set(classId2Name(classIdGet(this)), cacheBOMKey, [1]);
+
+            if(webshopsTable.OverrideCustDim)
+            {
+                inventDim.InventSiteId = webshopsTable.DefaultSiteId;
+            }
+            else
+            {
+                //take from customer
+                inventDim.InventSiteId = custTable.InventSiteId;
+            }
+
+            //override site if invent setting is mandatory
+            inventDim.InventSiteId = inventTable.inventItemOrderSetupMap(InventItemOrderSetupType::Sales).inventSiteId(inventDim.InventsiteId, inventTable);
+            //if no site warehouse settings on item, take default from Sana parameters
+            inventDim.InventSiteId = inventDim.InventSiteId ? inventDim.InventSiteId : webshopsTable.DefaultSiteId;
+            inventDim.mergeUsedDim(InventDimGroupSetup::newItemId(inventTable.ItemId), _inventDim);
+
+            select firstonly BOMId, InventDimId from bomVersion
+                order by inventDimCriteria.InventSiteId desc, bomVersion.FromQty
+                where bomVersion.ItemId   == inventTable.ItemId &&
+                        bomVersion.Active   == NoYes::Yes &&
+                        bomVersion.Approved == NoYes::Yes &&
+                        bomVersion.FromDate <= DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()) &&
+                        (bomVersion.ToDate   >= DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()) || !bomVersion.ToDate)
+                join TableId from inventDimCriteria
+                    where inventDimCriteria.InventDimId    == bomVersion.InventDimId   &&
+                            (inventDimCriteria.InventSiteId  == inventDim.InventSiteId  || !inventDimCriteria.InventSiteId) &&
+                            (inventDimCriteria.InventColorId == inventDim.InventColorId || !inventDimCriteria.InventColorId) &&
+                            (inventDimCriteria.InventSizeId  == inventDim.InventSizeId  || !inventDimCriteria.InventSizeId) &&
+                            (inventDimCriteria.configId      == inventDim.configId      || !inventDimCriteria.configId) &&
+                            (inventDimCriteria.InventStyleId == inventDim.InventStyleId || !inventDimCriteria.InventStyleId);
+
+            if(bomVersion.BOMId)
+            {
+                while select ItemId, InventDimId, BOMQty from BOM where BOM.BOMId == bomVersion.BOMId && BOM.SC_VisibleInWebShop
+                {
+                    if(BOM.BOMQty)
+                    {
+                        inventTable  = InventTable::find(BOM.ItemId);
+                        componentQty = this.calcInventory(BOM.inventDim());
+                        availableBOMQty = availableBOMQty < componentQty / BOM.BOMQty ? availableBOMQty : componentQty / BOM.BOMQty;
+                    }
+                }
+
+                inventTable = InventTable::find(origItemId);
+                globalCache.set(classId2Name(classIdGet(this)), cacheKey, [availableBOMQty]);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSpecificNodeValues</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    void setSpecificNodeValues(TableId _tableId, FieldId _fieldId, XmlNode _node)
+    {
+        XmlElement              filterNode;
+        Name                    filterField;
+        String255               nodeValue;
+        EcoResCategoryHierarchy salesEcoResCategoryHierarchy;
+    
+        if(webShopsTable.EnableSalesCategoryAsProduct && _node && _tableId == tableNum(InventTable) && _fieldId == fieldNum(InventTable, ItemId)) //remove greater filter if it's not a product
+        {
+            filterNode  = node.getNamedElement(#Greater);
+            filterField = node.attributes() ? node.attributes().getNamedItem(#field).text() : '';
+            
+            if(filterNode && filterField == #id && !InventTable::exist(filterNode.text()))
+            {
+                filterNode.text('zxy_' + filterNode.text());
+            }
+        }
+    
+        if(webShopsTable.EnableSalesCategoryAsProduct && _node && _tableId == tableNum(EcoResCategory) && _fieldId == fieldNum(EcoResCategory, Name)) //set greater filter back
+        {
+            filterNode  = node.getNamedElement(#Greater);
+            filterField = node.attributes() ? node.attributes().getNamedItem(#field).text() : '';
+            nodeValue   = filterNode ? filterNode.text() : '';
+        
+            if(filterNode && filterField == #id)
+            {
+                if(subStr(nodeValue, 1, 4) == 'zxy_')
+                {
+                    nodeValue = subStr(nodeValue, 5, strLen(nodeValue));
+                    filterNode.text(nodeValue);
+                }
+                else
+                {
+                    salesEcoResCategoryHierarchy = EcoResCategoryHierarchy::find(EcoResCategoryHierarchyRole::getHierarchiesByRole(EcoResCategoryNamedHierarchyRole::Sales).CategoryHierarchy);
+                    if(!EcoResCategory::findByName(filterNode.text(), salesEcoResCategoryHierarchy.RecId))
+                    {
+                        filterNode.text('');
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getActiveBuffer</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected Common getActiveBuffer(TableId _tableId)
+    {
+        Common  ret;
+
+        switch(_tableId)
+        {
+            case tableNum(CustTable):
+                ret = custTable as CustTable;
+                break;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setWebshopDataMappingGetAPI</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void setWebshopDataMappingGetAPI(String50 _operation, Common _sourceBuffer)
+    {
+        SC_WebshopDataMappingGetTable  webshopDataMappingGetTable;
+        XmlNodeList                    dataNodesList;
+        XmlNode                        dataNode;        
+
+        if(!webShopsTable.DisableDataMapping)
+        {
+            while select webshopDataMappingGetTable
+                where webshopDataMappingGetTable.WebShopId == webShopsTable.WebShopId &&
+                      webshopDataMappingGetTable.Operation == _operation &&
+                     (webshopDataMappingGetTable.MappedTableId == _sourceBuffer.TableId  || webshopDataMappingGetTable.ParamValue) &&
+                      webshopDataMappingGetTable.Active
+            {
+                dataNodesList = responseNode.selectNodes(webshopDataMappingGetTable.ParamPath);
+                dataNode = dataNodesList.item(dataNodesList.length() -1);
+
+                if(dataNode && !webshopDataMappingGetTable.ParamName)
+                {
+                    dataNode.text(webshopDataMappingGetTable.ParamValue ? webshopDataMappingGetTable.ParamValue : this.convertAny2Str(_sourceBuffer.(webshopDataMappingGetTable.MappedFieldId)));
+                }
+                else if(dataNode)
+                {
+                    this.addFieldValue(webshopDataMappingGetTable.ParamName, dataNode, webshopDataMappingGetTable.ParamValue ? webshopDataMappingGetTable.ParamValue : this.convertAny2Str(_sourceBuffer.(webshopDataMappingGetTable.MappedFieldId)));
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrCreateUrlAttachmentType</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected static DocuType findOrCreateUrlAttachmentType()
+    {
+        DocuType docuTypeLocal;
+
+        docuTypeLocal = DocuType::findGroup(DocuTypeGroup::URL);
+
+        if(!docuTypeLocal)
+        {
+            docuTypeLocal.clear();
+            docuTypeLocal.TypeId = 'SanaURL';
+            docuTypeLocal.Name = 'Sana URL attachment';
+            docuTypeLocal.ActionClassId = classNum(DocuActionURL);
+            docuTypeLocal.TypeGroup = DocuTypeGroup::URL;
+            docuTypeLocal.insert();
+        }
+
+        return docuTypeLocal;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductName</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected EcoResProductName getProductName(InventTable _inventTable = inventTable)
+    {
+        return _inventTable.productName(languageId ? languageId : CompanyInfo::languageId());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBasketParams</Name>
+				<Source><![CDATA[
+    [HookableAttribute(true), Replaceable]
+    protected void getBasketParams(XmlNode _node)
+    {
+        XmlNodeList paramList = _node.childNodes();
+        XmlNode     paramNode;
+        Integer     b;
+    
+        if(paramList)
+        {
+            for(b=0;b<paramList.length();b++)
+            {
+                paramNode = paramList.item(b);
+            
+                if(!paramNode.attributes().getNamedItem(#value))
+                {
+                    continue;
+                }
+            
+                switch(paramNode.attributes().getNamedItem(#name).innerText())
+                {
+                    case #documentId:
+                        documentId = paramNode.attributes().getNamedItem(#value).innerText();
+                        break;
+
+                    case #documentType:
+                        documentType = paramNode.attributes().getNamedItem(#value).innerText();
+                        break;
+
+                    default:
+                        this.customBasketParamsDelegate(paramNode, this);
+                        break;
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customBasketParamsDelegate</Name>
+				<Source><![CDATA[
+    delegate void customBasketParamsDelegate(XmlNode _node, Object _object)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,1260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SC_WebshopDataMapping</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class SC_WebshopDataMapping extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOperations</Name>
+				<Source><![CDATA[
+    public void addOperations()
+    {   
+        Operation.add('GetAnonymousCustomer');               
+        Operation.add('GetBalanceInfo');                     
+        Operation.add('GetContacts');                        
+        Operation.add('GetCountries');                       
+        Operation.add('GetCurrencies');                      
+        Operation.add('GetCustomerByContact');               
+        Operation.add('GetCustomers');                       
+        Operation.add('GetCustomerStatistics');              
+        Operation.add('GetCustomerStatisticsFields');        
+        Operation.add('GetOrders');                          
+        Operation.add('GetPersistedBasket');                 
+        Operation.add('GetPriceInfo');                       
+        Operation.add('GetProductCategories');                                     
+        Operation.add('GetProductImages');                   
+        Operation.add('GetProducts');                        
+        Operation.add('GetProductSalesAgreementLines');      
+        Operation.add('GetProductSuggestions');              
+        Operation.add('GetRetailOffers');                    
+        Operation.add('GetReturnReasonCodes');               
+        Operation.add('GetSalesAgreements');                 
+        Operation.add('GetSalesPersons');                    
+        Operation.add('GetSettings');                        
+        Operation.add('GetShippingAddresses');               
+        Operation.add('GetShippingMethods');                 
+        Operation.add('GetShippingOrigin');                  
+        Operation.add('GetStockInfo');                       
+        Operation.add('GetTaxNumberFormats');                
+        Operation.add('GetUnitsOfMeasure');                  
+        Operation.add('GetVariantComponentGroups');          
+        Operation.add('GetVariantComponents');               
+        Operation.add('GetVolumePrices');                    
+        Operation.add('GetPaymentMethods');                  
+        Operation.add('GetStoreLocations');                  
+        Operation.add('CalculateBasket');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        #SysSystemDefinedButtons
+
+        super();
+
+        SC_WebshopDataMappingTable::upgradeWebshopDataMappingData();
+
+        if(element.args() && element.args().record())
+        {
+            WebShopId.visible(false);
+        }
+        else
+        {
+            WebShopId.text(SC_WebShopsTable::findFirst().WebShopId);
+            WebshopId.modified();
+        }
+
+        this.control(this.controlId(#SystemDefinedNewButton)).visible(false);
+        this.control(this.controlId(#SystemDefinedDeleteButton)).visible(false);
+
+        element.addOperations();
+        Operation.modified();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDesign</Name>
+				<Source><![CDATA[
+    public void updateDesign()
+    {
+        DictField   dictField;
+        SysDictType sysDictType;
+
+        dictField = new DictField(WebshopDataMappingTable.DataTableId  , WebshopDataMappingTable.DataFieldId);
+
+        if(dictField)
+        {
+            sysDictType = new SysDictType(dictField.typeId());
+
+            if(sysDictType && (sysDictType.getLookupRelation() || dictField.baseType() == Types::Date))
+            {
+                DefaultValue.lookupButton(FormLookupButton::Always);
+            }
+            else
+            {
+                DefaultValue.lookupButton(FormLookupButton::Hidden);
+            }
+
+            if(dictField.baseType() == Types::Date)
+            {
+                DefaultValue.extendedDataType(extendedTypeNum(TransDate));
+            }
+            else
+            {
+                DefaultValue.extendedDataType(dictField.typeId());
+            }
+        }
+
+        DefaultValue.allowEdit(!WebShopDataMappingTable.isMapped);
+        MappedFieldName.allowEdit(WebShopDataMappingTable.isMapped);
+        WebshopDataMappingTable_Override.allowEdit(!WebShopDataMappingTable.isMapped);
+        MappedTableName.allowEdit(WebShopDataMappingTable.isMapped);                
+        WebShopDataMappingTable_Move.allowEdit(WebShopDataMappingTable.isMapped); 
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>WebshopDataMappingTable</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+
+            ret = super();
+
+            element.updateDesign();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+            WebShopDataMappingTable.Active = NoYes::Yes;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>WebshopDataMappingGetTable</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+
+            WebshopDataMappingGetTable.Operation = Operation.valueStr();
+            WebshopDataMappingGetTable.Active = NoYes::Yes;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>ParamValue</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            public void modified()
+            {
+                super();
+
+                WebshopDataMappingGetTable.MappedTableId = 0;
+                WebshopDataMappingGetTable.MappedFieldId = 0;
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>WebshopId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>jumpRef</Name>
+						<Source><![CDATA[
+        public void jumpRef()
+        {
+            Args args = new Args();
+            ;
+    
+            args.caller(this);
+            if(this.text())
+            {
+                args.record(SC_WebShopsTable::find(this.text()));
+            }
+            new MenuFunction(menuitemdisplaystr(SC_WebShops), MenuItemType::Display).run(args);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebShopsTable::lookupWebshops(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+
+            ret = super();
+
+            SysQuery::findOrCreateRange(WebShopDataMappingTable_ds.query().dataSourceTable(tableNum(SC_WebshopDataMappingTable)), fieldNum(SC_WebshopDataMappingTable, WebshopId)).value(WebshopId.text());
+            SysQuery::findOrCreateRange(WebshopDataMappingGetTable_ds.query().dataSourceTable(tableNum(SC_WebshopDataMappingGetTable)), fieldNum(SC_WebshopDataMappingGetTable, WebshopId)).value(WebshopId.text());
+            WebShopDataMappingTable_ds.query().dataSourceTable(tableNum(SC_WebshopDataMappingTable)).addOrderByField(fieldNum(SC_WebshopDataMappingTable, Priority));            
+            WebShopDataMappingTable_ds.executeQuery();
+            WebshopDataMappingGetTable_ds.executeQuery();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validate</Name>
+						<Source><![CDATA[
+        public boolean validate()
+        {
+            boolean ret;
+
+            ret = super();
+
+            return ret && this.valueStr();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>NewMappingSaveAPI</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            WebshopDataMappingTable_ds.create();
+            WebshopDataMappingTable.isMapped = true;            
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>CopyToSaveAPI</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Dialog          dialog = new Dialog("@SCL621");
+            DialogField     webshop;
+
+            webshop = dialog.addField(extendedtypestr(SC_WebshopId),"@SCL161","@SCL26");
+
+            if(dialog.run() && webshop.value())
+            {
+                WebShopDataMappingTable.copyTo(webshop.value());
+            }            
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TableName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebshopDataMappingTable::lookupTables(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+
+            WebshopDataMappingTable.DataFieldId = 0;
+            WebshopDataMappingTable.MappedFieldId = 0;
+            WebshopDataMappingTable.DefaultValue = '';
+        
+            ret = super();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FieldName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebshopDataMappingTable::lookupTableFields(this, WebshopDataMappingTable.DataTableId);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean     ret;
+
+            WebshopDataMappingTable.MappedFieldId = 0;
+            WebshopDataMappingTable.DefaultValue = '';
+
+            ret = super();
+
+            element.updateDesign();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DefaultValue</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+
+            WebShopDataMappingTable_ds.leaveRecord();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            FormRun formRun;
+            Args    args;
+
+            if(DefaultValue.extendedDataType() == extendedTypeNum(TransDate))
+            {
+                args        = new Args(formStr(SysDateLookup));
+                args.caller(element);
+                formRun     = classfactory.formRunClass(args);
+                formRun.init();
+                this.performFormLookup(formRun);
+            }
+            else
+            {
+                super();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MappedTableName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebshopDataMappingTable::lookupTables(this);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;        
+            
+            WebshopDataMappingTable.MappedFieldId = 0;
+            WebshopDataMappingTable.DefaultValue = '';
+        
+            ret = super();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MappedFieldName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebshopDataMappingTable::lookupTableFields(this, WebshopDataMappingTable.MappedTableId);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean     ret;
+
+            ret = super();
+
+            element.updateDesign();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Operation</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+
+            ret = super();
+            
+            SysQuery::findOrCreateRange(WebshopDataMappingGetTable_ds.query().dataSourceTable(tableNum(SC_WebshopDataMappingGetTable)), fieldNum(SC_WebshopDataMappingGetTable, Operation)).value(Operation.valueStr() ? Operation.valueStr() : SysQuery::valueEmptyString());
+            WebshopDataMappingGetTable_ds.executeQuery();            
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>CopyToGetAPI</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Dialog          dialog = new Dialog("@SCL621");
+            DialogField     webshop;
+    
+            webshop = dialog.addField(extendedtypestr(SC_WebshopId),"@SCL161","@SCL26");
+    
+            if(dialog.run() && webshop.value())
+            {
+                WebShopDataMappingGetTable.copyTo(webshop.value(), Operation.valueStr());
+            }            
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MappedGetTableName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebshopDataMappingGetTable::lookupTables(this, WebShopDataMappingGetTable.Operation);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+
+            WebshopDataMappingGetTable.ParamValue = '';
+            WebshopDataMappingGetTable.MappedFieldId = 0;
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MappedGetFieldName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            SC_WebshopDataMappingGetTable::lookupTableFields(this, WebshopDataMappingGetTable.MappedTableId);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>WebshopDataMappingTable</Name>
+			<Table>SC_WebshopDataMappingTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Active</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataFieldId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataTableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>isMapped</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MappedFieldId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MappedTableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Move</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Override</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Priority</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebShopId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<Index>ShopIdx</Index>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>WebshopDataMappingGetTable</Name>
+			<Table>SC_WebshopDataMappingGetTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Active</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MappedFieldId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MappedTableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Operation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParamName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParamPath</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParamValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WebShopId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<Index>ShopIdx</Index>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SCL608</Caption>
+		<DataSource xmlns="">WebshopDataMappingTable</DataSource>
+		<Pattern xmlns="">Custom</Pattern>
+		<TitleDataSource xmlns="">WebshopDataMappingTable</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<ElementPosition>357913941</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>ActionPane</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<AlignChild>No</AlignChild>
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>Grid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>WebshopId</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+						<Label>@SCL161</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>EmptyText2</Name>
+						<Type>StaticText</Type>
+						<Width>240</Width>
+						<WidthMode>Manual</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Text></Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Warning</Name>
+						<ElementPosition>715827882</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>Group</Type>
+						<VerticalSpacing>20</VerticalSpacing>
+						<VerticalSpacingMode>Fixed</VerticalSpacingMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>WarningImage</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormImageControl">
+										<Name>Window</Name>
+										<AlignControl>No</AlignControl>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Height>70</Height>
+										<HeightMode>Manual</HeightMode>
+										<Left>10</Left>
+										<LeftMode>Manual</LeftMode>
+										<Top>0</Top>
+										<TopMode>Manual</TopMode>
+										<Type>Image</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<Width>70</Width>
+										<WidthMode>Manual</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<BackStyle>Transparent</BackStyle>
+										<ImageLocation>EmbeddedResource</ImageLocation>
+										<ImageResource>931</ImageResource>
+										<NormalImage>931</NormalImage>
+										<ShowLabel>No</ShowLabel>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Auto</ArrangeMethod>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>WarningText</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>EmptyText</Name>
+										<Type>StaticText</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text></Text>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>StaticText</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Top>5</Top>
+										<TopMode>Manual</TopMode>
+										<Type>StaticText</Type>
+										<VerticalSpacingMode>Fixed</VerticalSpacingMode>
+										<FormControlExtension
+											i:nil="true" />
+										<BackgroundColorRGB>
+											<Red>255</Red>
+											<Green>255</Green>
+											<Blue>255</Blue>
+										</BackgroundColorRGB>
+										<Bold>Bold</Bold>
+										<ColorScheme>RGB</ColorScheme>
+										<ForegroundColorRGB>
+											<Red>255</Red>
+											<Green>0</Green>
+											<Blue>0</Blue>
+										</ForegroundColorRGB>
+										<Text>@SCL297</Text>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Auto</ArrangeMethod>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>Auto</ArrangeMethod>
+						<Columns>2</Columns>
+						<FrameType>None</FrameType>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>SaveAPI</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>SaveFormActionPane</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneTabControl">
+										<Name>SaveFormActionPaneTab</Name>
+										<Type>ActionPaneTab</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonGroupControl">
+												<Name>FormButtonGroupControl</Name>
+												<Type>ButtonGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>NewButtonSaveAPI</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>New</Command>
+														<NormalImage>Add</NormalImage>
+														<Text>@SYS310150</Text>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonControl">
+														<Name>NewMappingSaveAPI</Name>
+														<HelpText>@SYS87870</HelpText>
+														<Type>Button</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<NormalImage>Add</NormalImage>
+														<Text>@SCL610</Text>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>DeleteSaveAPI</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>DeleteRecord</Command>
+														<NormalImage>Delete</NormalImage>
+														<Text>@SYS10308</Text>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonControl">
+														<Name>CopyToSaveAPI</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HelpText>@SYS87873</HelpText>
+														<Type>Button</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<NeedsRecord>Yes</NeedsRecord>
+														<NormalImage>Copy</NormalImage>
+														<Text>@SYS153201</Text>
+													</AxFormControl>
+												</Controls>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<DataSource>WebshopDataMappingTable</DataSource>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<ElementPosition>1073741823</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TableName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>editTableName</DataMethod>
+										<DataSource>WebshopDataMappingTable</DataSource>
+										<Label>@SYS184313</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FieldName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>editFieldName</DataMethod>
+										<DataSource>WebshopDataMappingTable</DataSource>
+										<Label>@SYS152278</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>DefaultValue</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>editDefaultValue</DataMethod>
+										<DataSource>WebshopDataMappingTable</DataSource>
+										<Label>@SYS40175</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>WebshopDataMappingTable_Override</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Override</DataField>
+										<DataSource>WebshopDataMappingTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>WebshopDataMappingTable_Move</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Move</DataField>
+										<DataSource>WebshopDataMappingTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>WebshopDataMapping_isMapped</Name>
+										<AllowEdit>No</AllowEdit>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>isMapped</DataField>
+										<DataSource>WebshopDataMappingTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MappedTableName</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>editMappedTableName</DataMethod>
+										<DataSource>WebshopDataMappingTable</DataSource>
+										<Label>@SYS184315</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MappedFieldName</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>editMappedFieldName</DataMethod>
+										<DataSource>WebshopDataMappingTable</DataSource>
+										<Label>@SCL609</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>WebshopDataMappingTable_Priority</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Priority</DataField>
+										<DataSource>WebshopDataMappingTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>WebshopDataMappingTable_Active</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Active</DataField>
+										<DataSource>WebshopDataMappingTable</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>WebshopDataMappingTable</DataSource>
+								<Style>Tabular</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL663</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>GetAPI</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>OperationGroup</Name>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>Operation</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<FilterExpression>%1</FilterExpression>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<AppendNew>Yes</AppendNew>
+										<ComboType>List</ComboType>
+										<Label>@SYS101237</Label>
+										<Items />
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+								<FrameType>None</FrameType>
+								<ViewEditMode>Edit</ViewEditMode>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>GetFormActionPane</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneTabControl">
+										<Name>GetFormActionPaneTab</Name>
+										<Type>ActionPaneTab</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+										<DataSource>WebshopDataMappingGetTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>GetFormButtonGroup</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>NewButtonGetAPI</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+												<NormalImage>Add</NormalImage>
+												<Text>@SYS68002</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteGetAPI</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+												<NormalImage>Delete</NormalImage>
+												<Text>@SYS10308</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>CopyToGetAPI</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HelpText>@SYS87873</HelpText>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<NeedsRecord>Yes</NeedsRecord>
+												<NormalImage>Copy</NormalImage>
+												<Text>@SYS153201</Text>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<DataSource>WebshopDataMappingGetTable</DataSource>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>GetGrid</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>WebshopDataMappingGetTable_ParamPath</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ParamPath</DataField>
+										<DataSource>WebshopDataMappingGetTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>WebshopDataMappingGetTable_ParamName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ParamName</DataField>
+										<DataSource>WebshopDataMappingGetTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>WebshopDataMappingGetTable_ParamValue</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ParamValue</DataField>
+										<DataSource>WebshopDataMappingGetTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MappedGetTableName</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>editMappedTableName</DataMethod>
+										<DataSource>WebshopDataMappingGetTable</DataSource>
+										<Label>@SYS184313</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MappedGetFieldName</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>editMappedFieldName</DataMethod>
+										<DataSource>WebshopDataMappingGetTable</DataSource>
+										<Label>@SYS152278</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>WebshopDataMappingGetTable_Active</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Active</DataField>
+										<DataSource>WebshopDataMappingGetTable</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>WebshopDataMappingGetTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SCL662</Caption>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

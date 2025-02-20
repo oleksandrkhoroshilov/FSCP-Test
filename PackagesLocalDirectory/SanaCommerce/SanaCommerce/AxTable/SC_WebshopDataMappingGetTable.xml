@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SC_WebshopDataMappingGetTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SC_WebshopDataMappingGetTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>editMappedFieldName</Name>
+				<Source><![CDATA[
+    public edit FieldName editMappedFieldName(boolean _set, FieldName _value)
+    {
+        if(_set)
+        {
+            this.MappedFieldId = fieldName2id(this.MappedTableId, _value);
+        }
+        else
+        {
+            _value = fieldId2name(this.MappedTableId, this.MappedFieldId);
+        }
+
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>editMappedTableName</Name>
+				<Source><![CDATA[
+    public edit TableName editMappedTableName(boolean _set, TableName _value)
+    {
+        if(_set)
+        {
+            this.MappedTableId = tableName2id(_value);
+        }
+        else
+        {
+            _value = tableId2name(this.MappedTableId);
+        }
+
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public boolean validateWrite()
+    {
+        boolean ret;
+
+        ret = super();        
+
+        if(ret && !this.ParamValue && !this.MappedFieldId)
+        {
+            ret = checkFailed("@SYS136548");
+        }        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    static boolean exists(SC_WebshopId _webshopId, Name _operation)
+    {        
+        return (select firstOnly SC_WebshopDataMappingGetTable where SC_WebshopDataMappingGetTable.WebShopId == _webshopId && SC_WebshopDataMappingGetTable.Operation == _operation).RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    static public SC_WebshopDataMappingGetTable find(SC_WebshopId _webshopId, Name _operation, boolean _forUpdate = false)
+    {
+        SC_WebshopDataMappingGetTable    webshopDataMappingGetTable;
+
+        webshopDataMappingGetTable.selectForUpdate(_forUpdate);
+
+        select firstonly webshopDataMappingGetTable
+        where webshopDataMappingGetTable.Operation == _operation &&
+              webshopDataMappingGetTable.WebShopId == _webshopId;
+
+        return webshopDataMappingGetTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableFields</Name>
+				<Source><![CDATA[
+    public static void lookupTableFields(FormControl _formControl, TableId _tableId)
+    {
+        TmpSysQuery         tmpSysQuery;
+        SysTableLookUp      sysTableLookUp = SysTableLookUp::newParameters(tablenum(tmpSysQuery), _formControl);
+        TmpSysTableField    tmpSysTableField;
+        DictTable           dictTable       = new DictTable(_tableId);
+        DictField           dictField;
+
+        if(dictTable)
+        {
+            tmpSysTableField = TmpSysTableField::findTableFields(tmpSysTableField, dictTable.id());
+
+            while select tmpSysTableField
+            {
+                dictField = dictTable.fieldObject(tmpSysTableField.FieldId);
+
+                tmpSysQuery.Tablelabel = tmpSysTableField.FieldName;
+                tmpSysQuery.FieldLabel = tmpSysTableField.FieldLabel;
+                tmpSysQuery.insert();
+            }
+
+            //BP Deviation documented
+            sysTableLookUp.parmTmpBuffer(tmpSysQuery);
+            sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Tablelabel), true);
+            sysTableLookUp.setLabel("@SYS34979");
+            sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, FieldLabel));
+            sysTableLookUp.setLabel("@SYS104939");
+            sysTableLookUp.performFormLookup();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTables</Name>
+				<Source><![CDATA[
+    client static void lookupTables(FormControl _formControl, Name _operation)
+    {
+        TmpSysQuery             tmpSysQuery;
+        SqlDictionary           sqlDictionary;
+        SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(TmpSysQuery), _formControl);
+        container               tableIds;
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        QueryRun                queryRun;        
+
+        switch(_operation)        
+        {
+            case 'GetAnonymousCustomer', 'GetBalanceInfo', 'GetCustomerByContact', 'GetCustomers', 'GetCustomerStatistics':
+                tableIds += tableNum(CustTable);
+                break;
+            case 'GetCustomerStatisticsFields', 'GetSettings', 'GetTaxNumberFormats', 'GetProductSuggestions', 'GetVariantComponentGroups':
+                tableIds += 0;
+                break;
+            case 'GetContacts':                
+                tableIds += tableNum(ContactPerson);
+                break;
+            case 'GetCountries':
+                tableIds += tableNum(LogisticsAddressCountryRegion);
+                break;
+            case 'GetCurrencies':
+                tableIds += tableNum(Currency);
+                break;
+            case 'GetOrders':
+                tableIds = [tableNum(SalesTable), tableNum(SalesQuotationTable), tableNum(CustInvoiceJour), tableNum(CustPackingSlipJour)];
+                break;
+            case 'GetPersistedBasket', 'CalculateBasket':
+                tableIds = [tableNum(SalesTable), tableNum(SalesQuotationTable)];
+                break;
+            case 'GetReturnReasonCodes':
+                tableIds += tableNum(ReturnReasonCode);
+                break;
+            case 'GetSalesAgreements':
+                tableIds += tableNum(SalesAgreementHeader);
+                break;
+            case 'GetSalesPersons':
+                tableIds += tableNum(HcmWorker);
+                break;
+            case 'GetShippingAddresses', 'GetShippingOrigin':
+                tableIds += tableNum(LogisticsPostalAddress);
+                break;
+            case 'GetShippingMethods':
+                tableIds += tableNum(DlvMode);
+                break;
+            case 'GetPaymentMethods':
+                tableIds += [tableNum(RetailStoreTenderTypeTable), tableNum(CustPaymModeTable)];
+                break;
+            case 'GetStoreLocations':
+                tableIds += tableNum(InventLocation);
+                break;                
+            case 'GetPriceInfo', 'GetProducts', 'GetStockInfo', 'GetVolumePrices':
+                tableIds += tableNum(InventTable);
+                break;
+            case 'GetProductCategories':
+                tableIds += [tableNum(InventItemGroup), tableNum(EcoResCategory)];
+                break;
+            case 'GetProductImages':
+                tableIds += tableNum(DocuRef);                
+                break;
+            case 'GetProductSalesAgreementLines':
+                tableIds += tableNum(AgreementLine);                
+                break;
+            case 'GetRetailOffers':   
+                tableIds += [tableNum(RetailPeriodicDiscountLine), tableNum(SC_MixMatchDiscountLine)];
+                break;
+            case 'GetUnitsOfMeasure':   
+                tableIds += tableNum(UnitOfMeasure);
+                break;            
+            case 'GetVariantComponents':       
+                tableIds += [tableNum(EcoResSize), tableNum(EcoResColor), tableNum(EcoResConfiguration), tableNum(EcoResStyle)];
+                break;            
+        }
+
+        queryBuildDataSource = query.addDataSource(tablenum(SqlDictionary));
+        queryBuildDataSource.addGroupByField(fieldNum(SqlDictionary, tabId));
+        queryBuildDataSource.addSelectionField(fieldNum(SqlDictionary, tabId));
+
+        for(int i=1;i<=conLen(tableIds);i++)
+        {
+            queryBuildDataSource.addRange(fieldnum(SqlDictionary, tabId)).value(queryValue(conPeek(tableIds, i)));
+        }
+
+        queryRun = new QueryRun(query);
+
+        while(queryRun.next()) 
+        {
+            sqlDictionary = queryRun.get(tablenum(SqlDictionary));
+            tmpSysQuery.Tablelabel = tableId2name(sqlDictionary.tabId);
+            tmpSysQuery.insert();
+        }
+
+        //BP Deviation documented
+        sysTableLookUp.parmTmpBuffer(tmpSysQuery);
+        sysTableLookUp.addLookupfield(fieldnum(TmpSysQuery, Tablelabel), true);
+        sysTableLookUp.setLabel("@SYS92116");
+        sysTableLookUp.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyTo</Name>
+				<Source><![CDATA[
+    public void copyTo(SC_WebshopId _webshopId, Name _operation)
+    {
+        SC_WebshopDataMappingGetTable webshopDataMappingGetTable;
+        RecordInsertList              mappingInsertList = new RecordInsertList(tableNum(SC_WebshopDataMappingGetTable));
+
+        if(!SC_WebshopDataMappingGetTable::exists(_webshopId, _operation))
+        {
+            ttsBegin;
+            while select webshopDataMappingGetTable
+                where webshopDataMappingGetTable.WebShopId == this.WebShopId &&
+                      webshopDataMappingGetTable.Operation == _operation
+            {
+                webshopDataMappingGetTable.WebShopId = _webshopId;
+                mappingInsertList.add(webshopDataMappingGetTable);
+            }
+
+            mappingInsertList.insertDatabase();
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateFieldValue</Name>
+				<Source><![CDATA[
+    public boolean validateFieldValue(FieldName _fieldName, int _arrayIndex = 1)
+    {
+        boolean ret;
+    
+        ret = super(_fieldName, _arrayIndex);
+
+        switch (_fieldName)
+        {
+            case fieldstr(SC_WebshopDataMappingGetTable, ParamPath):
+                
+                if (strEndsWith(this.ParamPath, '/'))
+                {
+                    this.ParamPath = subStr(this.ParamPath, 1, strLen(this.ParamPath) - 1);
+                }
+                break;
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<ConfigurationKey>SC_SanaCommerce</ConfigurationKey>
+	<DeveloperDocumentation>@SCL608</DeveloperDocumentation>
+	<FormRef>SC_WebshopDataMapping</FormRef>
+	<Label>@SCL608</Label>
+	<TitleField1>Operation</TitleField1>
+	<TitleField2>WebShopId</TitleField2>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>ShopIdx</ClusteredIndex>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Operation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamPath</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamValue</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Operation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamPath</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS5711</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Operation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamPath</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParamValue</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WebShopId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Setup</Name>
+			<Label>@SYS12687</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MappedTableId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MappedFieldId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Operation</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Label>@SYS26958</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParamPath</Name>
+			<ExtendedDataType>TreeNodePath</ExtendedDataType>
+			<Label>@SCL536</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParamName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Label>@SYS106967</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParamValue</Name>
+			<ExtendedDataType>TreeNodeTxt</ExtendedDataType>
+			<Label>@SYS131692</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MappedTableId</Name>
+			<ExtendedDataType>RefTableId</ExtendedDataType>
+			<Label>@SYS184313</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MappedFieldId</Name>
+			<ExtendedDataType>RefFieldId</ExtendedDataType>
+			<Label>@SCL609</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Active</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@SCL186</HelpText>
+			<Label>@SYS104284</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WebShopId</Name>
+			<ExtendedDataType>SC_WebshopId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ShopIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WebShopId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Operation</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>SC_WebShopsTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>SC_WebShopsTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WebShopId</Name>
+					<Field>WebShopId</Field>
+					<RelatedField>WebShopId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>
